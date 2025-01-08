@@ -6,6 +6,8 @@ type Props = {
   pixelSize: number
   saving: boolean
   onMouseDown: (drawingId: string, columnIndex: number, rowIndex: number) => void
+  onMouseUp: (drawingId: string, columnIndex: number, rowIndex: number) => void
+  onMouseMove: (drawingId: string, columnIndex: number, rowIndex: number) => void
   onDataURLGenerate: (url: string) => void
 }
 
@@ -60,15 +62,33 @@ export default function Canvas(props: Props) {
     }
   }, [props.saving])
 
+  const getGridIndices = (e: any, canvas: HTMLCanvasElement): number[] => {
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const columnIndex = Math.floor(x / props.pixelSize)
+    const rowIndex = Math.floor(y / props.pixelSize)
+    return [rowIndex, columnIndex]
+  }
+
   const onMouseDown = (e: any) => {
     if (canvasRef.current) {
-      const canvas = canvasRef.current
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      const columnIndex = Math.floor(x / props.pixelSize)
-      const rowIndex = Math.floor(y / props.pixelSize)
+      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
       props.onMouseDown(props.drawing.id, columnIndex, rowIndex)
+    }
+  }
+
+  const onMouseUp = (e: any) => {
+    if (canvasRef.current) {
+      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
+      props.onMouseUp(props.drawing.id, columnIndex, rowIndex)
+    }
+  }
+
+  const onMouseMove = (e: any) => {
+    if (canvasRef.current) {
+      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
+      props.onMouseMove(props.drawing.id, columnIndex, rowIndex)
     }
   }
 
@@ -78,6 +98,8 @@ export default function Canvas(props: Props) {
       width={canvasWidth}
       height={canvasHeight}
       onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseMove={onMouseMove}
     ></canvas>
   </>
 }

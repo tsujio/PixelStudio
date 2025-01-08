@@ -15,6 +15,8 @@ export default function App() {
     return new Color("#000000")
   })
 
+  const [mouseDown, setMouseDown] = useState<boolean>(false)
+
   const [saving, setSaving] = useState<boolean>(false)
 
   const onMouseDown = (drawingId: string, columnIndex: number, rowIndex: number) => {
@@ -23,6 +25,22 @@ export default function App() {
       drawing.setPixel(rowIndex, columnIndex, color)
       return project.clone()
     })
+
+    setMouseDown(true)
+  }
+
+  const onMouseUp = (drawingId: string, columnIndex: number, rowIndex: number) => {
+    setMouseDown(false)
+  }
+
+  const onMouseMove = (drawingId: string, columnIndex: number, rowIndex: number) => {
+    if (mouseDown) {
+      setProject(project => {
+        const drawing = project.getDrawing(drawingId)
+        drawing.setPixel(rowIndex, columnIndex, color)
+        return project.clone()
+      })
+    }
   }
 
   const onColorPick = (color: string) => {
@@ -52,7 +70,7 @@ export default function App() {
     />
     <Window>
       <ColorPicker
-        value={color}
+        value={color.rgb}
         onColorPick={onColorPick}
       />
     </Window>
@@ -63,6 +81,8 @@ export default function App() {
           drawing={drawing}
           saving={saving}
           onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
           onDataURLGenerate={onDataURLGenerate}
         />
       </Window>
