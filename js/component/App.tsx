@@ -3,34 +3,30 @@ import NavigationBar from 'tsx!component/NavigationBar'
 import Canvas from 'tsx!component/Canvas'
 import ColorPicker from 'tsx!component/ColorPicker'
 import Window from 'tsx!component/Window'
+import Project from 'tsx!lib/project'
+import Color from 'tsx!lib/color'
 
 export default function App() {
-  const [data, setData] = useState<string[][]>(() => {
-    const data: string[][] = []
-    for (let i = 0; i < 48; i++) {
-      const row: string[] = []
-      for (let j = 0; j < 64; j++) {
-        row.push("")
-      }
-      data.push(row)
-    }
-    return data
+  const [project, setProject] = useState<Project|null>(() => {
+    return Project.create()
   })
 
-  const [color, setColor] = useState<string>("#000000")
+  const [color, setColor] = useState<Color>(() => {
+    return new Color("#000000")
+  })
 
   const [saving, setSaving] = useState<boolean>(false)
 
-  const onMouseDown = (columnIndex: number, rowIndex: number) => {
-    setData(data => {
-      const newData = data.map(row => [...row])
-      newData[rowIndex][columnIndex] = color
-      return newData
+  const onMouseDown = (drawingId: string, columnIndex: number, rowIndex: number) => {
+    setProject(project => {
+      const drawing = project.getDrawing(drawingId)
+      drawing.setPixel(rowIndex, columnIndex, color)
+      return project.clone()
     })
   }
 
   const onColorPick = (color: string) => {
-    setColor(color)
+    setColor(new Color(color))
   }
 
   const onSaveButtonClick = () => {
@@ -60,16 +56,16 @@ export default function App() {
         onColorPick={onColorPick}
       />
     </Window>
-    <Window>
-      <Canvas
-        pixelSize={10}
-        rowCount={48}
-        columnCount={64}
-        data={data}
-        saving={saving}
-        onMouseDown={onMouseDown}
-        onDataURLGenerate={onDataURLGenerate}
-      />
-    </Window>
+    {project && project.drawings.map(drawing =>
+      <Window key={drawing.id}>
+        <Canvas
+          pixelSize={10}
+          drawing={drawing}
+          saving={saving}
+          onMouseDown={onMouseDown}
+          onDataURLGenerate={onDataURLGenerate}
+        />
+      </Window>
+    )}
   </>
 }

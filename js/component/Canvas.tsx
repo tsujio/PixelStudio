@@ -1,20 +1,19 @@
 import React, { useEffect, useRef } from 'react'
+import Drawing from 'tsx!lib/drawing'
 
 type Props = {
-  rowCount: number
-  columnCount: number
+  drawing: Drawing
   pixelSize: number
-  data: string[][]
   saving: boolean
-  onMouseDown: (columnIndex: number, rowIndex: number) => void
+  onMouseDown: (drawingId: string, columnIndex: number, rowIndex: number) => void
   onDataURLGenerate: (url: string) => void
 }
 
 export default function Canvas(props: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const canvasWidth = props.pixelSize * props.columnCount
-  const canvasHeight = props.pixelSize * props.rowCount
+  const canvasWidth = props.pixelSize * props.drawing.columnCount
+  const canvasHeight = props.pixelSize * props.drawing.rowCount
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -24,14 +23,14 @@ export default function Canvas(props: Props) {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
       // Draw grid lines
-      for (let i = 0; i < props.rowCount - 1; i++) {
+      for (let i = 0; i < props.drawing.rowCount - 1; i++) {
         const y = props.pixelSize * (i + 1)
         ctx.beginPath()
         ctx.moveTo(0, y)
         ctx.lineTo(canvasWidth, y)
         ctx.stroke()
       }
-      for (let i = 0; i < props.columnCount - 1; i++) {
+      for (let i = 0; i < props.drawing.columnCount - 1; i++) {
         const x = props.pixelSize * (i + 1)
         ctx.beginPath()
         ctx.moveTo(x, 0)
@@ -40,16 +39,16 @@ export default function Canvas(props: Props) {
       }
 
       // Fill pixels
-      for (let i = 0; i < props.data.length; i++) {
-        for (let j = 0; j < props.data[i].length; j++) {
-          if (props.data[i][j] !== "") {
-            ctx.fillStyle = props.data[i][j]
+      for (let i = 0; i < props.drawing.data.length; i++) {
+        for (let j = 0; j < props.drawing.data[i].length; j++) {
+          if (props.drawing.data[i][j]) {
+            ctx.fillStyle = props.drawing.data[i][j].rgb
             ctx.fillRect(props.pixelSize * j, props.pixelSize * i, props.pixelSize, props.pixelSize)
           }
         }
       }
     }
-  }, [canvasRef.current, props.pixelSize, props.rowCount, props.columnCount, props.data])
+  }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data])
 
   useEffect(() => {
     if (props.saving) {
@@ -69,7 +68,7 @@ export default function Canvas(props: Props) {
       const y = e.clientY - rect.top
       const columnIndex = Math.floor(x / props.pixelSize)
       const rowIndex = Math.floor(y / props.pixelSize)
-      props.onMouseDown(columnIndex, rowIndex)
+      props.onMouseDown(props.drawing.id, columnIndex, rowIndex)
     }
   }
 
