@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import NavigationBar from 'tsx!component/NavigationBar'
 import Canvas from 'tsx!component/Canvas'
-import ColorPicker from 'tsx!component/ColorPicker'
 import Window from 'tsx!component/Window'
+import Tools from 'tsx!component/Tools'
 import Project from 'tsx!lib/project'
 import Color from 'tsx!lib/color'
 
@@ -43,8 +43,8 @@ export default function App() {
     }
   }
 
-  const onColorPick = (color: string) => {
-    setColor(new Color(color))
+  const onColorPick = (color: Color) => {
+    setColor(color)
   }
 
   const onSaveButtonClick = () => {
@@ -69,8 +69,8 @@ export default function App() {
       onSaveButtonClick={onSaveButtonClick}
     />
     <Window>
-      <ColorPicker
-        value={color.rgb}
+      <Tools
+        color={color}
         onColorPick={onColorPick}
       />
     </Window>

@@ -1,16 +1,17 @@
 import React from 'react'
+import Color from 'tsx!lib/color'
 
 type Props = {
-  value: string
-  onColorPick: (value: string) => void
+  color: Color
+  onColorPick: (color: Color) => void
 }
 
 export default function ColorPicker(props: Props) {
   const onChange = (e: any) => {
-    props.onColorPick(e.target.value)
+    props.onColorPick(new Color(e.target.value))
   }
 
   return (
-    <input type="color" value={props.value} onChange={onChange} />
+    <input type="color" value={props.color.rgb} onChange={onChange} />
   )
 }
