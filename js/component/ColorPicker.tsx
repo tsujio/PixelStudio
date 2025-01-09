@@ -5,10 +5,10 @@ import { useDrawContext } from 'tsx!component/DrawContext'
 type Props = {}
 
 export default function ColorPicker(props: Props) {
-  const { drawContext, dispatchDrawContext } = useDrawContext()
+  const { drawContext, updateDrawContext } = useDrawContext()
 
   const onChange = (e: any) => {
-    dispatchDrawContext({type: "changeColor", color: new Color(e.target.value)})
+    updateDrawContext({type: "changeColor", color: new Color(e.target.value)})
   }
 
   return (

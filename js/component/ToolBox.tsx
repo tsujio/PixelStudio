@@ -11,10 +11,10 @@ const tools = [
 type Props = {}
 
 export default function ToolBox(props: Props) {
-  const { drawContext, dispatchDrawContext } = useDrawContext()
+  const { drawContext, updateDrawContext } = useDrawContext()
 
   const onToolChange = (e: any) => {
-    dispatchDrawContext({type: "changeTool", tool: e.target.value})
+    updateDrawContext({type: "changeTool", tool: e.target.value})
   }
 
   return <>

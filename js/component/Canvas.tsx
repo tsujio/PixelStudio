@@ -13,7 +13,7 @@ type Props = {
 export default function Canvas(props: Props) {
   const { updateProject } = useProjectContext()
 
-  const { drawContext } = useDrawContext()
+  const { drawContext, updateDrawContext } = useDrawContext()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -52,8 +52,18 @@ export default function Canvas(props: Props) {
           }
         }
       }
+
+      // Show selected area
+      if (drawContext.select && drawContext.select.drawingId === props.drawing.id) {
+        const { start, end } = drawContext.select
+        const top = Math.min(start.rowIndex, end.rowIndex)
+        const left = Math.min(start.columnIndex, end.columnIndex)
+        const height = Math.max(start.rowIndex, end.rowIndex) - top + 1
+        const width = Math.max(start.columnIndex, end.columnIndex) - left + 1
+        ctx.fillRect(props.pixelSize * left, props.pixelSize * top, props.pixelSize * width, props.pixelSize * height)
+      }
     }
-  }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data])
+  }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, drawContext.select])
 
   useEffect(() => {
     if (props.saving) {
@@ -65,28 +75,42 @@ export default function Canvas(props: Props) {
     }
   }, [props.saving])
 
-  const getGridIndices = (e: any, canvas: HTMLCanvasElement): number[] => {
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const columnIndex = Math.floor(x / props.pixelSize)
-    const rowIndex = Math.floor(y / props.pixelSize)
-    return [rowIndex, columnIndex]
-  }
-
   const onMouseDown = (e: any) => {
     e.preventDefault()
 
+    const getGridIndices = (e: any, canvas: HTMLCanvasElement): number[] => {
+      const rect = canvas.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      const columnIndex = Math.floor(x / props.pixelSize)
+      const rowIndex = Math.floor(y / props.pixelSize)
+      return [rowIndex, columnIndex]
+    }
+
     if (canvasRef.current) {
       const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
-      updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+      switch (drawContext.tool) {
+        case "pen":
+          updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+          break
+        case "select":
+          updateDrawContext({type: "startSelect", drawingId: props.drawing.id, rowIndex, columnIndex})
+          break
+      }
 
       const onMouseMove = (e: any) => {
         e.preventDefault()
 
         if (canvasRef.current) {
           const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
-          updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+          switch (drawContext.tool) {
+            case "pen":
+              updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+              break
+            case "select":
+              updateDrawContext({type: "expandSelect", drawingId: props.drawing.id, rowIndex, columnIndex})
+              break
+          }
         }
       }
 

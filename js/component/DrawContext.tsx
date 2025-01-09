@@ -4,6 +4,17 @@ import Color from 'tsx!lib/color'
 export type DrawCtx = {
   tool: string
   color: Color
+  select?: {
+    drawingId: string
+    start: {
+      rowIndex: number
+      columnIndex: number
+    },
+    end: {
+      rowIndex: number
+      columnIndex: number
+    },
+  }
 }
 
 const initialDrawContext: DrawCtx = {
@@ -23,6 +34,49 @@ const reducer = (ctx: DrawCtx, action: any): DrawCtx => {
         ...ctx,
         color: action.color,
       }
+    case 'startSelect': {
+      const { drawingId, rowIndex, columnIndex } = action
+      return {
+        ...ctx,
+        select: {
+          drawingId,
+          start: {
+            rowIndex,
+            columnIndex,
+          },
+          end: {
+            rowIndex,
+            columnIndex,
+          }
+        },
+      }
+    }
+    case 'expandSelect': {
+      const { drawingId, rowIndex, columnIndex } = action
+      if (ctx.select &&
+        ctx.select.drawingId === drawingId &&
+        ctx.select.end.rowIndex === rowIndex &&
+        ctx.select.end.columnIndex === columnIndex) {
+        return ctx
+      }
+
+      return {
+        ...ctx,
+        select: {
+          ...(ctx.select || {
+            drawingId,
+            start: {
+              rowIndex,
+              columnIndex,
+            }
+          }),
+          end: {
+            rowIndex,
+            columnIndex,
+          }
+        },
+      }
+    }
     default:
       throw new Error(`Unknown action: ${action.type}`)
   }
@@ -35,11 +89,11 @@ type Props = {
 }
 
 export const DrawContextProvider = (props: Props) => {
-  const [drawContext, dispatchDrawContext] = useReducer(reducer, initialDrawContext)
+  const [drawContext, updateDrawContext] = useReducer(reducer, initialDrawContext)
 
   const contextValue = useMemo(() => ({
     drawContext,
-    dispatchDrawContext,
+    updateDrawContext,
   }), [drawContext])
 
   return (
