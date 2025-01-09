@@ -1,51 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useReducer } from 'react'
 import NavigationBar from 'tsx!component/NavigationBar'
-import Canvas from 'tsx!component/Canvas'
-import Window from 'tsx!component/Window'
-import Tools from 'tsx!component/Tools'
 import Project from 'tsx!lib/project'
-import Color from 'tsx!lib/color'
+import { ProjectContextProvider } from 'tsx!component/ProjectContext'
+import { DrawContextProvider } from 'tsx!component/DrawContext'
+import ProjectComponent from 'tsx!component/Project'
+
+const reducer = (project: Project, action: any): Project => {
+  switch (action.type) {
+    case 'setPixel':
+      const { drawingId, rowIndex, columnIndex, color } = action
+      const drawing = project.getDrawing(drawingId)
+      const modified = drawing.setPixel(rowIndex, columnIndex, color)
+      return modified ? project.clone() : project
+    default:
+      throw new Error(`Unknown action: ${action.type}`)
+  }
+}
 
 export default function App() {
-  const [project, setProject] = useState<Project|null>(() => {
+  const [project, updateProject] = useReducer<Project|null>(reducer, undefined, () => {
     return Project.create()
   })
 
-  const [color, setColor] = useState<Color>(() => {
-    return new Color("#000000")
-  })
-
-  const [mouseDown, setMouseDown] = useState<boolean>(false)
-
   const [saving, setSaving] = useState<boolean>(false)
-
-  const onMouseDown = (drawingId: string, columnIndex: number, rowIndex: number) => {
-    setProject(project => {
-      const drawing = project.getDrawing(drawingId)
-      drawing.setPixel(rowIndex, columnIndex, color)
-      return project.clone()
-    })
-
-    setMouseDown(true)
-  }
-
-  const onMouseUp = (drawingId: string, columnIndex: number, rowIndex: number) => {
-    setMouseDown(false)
-  }
-
-  const onMouseMove = (drawingId: string, columnIndex: number, rowIndex: number) => {
-    if (mouseDown) {
-      setProject(project => {
-        const drawing = project.getDrawing(drawingId)
-        drawing.setPixel(rowIndex, columnIndex, color)
-        return project.clone()
-      })
-    }
-  }
-
-  const onColorPick = (color: Color) => {
-    setColor(color)
-  }
 
   const onSaveButtonClick = () => {
     if (!saving) {
@@ -68,24 +45,13 @@ export default function App() {
     <NavigationBar
       onSaveButtonClick={onSaveButtonClick}
     />
-    <Window>
-      <Tools
-        color={color}
-        onColorPick={onColorPick}
-      />
-    </Window>
-    {project && project.drawings.map(drawing =>
-      <Window key={drawing.id}>
-        <Canvas
-          pixelSize={10}
-          drawing={drawing}
-          saving={saving}
-          onMouseDown={onMouseDown}
-          onMouseUp={onMouseUp}
-          onMouseMove={onMouseMove}
-          onDataURLGenerate={onDataURLGenerate}
-        />
-      </Window>
-    )}
+    <ProjectContextProvider
+      project={project}
+      updateProject={updateProject}
+    >
+      <DrawContextProvider>
+        {project && <ProjectComponent />}
+      </DrawContextProvider>
+    </ProjectContextProvider>
   </>
 }

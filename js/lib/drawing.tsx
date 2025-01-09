@@ -42,8 +42,15 @@ export default class Drawing {
     return this._data
   }
 
-  setPixel(rowIndex: number, columnIndex: number, color: Color) {
-    this._data = [...this._data]
-    this._data[rowIndex][columnIndex] = color
+  setPixel(rowIndex: number, columnIndex: number, color: Color): boolean {
+    if (rowIndex >= 0 && rowIndex < this._data.length && columnIndex >= 0 && columnIndex < this._data[0].length) {
+      const c = this._data[rowIndex][columnIndex]
+      if (!c || !c.equalTo(color)) {
+        this._data = [...this._data]
+        this._data[rowIndex][columnIndex] = color
+        return true
+      }
+    }
+    return false
   }
 }

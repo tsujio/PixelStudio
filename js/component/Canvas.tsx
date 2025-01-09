@@ -1,17 +1,20 @@
 import React, { useEffect, useRef } from 'react'
 import Drawing from 'tsx!lib/drawing'
+import { useProjectContext } from 'tsx!component/ProjectContext'
+import { useDrawContext } from 'tsx!component/DrawContext'
 
 type Props = {
   drawing: Drawing
   pixelSize: number
   saving: boolean
-  onMouseDown: (drawingId: string, columnIndex: number, rowIndex: number) => void
-  onMouseUp: (drawingId: string, columnIndex: number, rowIndex: number) => void
-  onMouseMove: (drawingId: string, columnIndex: number, rowIndex: number) => void
   onDataURLGenerate: (url: string) => void
 }
 
 export default function Canvas(props: Props) {
+  const { updateProject } = useProjectContext()
+
+  const { drawContext } = useDrawContext()
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const canvasWidth = props.pixelSize * props.drawing.columnCount
@@ -72,23 +75,30 @@ export default function Canvas(props: Props) {
   }
 
   const onMouseDown = (e: any) => {
-    if (canvasRef.current) {
-      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
-      props.onMouseDown(props.drawing.id, columnIndex, rowIndex)
-    }
-  }
+    e.preventDefault()
 
-  const onMouseUp = (e: any) => {
     if (canvasRef.current) {
       const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
-      props.onMouseUp(props.drawing.id, columnIndex, rowIndex)
-    }
-  }
+      updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
 
-  const onMouseMove = (e: any) => {
-    if (canvasRef.current) {
-      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
-      props.onMouseMove(props.drawing.id, columnIndex, rowIndex)
+      const onMouseMove = (e: any) => {
+        e.preventDefault()
+
+        if (canvasRef.current) {
+          const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
+          updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+        }
+      }
+
+      const onMouseUp = (e: any) => {
+        e.preventDefault()
+
+        document.removeEventListener("mousemove", onMouseMove)
+        document.removeEventListener("mouseup", onMouseUp)
+      }
+
+      document.addEventListener("mousemove", onMouseMove)
+      document.addEventListener("mouseup", onMouseUp)
     }
   }
 
@@ -98,8 +108,6 @@ export default function Canvas(props: Props) {
       width={canvasWidth}
       height={canvasHeight}
       onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-      onMouseMove={onMouseMove}
     ></canvas>
   </>
 }

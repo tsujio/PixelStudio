@@ -8,4 +8,8 @@ export default class Color {
   get rgb(): string {
     return this._rgb
   }
+
+  equalTo(other: Color): boolean {
+    return this._rgb === other._rgb
+  }
 }
