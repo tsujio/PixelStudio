@@ -136,7 +136,8 @@ export default function Canvas(props: Props) {
             const [rowIndex, columnIndex] = convertToGridIndices(px, py)
             indices.push([rowIndex, columnIndex])
           }
-          indices.push(convertToGridIndices(x, y))
+          const [rowIndex, columnIndex] = convertToGridIndices(x, y)
+          indices.push([rowIndex, columnIndex])
 
           switch (drawContext.tool) {
             case "pen":

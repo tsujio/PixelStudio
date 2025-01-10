@@ -1,12 +1,18 @@
 import React, { useState, useReducer } from 'react'
 import NavigationBar from 'tsx!component/NavigationBar'
 import Project from 'tsx!lib/project'
+import Drawing from 'tsx!lib/drawing'
 import { ProjectContextProvider } from 'tsx!component/ProjectContext'
 import { DrawContextProvider } from 'tsx!component/DrawContext'
 import ProjectComponent from 'tsx!component/Project'
 
 const reducer = (project: Project, action: any): Project => {
   switch (action.type) {
+    case 'createDrawing': {
+      const drawing = Drawing.create("New drawing", 48, 64)
+      project.addDrawing(drawing)
+      return project.clone()
+    }
     case 'setPixel': {
       const { drawingId, rowIndex, columnIndex, color } = action
       const drawing = project.getDrawing(drawingId)

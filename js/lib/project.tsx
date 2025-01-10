@@ -25,6 +25,10 @@ export default class Project {
     return d
   }
 
+  addDrawing(drawing: Drawing) {
+    this._drawings.push(drawing)
+  }
+
   clone(): Project {
     return Object.assign(new Project(), this)
   }
