@@ -78,20 +78,29 @@ export default function Canvas(props: Props) {
     }
   }, [props.saving])
 
+  const mousePositionRef = useRef<[number, number] | null>(null)
+
   const onMouseDown = (e: any) => {
     e.preventDefault()
 
-    const getGridIndices = (e: any, canvas: HTMLCanvasElement): number[] => {
+    const getEventPosition = (e: any, canvas: HTMLCanvasElement): [number, number] => {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
+      return [x, y]
+    }
+
+    const convertToGridIndices = (x: number, y: number): [number, number] => {
       const columnIndex = Math.floor(x / props.pixelSize)
       const rowIndex = Math.floor(y / props.pixelSize)
       return [rowIndex, columnIndex]
     }
 
     if (canvasRef.current) {
-      const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
+      const [x, y] = getEventPosition(e, canvasRef.current)
+      mousePositionRef.current = [x, y]
+      const [rowIndex, columnIndex] = convertToGridIndices(x, y)
+
       switch (drawContext.tool) {
         case "pen":
           updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
@@ -108,14 +117,38 @@ export default function Canvas(props: Props) {
         e.preventDefault()
 
         if (canvasRef.current) {
-          const [rowIndex, columnIndex] = getGridIndices(e, canvasRef.current)
+          const [prevX, prevY] = mousePositionRef.current
+          const [x, y] = getEventPosition(e, canvasRef.current)
+
+          if (x === prevX && y === prevY) {
+            return
+          }
+
+          mousePositionRef.current = [x, y]
+
+          // Interpolate
+          const indices: [number, number][] = []
+          const [vx, vy] = [x - prevX, y - prevY]
+          const norm = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2))
+          const [nvx, nvy] = [vx / norm, vy / norm]
+          for (let i = 1; i <= norm / props.pixelSize; i++) {
+            const [px, py] = [prevX + nvx * props.pixelSize * i, prevY + nvy * props.pixelSize * i]
+            const [rowIndex, columnIndex] = convertToGridIndices(px, py)
+            indices.push([rowIndex, columnIndex])
+          }
+          indices.push(convertToGridIndices(x, y))
+
           switch (drawContext.tool) {
             case "pen":
-              updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+              indices.forEach(([rowIndex, columnIndex]) => {
+                updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
+              })
               break
             case "eraser":
+              indices.forEach(([rowIndex, columnIndex]) => {
                 updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex})
-                break
+              })
+              break
             case "select":
               updateDrawContext({type: "expandSelect", drawingId: props.drawing.id, rowIndex, columnIndex})
               break

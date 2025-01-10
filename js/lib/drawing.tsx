@@ -1,10 +1,12 @@
 import Color from "tsx!lib/color"
 
 export default class Drawing {
+  _id: string
   _name: string
   _data: (Color|null)[][]
 
-  constructor(name: string, rowCount: number, columnCount: number) {
+  constructor(id: string, name: string, rowCount: number, columnCount: number) {
+    this._id = id
     this._name = name
 
     if (rowCount < 1 || columnCount < 1) {
@@ -22,8 +24,13 @@ export default class Drawing {
     this._data = data
   }
 
+  static create(name: string, rowCount: number, columnCount: number): Drawing {
+    const id = crypto.randomUUID()
+    return new Drawing(id, name, rowCount, columnCount)
+  }
+
   get id(): string {
-    return this._name
+    return this._id
   }
 
   get name(): string {

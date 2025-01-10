@@ -9,7 +9,7 @@ export default class Project {
 
   static create(): Project {
     const p = new Project()
-    p._drawings.push(new Drawing("New drawing", 48, 64))
+    p._drawings.push(Drawing.create("New drawing", 48, 64))
     return p
   }
 

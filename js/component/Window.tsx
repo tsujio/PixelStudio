@@ -4,6 +4,7 @@ type Props = {
   id: string
   top?: number
   left?: number
+  right?: number
   onPositionUpdate: (windowId: string, top: number, left: number) => void
   children: React.ReactNode
 }
@@ -12,13 +13,13 @@ export default function Window(props: Props) {
   const windowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (windowRef.current && (props.top === undefined || props.left === undefined)) {
+    if (windowRef.current && (props.top === undefined || (props.left === undefined && props.right === undefined))) {
       const w = windowRef.current
       const top = (window.innerHeight - w.offsetHeight) / 2
       const left = (window.innerWidth - w.offsetWidth) / 2
       props.onPositionUpdate(props.id, top, left)
     }
-  }, [windowRef.current, props.top, props.left])
+  }, [windowRef.current, props.top, props.left, props.right])
 
   const [dragging, setDragging] = useState<boolean>(false)
 
@@ -53,6 +54,7 @@ export default function Window(props: Props) {
         position: "absolute",
         top: props.top,
         left: props.left,
+        right: props.right,
         display: "inline-block",
         borderRadius: "8px",
         boxShadow: "2px 4px 16px 4px lightgray",

@@ -2,11 +2,15 @@ import React, { useState, useReducer, useCallback } from 'react'
 import Canvas from 'tsx!component/Canvas'
 import Window from 'tsx!component/Window'
 import ToolBox from 'tsx!component/ToolBox'
+import Explorer from 'tsx!component/Explorer'
 import { useProjectContext } from 'tsx!component/ProjectContext'
 
 type WindowPosition = {
   top: number
   left: number
+} | {
+  top: number
+  right: number
 }
 
 type WindowPositions = {[key:string]: WindowPosition}
@@ -23,11 +27,15 @@ const windowPositionsReducer = (windowPositions: WindowPositions, action: any): 
   }
 }
 
-const initialWindowPositions = {
+const initialWindowPositions: WindowPositions = {
   "toolBox": {
     top: 100,
     left: 0,
   },
+  "explorer": {
+    top: 100,
+    right: 0,
+  }
 }
 
 type Props = {}
@@ -72,5 +80,14 @@ export default function ProjectComponent(props: Props) {
         />
       </Window>
     )}
+    <Window
+      id="explorer"
+      top={windowPositions["explorer"]?.top}
+      left={windowPositions["explorer"]?.left}
+      right={windowPositions["explorer"]?.right}
+      onPositionUpdate={updateWindowPositionsCallback}
+    >
+      <Explorer />
+    </Window>
   </>
 }
