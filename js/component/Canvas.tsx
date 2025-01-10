@@ -28,6 +28,7 @@ export default function Canvas(props: Props) {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
       // Draw grid lines
+      ctx.strokeStyle = "gray"
       for (let i = 0; i < props.drawing.rowCount - 1; i++) {
         const y = props.pixelSize * (i + 1)
         ctx.beginPath()
@@ -60,7 +61,8 @@ export default function Canvas(props: Props) {
         const left = Math.min(start.columnIndex, end.columnIndex)
         const height = Math.max(start.rowIndex, end.rowIndex) - top + 1
         const width = Math.max(start.columnIndex, end.columnIndex) - left + 1
-        ctx.fillRect(props.pixelSize * left, props.pixelSize * top, props.pixelSize * width, props.pixelSize * height)
+        ctx.strokeStyle = "green"
+        ctx.strokeRect(props.pixelSize * left, props.pixelSize * top, props.pixelSize * width, props.pixelSize * height)
       }
     }
   }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, drawContext.select])

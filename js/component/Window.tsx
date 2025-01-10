@@ -1,16 +1,26 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 
 type Props = {
+  id: string
+  top?: number
+  left?: number
+  onPositionUpdate: (windowId: string, top: number, left: number) => void
   children: React.ReactNode
 }
 
 export default function Window(props: Props) {
   const windowRef = useRef<HTMLDivElement>(null)
 
-  const [dragging, setDragging] = useState<boolean>(false)
+  useEffect(() => {
+    if (windowRef.current && (props.top === undefined || props.left === undefined)) {
+      const w = windowRef.current
+      const top = (window.innerHeight - w.offsetHeight) / 2
+      const left = (window.innerWidth - w.offsetWidth) / 2
+      props.onPositionUpdate(props.id, top, left)
+    }
+  }, [windowRef.current, props.top, props.left])
 
-  const [windowTop, setWindowTop] = useState<number>(100)
-  const [windowLeft, setWindowLeft] = useState<number>(100)
+  const [dragging, setDragging] = useState<boolean>(false)
 
   const draggableOffset = 16
 
@@ -23,8 +33,7 @@ export default function Window(props: Props) {
       if (x < draggableOffset || y < draggableOffset ||
          x > rect.width - draggableOffset || y > rect.height - draggableOffset) {
         const onMouseMove = (e: any) => {
-          setWindowTop(e.pageY - y)
-          setWindowLeft(e.pageX - x)
+          props.onPositionUpdate(props.id, e.pageY - y, e.pageX - x)
         }
 
         const onMouseUp = () => {
@@ -48,8 +57,8 @@ export default function Window(props: Props) {
       onMouseDown={onMouseDown}
       style={{
         position: "absolute",
-        top: windowTop,
-        left: windowLeft,
+        top: props.top,
+        left: props.left,
         display: "inline-block",
         padding: "16px",
         border: "1px solid gray",
