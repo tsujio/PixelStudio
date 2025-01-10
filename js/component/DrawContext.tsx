@@ -77,6 +77,11 @@ const reducer = (ctx: DrawCtx, action: any): DrawCtx => {
         },
       }
     }
+    case 'clearSelect':
+      return {
+        ...ctx,
+        select: undefined,
+      }
     default:
       throw new Error(`Unknown action: ${action.type}`)
   }

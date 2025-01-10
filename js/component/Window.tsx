@@ -22,47 +22,57 @@ export default function Window(props: Props) {
 
   const [dragging, setDragging] = useState<boolean>(false)
 
-  const draggableOffset = 16
-
   const onMouseDown = (e: any) => {
     if (!dragging && windowRef.current) {
       const w = windowRef.current
       const rect = w.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      if (x < draggableOffset || y < draggableOffset ||
-         x > rect.width - draggableOffset || y > rect.height - draggableOffset) {
-        const onMouseMove = (e: any) => {
-          props.onPositionUpdate(props.id, e.pageY - y, e.pageX - x)
-        }
-
-        const onMouseUp = () => {
-          document.removeEventListener("mousemove", onMouseMove)
-          document.removeEventListener("mouseup", onMouseUp)
-
-          setDragging(false)
-        }
-
-        document.addEventListener("mousemove", onMouseMove)
-        document.addEventListener("mouseup", onMouseUp)
-
-        setDragging(true)
+      const onMouseMove = (e: any) => {
+        props.onPositionUpdate(props.id, e.pageY - y, e.pageX - x)
       }
+
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove)
+        document.removeEventListener("mouseup", onMouseUp)
+
+        setDragging(false)
+      }
+
+      document.addEventListener("mousemove", onMouseMove)
+      document.addEventListener("mouseup", onMouseUp)
+
+      setDragging(true)
     }
   }
 
   return (
     <div
       ref={windowRef}
-      onMouseDown={onMouseDown}
       style={{
         position: "absolute",
         top: props.top,
         left: props.left,
         display: "inline-block",
-        padding: "16px",
-        border: "1px solid gray",
+        borderRadius: "8px",
+        boxShadow: "2px 4px 16px 4px lightgray",
+        background: "white",
       }}
-    >{props.children}</div>
+    >
+      <div
+        onMouseDown={onMouseDown}
+        style={{
+          cursor: dragging ? "grabbing" : "grab",
+          height: "32px",
+        }}
+      />
+      <div
+        style={{
+          padding: "0 12px 12px",
+        }}
+      >
+        {props.children}
+      </div>
+    </div>
   )
 }

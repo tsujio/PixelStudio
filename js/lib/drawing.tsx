@@ -2,7 +2,7 @@ import Color from "tsx!lib/color"
 
 export default class Drawing {
   _name: string
-  _data: (Color|undefined)[][]
+  _data: (Color|null)[][]
 
   constructor(name: string, rowCount: number, columnCount: number) {
     this._name = name
@@ -11,11 +11,11 @@ export default class Drawing {
       throw new Error("rowCount and columnCount should be positive")
     }
 
-    const data: (Color|undefined)[][] = []
+    const data: (Color|null)[][] = []
     for (let i = 0; i < rowCount; i++) {
-      const row: (Color|undefined)[] = []
+      const row: (Color|null)[] = []
       for (let j = 0; j < columnCount; j++) {
-        row.push(undefined)
+        row.push(null)
       }
       data.push(row)
     }
@@ -38,20 +38,25 @@ export default class Drawing {
     return this._data[0].length
   }
 
-  get data(): (Color|undefined)[][] {
+  get data(): (Color|null)[][] {
     return this._data
   }
 
-  setPixel(rowIndex: number, columnIndex: number, color: Color): boolean {
+  setPixel(rowIndex: number, columnIndex: number, color: Color | null): boolean {
     if (rowIndex >= 0 && rowIndex < this._data.length && columnIndex >= 0 && columnIndex < this._data[0].length) {
       const c = this._data[rowIndex][columnIndex]
-      if (!c || !c.equalTo(color)) {
+      if (c && color && !c.equalTo(color) ||
+        c !== color) {
         this._data = [...this._data]
         this._data[rowIndex][columnIndex] = color
         return true
       }
     }
     return false
+  }
+
+  clearPixel(rowIndex: number, columnIndex: number): boolean {
+    return this.setPixel(rowIndex, columnIndex, null)
   }
 
   trim(start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}) {

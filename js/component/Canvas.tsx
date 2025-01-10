@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import Drawing from 'tsx!lib/drawing'
 import { useProjectContext } from 'tsx!component/ProjectContext'
 import { useDrawContext } from 'tsx!component/DrawContext'
+import ResizableContainer from 'tsx!component/ResizableContainer'
 
 type Props = {
   drawing: Drawing
@@ -95,6 +96,9 @@ export default function Canvas(props: Props) {
         case "pen":
           updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
           break
+        case "eraser":
+          updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex})
+          break
         case "select":
           updateDrawContext({type: "startSelect", drawingId: props.drawing.id, rowIndex, columnIndex})
           break
@@ -109,6 +113,9 @@ export default function Canvas(props: Props) {
             case "pen":
               updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.color})
               break
+            case "eraser":
+                updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex})
+                break
             case "select":
               updateDrawContext({type: "expandSelect", drawingId: props.drawing.id, rowIndex, columnIndex})
               break
@@ -129,11 +136,17 @@ export default function Canvas(props: Props) {
   }
 
   return <>
-    <canvas
-      ref={canvasRef}
-      width={canvasWidth}
-      height={canvasHeight}
-      onMouseDown={onMouseDown}
-    ></canvas>
+    <ResizableContainer>
+      <canvas
+        ref={canvasRef}
+        width={canvasWidth}
+        height={canvasHeight}
+        onMouseDown={onMouseDown}
+        style={{
+          display: "block",
+          border: "1px solid gray",
+        }}
+      ></canvas>
+    </ResizableContainer>
   </>
 }

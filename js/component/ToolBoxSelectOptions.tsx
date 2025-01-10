@@ -23,12 +23,19 @@ export default function ToolBoxSelectOptions(props: Props) {
         bottom,
         right,
       })
+
+      updateDrawContext({type: "clearSelect"})
     }
+  }
+
+  const onClearButtonClick = () => {
+    updateDrawContext({type: "clearSelect"})
   }
 
   return <>
     <div>
       <button onClick={onTrimButtonClick}>Trim</button>
+      <button onClick={onClearButtonClick}>Clear</button>
     </div>
   </>
 }

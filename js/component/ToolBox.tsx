@@ -6,6 +6,7 @@ import ToolBoxSelectOptions from 'tsx!component/ToolBoxSelectOptions'
 
 const tools = [
   {id: "pen", description: "Pen"},
+  {id: "eraser", description: "Eraser"},
   {id: "select", description: "Select area"}
 ]
 

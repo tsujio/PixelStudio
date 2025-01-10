@@ -13,6 +13,12 @@ const reducer = (project: Project, action: any): Project => {
       const modified = drawing.setPixel(rowIndex, columnIndex, color)
       return modified ? project.clone() : project
     }
+    case 'clearPixel': {
+      const { drawingId, rowIndex, columnIndex } = action
+      const drawing = project.getDrawing(drawingId)
+      const modified = drawing.clearPixel(rowIndex, columnIndex)
+      return modified ? project.clone() : project
+    }
     case 'trimDrawing': {
       const { drawingId, top, left, bottom, right } = action
       const drawing = project.getDrawing(drawingId)
