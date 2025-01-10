@@ -1,7 +1,8 @@
 import React from 'react'
 import Grid from 'tsx!component/Grid'
-import ColorPicker from 'tsx!component/ColorPicker'
 import { useDrawContext } from 'tsx!component/DrawContext'
+import ToolBoxPenOptions from 'tsx!component/ToolBoxPenOptions'
+import ToolBoxSelectOptions from 'tsx!component/ToolBoxSelectOptions'
 
 const tools = [
   {id: "pen", description: "Pen"},
@@ -34,7 +35,8 @@ export default function ToolBox(props: Props) {
           </label>
         </div>
       )}
-      <ColorPicker />
     </Grid>
+    {drawContext.tool === "pen" && <ToolBoxPenOptions />}
+    {drawContext.tool === "select" && <ToolBoxSelectOptions />}
   </>
 }

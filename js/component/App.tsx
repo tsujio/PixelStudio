@@ -7,11 +7,18 @@ import ProjectComponent from 'tsx!component/Project'
 
 const reducer = (project: Project, action: any): Project => {
   switch (action.type) {
-    case 'setPixel':
+    case 'setPixel': {
       const { drawingId, rowIndex, columnIndex, color } = action
       const drawing = project.getDrawing(drawingId)
       const modified = drawing.setPixel(rowIndex, columnIndex, color)
       return modified ? project.clone() : project
+    }
+    case 'trimDrawing': {
+      const { drawingId, top, left, bottom, right } = action
+      const drawing = project.getDrawing(drawingId)
+      drawing.trim({rowIndex: top, columnIndex: left}, {rowIndex: bottom, columnIndex: right})
+      return project.clone()
+    }
     default:
       throw new Error(`Unknown action: ${action.type}`)
   }

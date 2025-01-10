@@ -53,4 +53,9 @@ export default class Drawing {
     }
     return false
   }
+
+  trim(start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}) {
+    this._data = this._data.filter((row, i) => start.rowIndex <= i && i <= end.rowIndex)
+      .map(row => row.slice(start.columnIndex, end.columnIndex + 1))
+  }
 }
