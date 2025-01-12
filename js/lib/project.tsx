@@ -36,4 +36,16 @@ export default class Project {
   clone(): Project {
     return Object.assign(new Project(), this)
   }
+
+  toJSON(): any {
+    return {
+      drawings: Object.fromEntries(this._drawings.map(d => [d.id, d])),
+    }
+  }
+
+  static fromJSON(json: any): Project {
+    const project = new Project()
+    project._drawings = Object.entries(json.drawings).map(([k, v]) => Drawing.fromJSON({...v, id: k}))
+    return project
+  }
 }

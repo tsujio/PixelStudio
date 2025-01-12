@@ -8,6 +8,10 @@ import ProjectComponent from 'tsx!component/Project'
 
 const reducer = (project: Project, action: any): Project => {
   switch (action.type) {
+    case 'load': {
+      const { json } = action
+      return Project.fromJSON(json)
+    }
     case 'createDrawing': {
       const drawing = Drawing.create("New drawing", 48, 64)
       project.addDrawing(drawing)
@@ -52,29 +56,38 @@ export default function App() {
     return Project.create()
   })
 
-  const [saving, setSaving] = useState<boolean>(false)
-
   const onSaveButtonClick = () => {
-    if (!saving) {
-      setSaving(true)
-    }
+    const json = JSON.stringify(project, null, 2)
+    const blob = new Blob([json], {type: "application/json"})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "project.json"
+    document.body.appendChild(a)
+    a.click()
+    URL.revokeObjectURL(url)
+    a.remove()
   }
 
-  const onDataURLGenerate = (url: string) => {
-    const link = document.createElement("a")
-    link.href = url
-    link.download = "foo.png"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    setSaving(false)
+  const onOpenButtonClick = (e: any) => {
+    const files = e.target.files
+    if (files.length > 0) {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (reader.result) {
+          const json = JSON.parse(reader.result.toString())
+          updateProject({type: "load", json})
+        }
+      }
+      reader.readAsText(files[0])
+    }
   }
 
   return <>
     <NavigationBar
       onSaveButtonClick={onSaveButtonClick}
     />
+    <input type="file" onChange={onOpenButtonClick} />
     <ProjectContextProvider
       project={project}
       updateProject={updateProject}

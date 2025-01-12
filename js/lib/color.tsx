@@ -12,4 +12,12 @@ export default class Color {
   equalTo(other: Color): boolean {
     return this._rgb === other._rgb
   }
+
+  toJSON(): any {
+    return this._rgb
+  }
+
+  static fromJSON(json: any): Color {
+    return new Color(json)
+  }
 }

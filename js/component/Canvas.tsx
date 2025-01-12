@@ -3,15 +3,20 @@ import Drawing from 'tsx!lib/drawing'
 import { useProjectContext } from 'tsx!component/ProjectContext'
 import { useDrawContext } from 'tsx!component/DrawContext'
 import ResizableContainer from 'tsx!component/ResizableContainer'
+import { useWindowContext } from 'tsx!component/Window'
 
 type Props = {
   drawing: Drawing
   pixelSize: number
   saving: boolean
-  onDataURLGenerate: (url: string) => void
 }
 
 export default function Canvas(props: Props) {
+  const { setWindowName } = useWindowContext()
+  useEffect(() => {
+    setWindowName(props.drawing.name)
+  }, [props.drawing.name])
+
   const { updateProject } = useProjectContext()
 
   const { drawContext, updateDrawContext } = useDrawContext()
@@ -68,21 +73,9 @@ export default function Canvas(props: Props) {
     }
   }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, drawContext.select])
 
-  useEffect(() => {
-    if (props.saving) {
-      if (canvasRef.current) {
-        const canvas = canvasRef.current
-        const url = canvas.toDataURL()
-        props.onDataURLGenerate(url)
-      }
-    }
-  }, [props.saving])
-
   const mousePositionRef = useRef<[number, number] | null>(null)
 
   const onMouseDown = (e: any) => {
-    e.preventDefault()
-
     const getEventPosition = (e: any, canvas: HTMLCanvasElement): [number, number] => {
       const rect = canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
@@ -114,8 +107,6 @@ export default function Canvas(props: Props) {
       }
 
       const onMouseMove = (e: any) => {
-        e.preventDefault()
-
         if (canvasRef.current) {
           const [prevX, prevY] = mousePositionRef.current
           const [x, y] = getEventPosition(e, canvasRef.current)
@@ -158,8 +149,6 @@ export default function Canvas(props: Props) {
       }
 
       const onMouseUp = (e: any) => {
-        e.preventDefault()
-
         document.removeEventListener("mousemove", onMouseMove)
         document.removeEventListener("mouseup", onMouseUp)
       }

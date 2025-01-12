@@ -3,7 +3,7 @@ import Color from "tsx!lib/color"
 export default class Drawing {
   _id: string
   _name: string
-  _data: (Color|null)[][]
+  _data: (Color | null)[][]
 
   constructor(id: string, name: string, rowCount: number, columnCount: number) {
     this._id = id
@@ -73,5 +73,18 @@ export default class Drawing {
   trim(start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}) {
     this._data = this._data.filter((row, i) => start.rowIndex <= i && i <= end.rowIndex)
       .map(row => row.slice(start.columnIndex, end.columnIndex + 1))
+  }
+
+  toJSON(): any {
+    return {
+      name: this._name,
+      data: this._data,
+    }
+  }
+
+  static fromJSON(json: any): Drawing {
+    const drawing = new Drawing(json.id, json.name, 1, 1)
+    drawing._data = json.data.map(row => row.map(v => v !== null ? Color.fromJSON(v) : null))
+    return drawing
   }
 }
