@@ -49,6 +49,10 @@ export default class Drawing {
     return this._data
   }
 
+  rename(name: string) {
+    this._name = name
+  }
+
   setPixel(rowIndex: number, columnIndex: number, color: Color | null): boolean {
     if (rowIndex >= 0 && rowIndex < this._data.length && columnIndex >= 0 && columnIndex < this._data[0].length) {
       const c = this._data[rowIndex][columnIndex]

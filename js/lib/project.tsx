@@ -29,6 +29,10 @@ export default class Project {
     this._drawings.push(drawing)
   }
 
+  deleteDrawing(drawingId: string) {
+    this._drawings = this._drawings.filter(d => d.id !== drawingId)
+  }
+
   clone(): Project {
     return Object.assign(new Project(), this)
   }

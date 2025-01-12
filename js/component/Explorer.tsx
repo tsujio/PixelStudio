@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useProjectContext } from 'tsx!component/ProjectContext'
+import ExplorerDrawingItem from 'tsx!component/ExplorerDrawingItem'
 
 type Props = {}
 
@@ -17,7 +18,10 @@ export default function Explorer(props: Props) {
       </div>
       <div>
         {project.drawings.map(drawing =>
-          <div key={drawing.id}>{drawing.name}</div>
+          <ExplorerDrawingItem
+            key={drawing.id}
+            drawing={drawing}
+          />
         )}
       </div>
     </div>

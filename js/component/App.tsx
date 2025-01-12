@@ -31,6 +31,17 @@ const reducer = (project: Project, action: any): Project => {
       drawing.trim({rowIndex: top, columnIndex: left}, {rowIndex: bottom, columnIndex: right})
       return project.clone()
     }
+    case 'renameDrawing': {
+      const { drawingId, name } = action
+      const drawing = project.getDrawing(drawingId)
+      drawing.rename(name)
+      return project.clone()
+    }
+    case 'deleteDrawing': {
+      const { drawingId } = action
+      project.deleteDrawing(drawingId)
+      return project.clone()
+    }
     default:
       throw new Error(`Unknown action: ${action.type}`)
   }
