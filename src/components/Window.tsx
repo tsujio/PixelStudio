@@ -1,6 +1,20 @@
-import React, { useRef, useState, useEffect, createContext, useContext, useMemo, useCallback } from 'react'
+import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
+import { useWindowSystemContext } from './WindowSystem'
 
-const WindowContext = createContext(null)
+type WindowContextValue = {
+  windowId: string
+  setWindowName: (name: string) => void
+}
+
+const WindowContext = createContext<WindowContextValue | null>(null)
+
+export function useWindowContext() {
+  const value = useContext(WindowContext)
+  if (value === null) {
+    throw new Error("Not in the window context")
+  }
+  return value
+}
 
 type Props = {
   id: string
@@ -8,33 +22,24 @@ type Props = {
   left?: number
   right?: number
   zIndex?: number
-  onPositionUpdate: (windowId: string, top: number, left: number) => void
-  onActivateWindow: (windowId: string) => void
   children: React.ReactNode
 }
 
-export default function Window(props: Props) {
-  const windowRef = useRef<HTMLDivElement>(null)
+export function Window(props: Props) {
+  const { activateWindow, moveWindow } = useWindowSystemContext()
 
-  useEffect(() => {
-    if (windowRef.current && (props.top === undefined || (props.left === undefined && props.right === undefined))) {
-      const w = windowRef.current
-      const top = (window.innerHeight - w.offsetHeight) / 2
-      const left = (window.innerWidth - w.offsetWidth) / 2
-      props.onPositionUpdate(props.id, top, left)
-    }
-  }, [windowRef.current, props.top, props.left, props.right])
+  const windowRef = useRef<HTMLDivElement>(null)
 
   const [dragging, setDragging] = useState<boolean>(false)
 
-  const onMouseDownOnDraggableArea = (e: any) => {
+  const onMouseDownOnDraggableArea = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging && windowRef.current) {
       const w = windowRef.current
       const rect = w.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      const onMouseMove = (e: any) => {
-        props.onPositionUpdate(props.id, e.pageY - y, e.pageX - x)
+      const onMouseMove = (e: MouseEvent) => {
+        moveWindow(props.id, e.pageY - y, e.pageX - x)
       }
 
       const onMouseUp = () => {
@@ -52,19 +57,15 @@ export default function Window(props: Props) {
   }
 
   const onMouseDown = () => {
-    props.onActivateWindow(props.id)
+    activateWindow(props.id)
   }
 
   const [windowName, setWindowName] = useState<string>("")
 
-  const activateWindow = useCallback((windowId?: string) => {
-    props.onActivateWindow(windowId ?? props.id)
-  }, [props.onActivateWindow, props.id])
-
   const windowContextValue = useMemo(() => ({
+    windowId: props.id,
     setWindowName,
-    activateWindow,
-  }), [])
+  }), [props.id])
 
   return (
     <div
@@ -104,8 +105,4 @@ export default function Window(props: Props) {
       </div>
     </div>
   )
-}
-
-export function useWindowContext() {
-  return useContext(WindowContext)
 }

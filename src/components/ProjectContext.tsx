@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useMemo } from 'react'
-import Project from 'tsx!lib/project'
+import { Project, UpdateProjectAction } from '../lib/project'
 
-const ProjectContext = createContext(null)
+type ProjectContextValue = {
+  project: Project
+  updateProject: (action: UpdateProjectAction) => void
+}
+
+const ProjectContext = createContext<ProjectContextValue | null>(null)
 
 type Props = {
-  project: Project | null
-  updateProject: (action: any) => void
+  project: Project
+  updateProject: (action: UpdateProjectAction) => void
   children: React.ReactNode
 }
 
@@ -23,5 +28,9 @@ export const ProjectContextProvider = (props: Props) => {
 }
 
 export const useProjectContext = () => {
-  return useContext(ProjectContext)
+  const value = useContext(ProjectContext)
+  if (value === null) {
+    throw new Error("Not in a project context")
+  }
+  return value
 }
