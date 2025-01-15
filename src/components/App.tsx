@@ -1,6 +1,6 @@
 import { useReducer, useState } from 'react'
 import { ProjectContextProvider } from './ProjectContext'
-import { Sidebar } from './SideBar'
+import { Sidebar } from './Sidebar'
 import { Main } from './Main'
 import { WindowSystemContextProvider } from './WindowSystem'
 import { Project, updateProjectReducer } from '../lib/project'

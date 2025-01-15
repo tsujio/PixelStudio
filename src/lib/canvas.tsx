@@ -51,7 +51,7 @@ export const drawGridLines = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasE
   }
 }
 
-export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, canvas: HTMLCanvasElement | OffscreenCanvas, data: (Color | null)[][], pixelSize: number) => {
+export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, _: HTMLCanvasElement | OffscreenCanvas, data: (Color | null)[][], pixelSize: number) => {
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       if (data[i][j] !== null) {
@@ -62,7 +62,7 @@ export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRender
   }
 }
 
-export const drawSelectArea = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}, pixelSize: number) => {
+export const drawSelectArea = (ctx: CanvasRenderingContext2D, _: HTMLCanvasElement, start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}, pixelSize: number) => {
   const top = Math.min(start.rowIndex, end.rowIndex)
   const left = Math.min(start.columnIndex, end.columnIndex)
   const height = Math.max(start.rowIndex, end.rowIndex) - top + 1
