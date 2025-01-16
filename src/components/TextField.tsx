@@ -11,11 +11,17 @@ type Props = {
 export function TextField(props: Props) {
   const ref = useRef<HTMLInputElement>(null)
 
+  const onMountRef = useRef(true)
+  const focus = props.focusOnMount && onMountRef.current
+  if (onMountRef.current) {
+    onMountRef.current = false
+  }
+
   useEffect(() => {
-    if (props.focusOnMount && ref.current) {
+    if (focus && ref.current !== null) {
       ref.current.focus()
     }
-  }, [])
+  }, [focus])
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (props.blurOnEnter && !e.nativeEvent.isComposing && e.key === "Enter" && ref.current) {

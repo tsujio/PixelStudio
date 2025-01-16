@@ -121,12 +121,14 @@ export type UpdateProjectAction =
     rowIndex: number
     columnIndex: number
     color: Color
+    chain?: boolean
   } |
   {
     type: "clearPixel"
     drawingId: string
     rowIndex: number
     columnIndex: number
+    chain?: boolean
   } |
   {
     type: "trimDrawing"
@@ -175,17 +177,12 @@ export const updateProjectReducer = (project: Project, action: UpdateProjectActi
       pjt.deleteDrawing(action.drawingId)
       return pjt
     }
-    case "setPixel": {
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.setPixel(action.rowIndex, action.columnIndex, action.color)
-      pjt.addDrawing(drawing)
-      return pjt
-    }
+    case "setPixel":
     case "clearPixel": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.setPixel(action.rowIndex, action.columnIndex, null)
+      const color = action.type === "setPixel" ? action.color : null
+      drawing.setPixel(action.rowIndex, action.columnIndex, color)
       pjt.addDrawing(drawing)
       return pjt
     }

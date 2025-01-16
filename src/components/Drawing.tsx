@@ -12,7 +12,7 @@ export function Drawing(props: Props) {
 
   useEffect(() => {
     setWindowName(`${props.drawing.name} (${props.drawing.rowCount} x ${props.drawing.columnCount})`)
-  }, [props.drawing.name, props.drawing.rowCount, props.drawing.columnCount])
+  }, [setWindowName, props.drawing.name, props.drawing.rowCount, props.drawing.columnCount])
 
   return (
     <Canvas

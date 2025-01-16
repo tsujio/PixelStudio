@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useMemo, useReducer } from 'react'
+import React, { createContext, useContext, useMemo, useCallback, useReducer } from 'react'
 
 type WindowSystemContextValue = {
   windows: Windows,
-  openWindow: (top: number, left: number, metadata: WindowMetadata) => void
+  openWindow: (top: number, left: number, metadata: WindowMetadata) => string
   closeWindow: (windowId: string) => void
   activateWindow: (windowId: string) => void
   moveWindow: (windowId: string, top: number, left: number) => void
@@ -33,6 +33,7 @@ type WindowMetadata =
 type Action =
   {
     type: "open"
+    windowId: string
     top: number
     left: number
     metadata: WindowMetadata
@@ -64,17 +65,9 @@ const reducer = (windows: Windows, action: Action): Windows => {
         }
       }
 
-      if (action.metadata.type === "toolBox") {
-        if (Object.values(windows).some(w => w.metadata.type === "toolBox")) {
-          return windows
-        }
-      }
-
-      const windowId = crypto.randomUUID()
-
       const ws = {
         ...windows,
-        [windowId]: {
+        [action.windowId]: {
           top: action.top,
           left: action.left,
           zIndex: 0,
@@ -82,7 +75,7 @@ const reducer = (windows: Windows, action: Action): Windows => {
         }
       }
 
-      return reducer(ws, {type: "activate", windowId})
+      return reducer(ws, {type: "activate", windowId: action.windowId})
     }
     case "close": {
       const ws = {...windows}
@@ -94,22 +87,14 @@ const reducer = (windows: Windows, action: Action): Windows => {
         return windows
       }
 
-      const maxZIndex = Math.max(...Object.values(windows).map(w => w.zIndex))
-      const zIndex = Number.isFinite(maxZIndex) ? maxZIndex + 1 : 1
-      const ws = {
-        ...windows,
-        [action.windowId]: {
-          ...windows[action.windowId],
-          zIndex,
-        }
-      }
-      const entries = Object.entries(ws)
+      const orderedWindowIds = Object.entries(windows)
         .sort(([_, a], [__, b]) => a.zIndex - b.zIndex)
-        .map(([windowId, w], i) => [windowId, {
-          ...w,
-          zIndex: i + 1,
-        }])
-      return Object.fromEntries(entries)
+        .map(([windowId, _]) => windowId)
+      const newOrderedWindowIds = orderedWindowIds.filter(windowId => windowId !== action.windowId)
+      newOrderedWindowIds.push(action.windowId)
+      return Object.fromEntries(newOrderedWindowIds.map((windowId, i) =>
+        [windowId, {...windows[windowId], zIndex: i + 1}]
+      ))
     }
     case "move": {
       if (action.windowId in windows) {
@@ -135,21 +120,31 @@ type Props = {
 export const WindowSystemContextProvider = (props: Props) => {
   const [windows, updateWindows] = useReducer(reducer, {})
 
+  const openWindow = useCallback((top: number, left: number, metadata: WindowMetadata) => {
+    const windowId = crypto.randomUUID()
+    updateWindows({type: "open", windowId, top, left, metadata})
+    return windowId
+  }, [])
+
+  const closeWindow = useCallback((windowId: string) => {
+    updateWindows({type: "close", windowId})
+  }, [])
+
+  const activateWindow = useCallback((windowId: string) => {
+    updateWindows({type: "activate", windowId})
+  }, [])
+
+  const moveWindow = useCallback((windowId: string, top: number, left: number) => {
+    updateWindows({type: "move", windowId, top, left})
+  }, [])
+
   const contextValue = useMemo(() => ({
     windows,
-    openWindow: (top: number, left: number, metadata: WindowMetadata) => {
-      updateWindows({type: "open", top, left, metadata})
-    },
-    closeWindow: (windowId: string) => {
-      updateWindows({type: "close", windowId})
-    },
-    activateWindow: (windowId: string) => {
-      updateWindows({type: "activate", windowId})
-    },
-    moveWindow: (windowId: string, top: number, left: number) => {
-      updateWindows({type: "move", windowId, top, left})
-    }
-  }), [windows])
+    openWindow,
+    closeWindow,
+    activateWindow,
+    moveWindow,
+  }), [windows, openWindow, closeWindow, activateWindow, moveWindow])
 
   return (
     <WindowSystemContext.Provider value={contextValue}>

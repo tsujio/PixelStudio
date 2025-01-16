@@ -42,7 +42,7 @@ export function Canvas(props: Props) {
         drawSelectArea(ctx, canvas, drawContext.select.area.start, drawContext.select.area.end, props.pixelSize)
       }
     }
-  }, [canvasRef.current, props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, drawContext.select.area])
+  }, [props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, props.drawing.id, drawContext.select.area])
 
   const mousePositionRef = useRef<[number, number] | null>(null)
 
@@ -80,10 +80,10 @@ export function Canvas(props: Props) {
             if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
               switch (drawContext.tool) {
                 case "pen":
-                  updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.pen.color})
+                  updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.pen.color, chain: true})
                   break
                 case "eraser":
-                  updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex})
+                  updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex, chain: true})
                   break
                 case "select":
                   expandSelectArea(props.drawing.id, rowIndex, columnIndex)

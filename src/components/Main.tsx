@@ -6,15 +6,16 @@ import { Drawing } from "./Drawing"
 import { ToolBox } from "./ToolBox"
 
 export function Main() {
-  const { windows, openWindow } = useWindowSystemContext()
+  const { windows, openWindow, closeWindow } = useWindowSystemContext()
 
   const { project } = useProjectContext()
 
   useEffect(() => {
-    if (Object.values(windows).every(w => w.metadata.type !== "toolBox")) {
-      openWindow(0, 500, {type: "toolBox"})
+    const windowId = openWindow(0, 500, {type: "toolBox"})
+    return () => {
+      closeWindow(windowId)
     }
-  }, [windows])
+  }, [openWindow, closeWindow])
 
   return (
     <>

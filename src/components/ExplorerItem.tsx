@@ -42,7 +42,7 @@ export function ExplorerItem(props: Props) {
   }
 
   const onCloseButtonClick = () => {
-    for (let windowId in windows) {
+    for (const windowId in windows) {
       const metadata = windows[windowId].metadata
       if (metadata.type === "drawing" && metadata.drawingId === props.drawing.id) {
         closeWindow(windowId)
