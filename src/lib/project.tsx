@@ -1,5 +1,4 @@
-import { Drawing } from "./drawing"
-import { Color } from "./color"
+import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "./drawing"
 
 export class Project {
   #name: string
@@ -115,34 +114,19 @@ export type UpdateProjectAction =
   {
     type: "setPixel"
     drawingId: string
-    rowIndex: number
-    columnIndex: number
-    color: Color | null
+    position: DrawingDataPosition
+    color: DrawingDataPixel
     chainId: string
   } |
   {
     type: "trimDrawing"
     drawingId: string
-    start: {
-      rowIndex: number
-      columnIndex: number
-    }
-    end: {
-      rowIndex: number
-      columnIndex: number
-    }
+    rect: DrawingDataRect
   } |
   {
     type: "resizeDrawing"
     drawingId: string
-    start: {
-      rowIndex: number
-      columnIndex: number
-    }
-    end: {
-      rowIndex: number
-      columnIndex: number
-    }
+    rect: DrawingDataRect
   } |
   {
     type: "undo"
@@ -199,7 +183,7 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
     case "setPixel": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      const modified = drawing.setPixel(action.rowIndex, action.columnIndex, action.color)
+      const modified = drawing.setPixel(action.position, action.color)
       if (!modified) {
         return projectState
       }
@@ -213,7 +197,7 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
       }
     }
     case "trimDrawing": {
-      const { start, end } = action
+      const { start, end } = action.rect
       const top = Math.min(start.rowIndex, end.rowIndex)
       const left = Math.min(start.columnIndex, end.columnIndex)
       const bottom = Math.max(start.rowIndex, end.rowIndex)
@@ -221,14 +205,14 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
 
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.trim({rowIndex: top, columnIndex: left}, {rowIndex: bottom, columnIndex: right})
+      drawing.trim({start: {rowIndex: top, columnIndex: left}, end: {rowIndex: bottom, columnIndex: right}})
       pjt.addDrawing(drawing)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "resizeDrawing": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.resize(action.start, action.end)
+      drawing.resize(action.rect)
       pjt.addDrawing(drawing)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }

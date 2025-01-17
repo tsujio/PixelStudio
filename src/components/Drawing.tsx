@@ -1,30 +1,21 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useWindowContext } from "./Window"
+import { useWindowSystemContext } from "./WindowSystem"
 import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
 import { ResizableArea } from "./ResizableArea"
-import { Drawing as DrawingClass } from "../lib/drawing"
+import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing"
 
 type Props = {
   drawing: DrawingClass
 }
 
-type Mask = {
-  start: {
-    rowIndex: number
-    columnIndex: number
-  },
-  end: {
-    rowIndex: number
-    columnIndex: number
-  }
-}
-
 export function Drawing(props: Props) {
-  const { setWindowName } = useWindowContext()
+  const { windowId, setWindowName } = useWindowContext()
+  const { windows, moveWindow } = useWindowSystemContext()
   const { updateProject } = useProjectContext()
 
-  const [mask, setMask] = useState<Mask | null>(null)
+  const [mask, setMask] = useState<DrawingDataRect | null>(null)
 
   const rowCount = mask ? mask.end.rowIndex - mask.start.rowIndex + 1 : props.drawing.rowCount
   const columnCount = mask ? mask.end.columnIndex - mask.start.columnIndex + 1 : props.drawing.columnCount
@@ -34,6 +25,12 @@ export function Drawing(props: Props) {
   }, [setWindowName, props.drawing.name, rowCount, columnCount])
 
   const pixelSize = 10
+
+  const windowPositionBeforeResizeRef = useRef<[number, number] | null>(null)
+  const onResizeStart = () => {
+    const window = windows[windowId]
+    windowPositionBeforeResizeRef.current = [window.top, window.left]
+  }
 
   const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
     const newMask = {
@@ -48,23 +45,25 @@ export function Drawing(props: Props) {
     }
 
     if (fix) {
-      updateProject({type: "resizeDrawing", drawingId: props.drawing.id, start: newMask.start, end: newMask.end})
-
+      updateProject({type: "resizeDrawing", drawingId: props.drawing.id, rect: newMask})
       setMask(null)
-      return
-    }
-
-    if (mask === null ||
+    } else if (mask === null ||
       newMask.start.rowIndex !== mask.start.rowIndex ||
       newMask.start.columnIndex !== mask.start.columnIndex ||
       newMask.end.rowIndex !== mask.end.rowIndex ||
       newMask.end.columnIndex !== mask.end.columnIndex) {
       setMask(newMask)
     }
+
+    if (windowPositionBeforeResizeRef.current) {
+      const top = windowPositionBeforeResizeRef.current[0] + newMask.start.rowIndex * pixelSize
+      const left = windowPositionBeforeResizeRef.current[1] + newMask.start.columnIndex * pixelSize
+      moveWindow(windowId, top, left)
+    }
   }
 
   return (
-    <ResizableArea onResize={onResize}>
+    <ResizableArea onResizeStart={onResizeStart} onResize={onResize}>
       <Canvas
         drawing={props.drawing}
         pixelSize={pixelSize}

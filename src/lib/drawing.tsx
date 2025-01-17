@@ -4,9 +4,9 @@ import { Color } from "./color"
 export class Drawing {
   #id: string
   #name: string
-  #data: (Color | null)[][]
+  #data: DrawingData
 
-  constructor(id: string, name: string, data: (Color | null)[][]) {
+  constructor(id: string, name: string, data: DrawingData) {
     this.#id = id
     this.#name = name
     this.#data = data
@@ -22,9 +22,9 @@ export class Drawing {
       throw new Error("rowCount and columnCount should be positive")
     }
 
-    const data: (Color | null)[][] = []
+    const data: DrawingData = []
     for (let i = 0; i < rowCount; i++) {
-      const row: (Color | null)[] = []
+      const row: DrawingDataRow = []
       for (let j = 0; j < columnCount; j++) {
         row.push(null)
       }
@@ -58,11 +58,11 @@ export class Drawing {
     this.#name = newName
   }
 
-  isValidIndices(rowIndex: number, columnIndex: number) {
+  isValidPosition({ rowIndex, columnIndex }: DrawingDataPosition) {
     return 0 <= rowIndex && rowIndex < this.#data.length && 0 <= columnIndex && columnIndex < this.#data[0].length
   }
 
-  setPixel(rowIndex: number, columnIndex: number, color: Color | null) {
+  setPixel({ rowIndex, columnIndex }: DrawingDataPosition, color: DrawingDataPixel) {
     const before = this.#data[rowIndex][columnIndex]
     if (before === color) {
       return false
@@ -71,12 +71,12 @@ export class Drawing {
     return true
   }
 
-  trim(start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}) {
+  trim({ start, end }: DrawingDataRect) {
     this.#data = this.#data.filter((_, i) => start.rowIndex <= i && i <= end.rowIndex)
       .map(row => row.slice(start.columnIndex, end.columnIndex + 1))
   }
 
-  resize(start: DrawingDataPosition, end: DrawingDataPosition) {
+  resize({ start, end }: DrawingDataRect) {
     this.#data = applyMask(this.#data, {start, end})
   }
 
@@ -131,7 +131,16 @@ export class Drawing {
   }
 }
 
+export type DrawingDataPixel = Color | null
+export type DrawingDataRow = DrawingDataPixel[]
+export type DrawingData = DrawingDataRow[]
+
 export type DrawingDataPosition = {
   rowIndex: number
   columnIndex: number
+}
+
+export type DrawingDataRect = {
+  start: DrawingDataPosition
+  end: DrawingDataPosition
 }

@@ -1,10 +1,10 @@
 import { useRef, useEffect, useMemo } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useDrawContext } from "./DrawContext"
-import { Drawing } from "../lib/drawing"
+import { Drawing, DrawingDataRect } from "../lib/drawing"
 import {
   getEventPosition,
-  convertToGridIndices,
+  convertToDrawingDataPosition,
   interpolateEventPositions,
   clearCanvas,
   drawGridLines,
@@ -16,16 +16,7 @@ import {
 type Props = {
   drawing: Drawing
   pixelSize: number
-  mask?: {
-    start: {
-      rowIndex: number
-      columnIndex: number
-    },
-    end: {
-      rowIndex: number
-      columnIndex: number
-    }
-  }
+  mask?: DrawingDataRect
 }
 
 export function Canvas(props: Props) {
@@ -54,7 +45,7 @@ export function Canvas(props: Props) {
       drawGridLines(ctx, canvas, data.length, data[0].length, props.pixelSize)
       drawPixels(ctx, canvas, data, props.pixelSize)
       if (drawContext.select.area !== undefined && drawContext.select.area.drawingId === props.drawing.id) {
-        drawSelectArea(ctx, canvas, drawContext.select.area.start, drawContext.select.area.end, props.pixelSize)
+        drawSelectArea(ctx, canvas, drawContext.select.area.rect, props.pixelSize)
       }
     }
   }, [
@@ -70,9 +61,9 @@ export function Canvas(props: Props) {
     if (canvasRef.current) {
       const [x, y] = getEventPosition(e, canvasRef.current)
       mousePositionRef.current = [x, y]
-      const [rowIndex, columnIndex] = convertToGridIndices(x, y, props.pixelSize)
+      const position = convertToDrawingDataPosition(x, y, props.pixelSize)
 
-      if (!props.drawing.isValidIndices(rowIndex, columnIndex)) {
+      if (!props.drawing.isValidPosition(position)) {
         return
       }
 
@@ -82,11 +73,11 @@ export function Canvas(props: Props) {
         case "pen":
         case "eraser": {
           const color = drawContext.tool === "pen" ? drawContext.pen.color : null
-          updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color, chainId})
+          updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId})
           break
         }
         case "select":
-          startSelectArea(props.drawing.id, rowIndex, columnIndex)
+          startSelectArea(props.drawing.id, position)
           break
       }
 
@@ -99,21 +90,21 @@ export function Canvas(props: Props) {
           }
           mousePositionRef.current = [x, y]
 
-          const indices = interpolateEventPositions([x, y], [prevX, prevY], props.pixelSize)
-          indices.forEach(([rowIndex, columnIndex]) => {
+          const positions = interpolateEventPositions([x, y], [prevX, prevY], props.pixelSize)
+          positions.forEach(position => {
             switch (drawContext.tool) {
               case "pen":
               case "eraser": {
-                if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
+                if (props.drawing.isValidPosition(position)) {
                   const color = drawContext.tool === "pen" ? drawContext.pen.color : null
-                  updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color, chainId})
+                  updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId})
                 }
                 break
               }
               case "select": {
-                const ri = Math.min(Math.max(rowIndex, 0), props.drawing.rowCount - 1)
-                const ci = Math.min(Math.max(columnIndex, 0), props.drawing.columnCount - 1)
-                expandSelectArea(props.drawing.id, ri, ci)
+                const ri = Math.min(Math.max(position.rowIndex, 0), props.drawing.rowCount - 1)
+                const ci = Math.min(Math.max(position.columnIndex, 0), props.drawing.columnCount - 1)
+                expandSelectArea(props.drawing.id, {rowIndex: ri, columnIndex: ci})
                 break
               }
             }

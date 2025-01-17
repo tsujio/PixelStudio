@@ -1,4 +1,5 @@
 type Props = {
+  onResizeStart: () => void,
   onResize: (
     diff: {
       top: number,
@@ -39,6 +40,8 @@ export function ResizableArea(props: Props) {
 
       document.addEventListener("mousemove", onMouseMove)
       document.addEventListener("mouseup", onMouseUp)
+
+      props.onResizeStart()
     }
 
   return (
@@ -46,6 +49,8 @@ export function ResizableArea(props: Props) {
       display: "grid",
       gridTemplateColumns: "2px 1fr 2px",
       gridTemplateRows: "2px 1fr 2px",
+      width: "fit-content",
+      margin: "auto",
     }}>
       <div style={{cursor: "nwse-resize"}} onMouseDown={onMouseDown("top,left")}></div>
       <div style={{cursor: "ns-resize	"}} onMouseDown={onMouseDown("top")}></div>

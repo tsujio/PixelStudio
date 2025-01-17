@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react'
 import { Color } from '../lib/color'
+import { DrawingDataPosition, DrawingDataRect } from '../lib/drawing'
 
 export type DrawTool = "pen" | "eraser" | "select"
 
@@ -12,14 +13,7 @@ type DrawContext = {
   select: {
     area?: {
       drawingId: string
-      start: {
-        rowIndex: number
-        columnIndex: number
-      },
-      end: {
-        rowIndex: number
-        columnIndex: number
-      },
+      rect: DrawingDataRect
     }
   }
 }
@@ -28,8 +22,8 @@ type DrawContextValue = {
   drawContext: DrawContext
   changeTool: (tool: DrawTool) => void
   changePenColor: (color: Color) => void
-  startSelectArea: (drawingId: string, rowIndex: number, columnIndex: number) => void
-  expandSelectArea: (drawingId: string, rowIndex: number, columnIndex: number) => void
+  startSelectArea: (drawingId: string, position: DrawingDataPosition) => void
+  expandSelectArea: (drawingId: string, position: DrawingDataPosition) => void
   clearSelectArea: (drawingId: string) => void
 }
 
@@ -54,14 +48,12 @@ type Action =
   {
     type: "startSelectArea"
     drawingId: string
-    rowIndex: number
-    columnIndex: number
+    position: DrawingDataPosition
   } |
   {
     type: "expandSelectArea"
     drawingId: string
-    rowIndex: number
-    columnIndex: number
+    position: DrawingDataPosition
   } |
   {
     type: "clearSelectArea"
@@ -92,14 +84,10 @@ const reducer = (drawContext: DrawContext, action: Action) => {
           ...drawContext.select,
           area: {
             drawingId: action.drawingId,
-            start: {
-              rowIndex: action.rowIndex,
-              columnIndex: action.columnIndex,
+            rect: {
+              start: {...action.position},
+              end: {...action.position},
             },
-            end: {
-              rowIndex: action.rowIndex,
-              columnIndex: action.columnIndex,
-            }
           }
         }
       }
@@ -107,7 +95,7 @@ const reducer = (drawContext: DrawContext, action: Action) => {
     case "expandSelectArea": {
       const area = drawContext.select.area
       if (area === undefined || area.drawingId !== action.drawingId) {
-        drawContext = reducer(drawContext, {type: "startSelectArea", drawingId: action.drawingId, rowIndex: action.rowIndex, columnIndex: action.columnIndex})
+        drawContext = reducer(drawContext, {type: "startSelectArea", drawingId: action.drawingId, position: action.position})
       }
       return {
         ...drawContext,
@@ -115,10 +103,7 @@ const reducer = (drawContext: DrawContext, action: Action) => {
           ...drawContext.select,
           area: {
             ...drawContext.select.area!,
-            end: {
-              rowIndex: action.rowIndex,
-              columnIndex: action.columnIndex,
-            }
+            end: {...action.position},
           }
         }
       }
@@ -148,8 +133,8 @@ export const DrawContextProvider = (props: Props) => {
     drawContext,
     changeTool: (tool: DrawTool) => updateDrawContext({type: "changeTool", tool}),
     changePenColor: (color: Color) => updateDrawContext({type: "changePenColor", color}),
-    startSelectArea: (drawingId: string, rowIndex: number, columnIndex: number) => updateDrawContext({type: "startSelectArea", drawingId, rowIndex, columnIndex}),
-    expandSelectArea: (drawingId: string, rowIndex: number, columnIndex: number) => updateDrawContext({type: "expandSelectArea", drawingId, rowIndex, columnIndex}),
+    startSelectArea: (drawingId: string, position: DrawingDataPosition) => updateDrawContext({type: "startSelectArea", drawingId, position}),
+    expandSelectArea: (drawingId: string, position: DrawingDataPosition) => updateDrawContext({type: "expandSelectArea", drawingId, position}),
     clearSelectArea: (drawingId: string) => updateDrawContext({type: "clearSelectArea", drawingId}),
   }), [drawContext])
 

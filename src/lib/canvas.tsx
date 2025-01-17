@@ -1,5 +1,5 @@
 import React from "react"
-import { Color } from "./color"
+import { DrawingData, DrawingDataPosition, DrawingDataRect } from "./drawing"
 
 export const getEventPosition = (e: React.MouseEvent | MouseEvent, canvas: HTMLCanvasElement): [number, number] => {
   const rect = canvas.getBoundingClientRect()
@@ -8,28 +8,28 @@ export const getEventPosition = (e: React.MouseEvent | MouseEvent, canvas: HTMLC
   return [x, y]
 }
 
-export const convertToGridIndices = (x: number, y: number, pixelSize: number): [number, number] => {
+export const convertToDrawingDataPosition = (x: number, y: number, pixelSize: number): DrawingDataPosition => {
   const columnIndex = Math.trunc(x / pixelSize)
   const rowIndex = Math.trunc(y / pixelSize)
-  return [rowIndex, columnIndex]
+  return {rowIndex, columnIndex}
 }
 
 export const interpolateEventPositions = ([x, y]: [number, number], [prevX, prevY]: [number, number], pixelSize: number) => {
-  const indices: [number, number][] = []
+  const positions: DrawingDataPosition[] = []
   const [vx, vy] = [x - prevX, y - prevY]
   const norm = Math.sqrt(Math.pow(vx, 2) + Math.pow(vy, 2))
   const [nvx, nvy] = [vx / norm, vy / norm]
   for (let i = 1; i <= norm / pixelSize; i++) {
     const [px, py] = [prevX + nvx * pixelSize * i, prevY + nvy * pixelSize * i]
-    const [rowIndex, columnIndex] = convertToGridIndices(px, py, pixelSize)
-    indices.push([rowIndex, columnIndex])
+    const pos = convertToDrawingDataPosition(px, py, pixelSize)
+    positions.push(pos)
   }
-  const [rowIndex, columnIndex] = convertToGridIndices(x, y, pixelSize)
-  indices.push([rowIndex, columnIndex])
-  return indices
+  const pos = convertToDrawingDataPosition(x, y, pixelSize)
+  positions.push(pos)
+  return positions
 }
 
-export const applyMask = (data: (Color | null)[][], mask: {start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}}) => {
+export const applyMask = (data: DrawingData, mask: DrawingDataRect) => {
   const [ rowCount, columnCount ] = [data.length, data[0].length]
   const { start, end } = mask
 
@@ -83,7 +83,7 @@ export const drawGridLines = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasE
   }
 }
 
-export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, _: HTMLCanvasElement | OffscreenCanvas, data: (Color | null)[][], pixelSize: number) => {
+export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, _: HTMLCanvasElement | OffscreenCanvas, data: DrawingData, pixelSize: number) => {
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       if (data[i][j] !== null) {
@@ -94,7 +94,8 @@ export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRender
   }
 }
 
-export const drawSelectArea = (ctx: CanvasRenderingContext2D, _: HTMLCanvasElement, start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}, pixelSize: number) => {
+export const drawSelectArea = (ctx: CanvasRenderingContext2D, _: HTMLCanvasElement, rect: DrawingDataRect, pixelSize: number) => {
+  const {start, end} = rect
   const top = Math.min(start.rowIndex, end.rowIndex)
   const left = Math.min(start.columnIndex, end.columnIndex)
   const height = Math.max(start.rowIndex, end.rowIndex) - top + 1

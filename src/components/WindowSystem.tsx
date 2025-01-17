@@ -100,17 +100,19 @@ const reducer = (windows: Windows, action: Action): Windows => {
     }
     case "move": {
       if (action.windowId in windows) {
-        return {
-          ...windows,
-          [action.windowId]: {
-            ...windows[action.windowId],
-            top: action.top,
-            left: action.left,
+        const w = windows[action.windowId]
+        if (w.top !== action.top || w.left !== action.left) {
+          return {
+            ...windows,
+            [action.windowId]: {
+              ...windows[action.windowId],
+              top: action.top,
+              left: action.left,
+            }
           }
         }
-      } else {
-        return windows
       }
+      return windows
     }
   }
 }

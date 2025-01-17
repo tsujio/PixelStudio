@@ -10,8 +10,7 @@ export function ToolBoxSelectOptions() {
       updateProject({
         type: "trimDrawing",
         drawingId: drawContext.select.area.drawingId,
-        start: drawContext.select.area.start,
-        end: drawContext.select.area.end,
+        rect: drawContext.select.area.rect,
       })
     }
   }
