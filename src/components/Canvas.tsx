@@ -52,18 +52,22 @@ export function Canvas(props: Props) {
       mousePositionRef.current = [x, y]
       const [rowIndex, columnIndex] = convertToGridIndices(x, y, props.pixelSize)
 
-      if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
-        switch (drawContext.tool) {
-          case "pen":
-            updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.pen.color})
-            break
-          case "eraser":
-            updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex})
-            break
-          case "select":
-            startSelectArea(props.drawing.id, rowIndex, columnIndex)
-            break
+      if (!props.drawing.isValidIndices(rowIndex, columnIndex)) {
+        return
+      }
+
+      const chainId = crypto.randomUUID()
+
+      switch (drawContext.tool) {
+        case "pen":
+        case "eraser": {
+          const color = drawContext.tool === "pen" ? drawContext.pen.color : null
+          updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color, chainId})
+          break
         }
+        case "select":
+          startSelectArea(props.drawing.id, rowIndex, columnIndex)
+          break
       }
 
       const onMouseMove = (e: MouseEvent) => {
@@ -80,11 +84,11 @@ export function Canvas(props: Props) {
             if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
               switch (drawContext.tool) {
                 case "pen":
-                  updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color: drawContext.pen.color, chain: true})
+                case "eraser": {
+                  const color = drawContext.tool === "pen" ? drawContext.pen.color : null
+                  updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color, chainId})
                   break
-                case "eraser":
-                  updateProject({type: "clearPixel", drawingId: props.drawing.id, rowIndex, columnIndex, chain: true})
-                  break
+                }
                 case "select":
                   expandSelectArea(props.drawing.id, rowIndex, columnIndex)
                   break

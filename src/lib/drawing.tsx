@@ -62,7 +62,12 @@ export class Drawing {
   }
 
   setPixel(rowIndex: number, columnIndex: number, color: Color | null) {
+    const before = this.#data[rowIndex][columnIndex]
+    if (before === color) {
+      return false
+    }
     this.#data[rowIndex][columnIndex] = color
+    return true
   }
 
   trim(start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}) {

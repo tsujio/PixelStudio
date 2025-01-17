@@ -17,34 +17,35 @@ export function Main() {
     }
   }, [openWindow, closeWindow])
 
+  const drawingWindows = Object.values(windows).filter(w => w.metadata.type === "drawing" && w.metadata.drawingId in project.drawings)
+  const toolBoxWindow = Object.values(windows).find((w) => w.metadata.type === "toolBox")
+
   return (
     <>
-      {Object.entries(windows).filter(([_, w]) => w.metadata.type === "drawing").map(([windowId, window]) =>
+      {drawingWindows.map(window =>
         <Window
-          key={windowId}
-          id={windowId}
+          key={window.windowId}
+          id={window.windowId}
           top={window.top}
           left={window.left}
           zIndex={window.zIndex}
         >
-          {window.metadata.type === "drawing" && window.metadata.drawingId in project.drawings ?
+          {window.metadata.type === "drawing" &&
           <Drawing
             drawing={project.drawings[window.metadata.drawingId]}
-          /> :
-          null}
+          />}
         </Window>
       )}
-      {Object.entries(windows).filter(([_, w]) => w.metadata.type === "toolBox").map(([windowId, window]) =>
-        <Window
-          key={windowId}
-          id={windowId}
-          top={window.top}
-          left={window.left}
-          zIndex={window.zIndex}
-        >
-          <ToolBox />
-        </Window>
-      )}
+      {toolBoxWindow &&
+      <Window
+        key={toolBoxWindow.windowId}
+        id={toolBoxWindow.windowId}
+        top={toolBoxWindow.top}
+        left={toolBoxWindow.left}
+        zIndex={toolBoxWindow.zIndex}
+      >
+        <ToolBox />
+      </Window>}
     </>
   )
 }

@@ -11,6 +11,7 @@ type WindowSystemContextValue = {
 const WindowSystemContext = createContext<WindowSystemContextValue | null>(null)
 
 type Window = {
+  windowId: string
   top: number
   left: number
   zIndex: number
@@ -59,15 +60,16 @@ const reducer = (windows: Windows, action: Action): Windows => {
       // Activate if a window with speficied drawing id exists
       if (action.metadata.type === "drawing") {
         const drawingId = action.metadata.drawingId
-        const kv = Object.entries(windows).find(([_, w]) => w.metadata.type === "drawing" && w.metadata.drawingId === drawingId)
-        if (kv !== undefined) {
-          return reducer(windows, {type: "activate", windowId: kv[0]})
+        const window = Object.values(windows).find(w => w.metadata.type === "drawing" && w.metadata.drawingId === drawingId)
+        if (window !== undefined) {
+          return reducer(windows, {type: "activate", windowId: window.windowId})
         }
       }
 
       const ws = {
         ...windows,
         [action.windowId]: {
+          windowId: action.windowId,
           top: action.top,
           left: action.left,
           zIndex: 0,
@@ -87,9 +89,9 @@ const reducer = (windows: Windows, action: Action): Windows => {
         return windows
       }
 
-      const orderedWindowIds = Object.entries(windows)
-        .sort(([_, a], [__, b]) => a.zIndex - b.zIndex)
-        .map(([windowId, _]) => windowId)
+      const orderedWindowIds = Object.values(windows)
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .map(w => w.windowId)
       const newOrderedWindowIds = orderedWindowIds.filter(windowId => windowId !== action.windowId)
       newOrderedWindowIds.push(action.windowId)
       return Object.fromEntries(newOrderedWindowIds.map((windowId, i) =>

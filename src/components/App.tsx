@@ -1,15 +1,14 @@
-import { useReducer, useState } from 'react'
+import { useReducer, useState, useEffect } from 'react'
 import { ProjectContextProvider } from './ProjectContext'
 import { Sidebar } from './Sidebar'
 import { Main } from './Main'
 import { WindowSystemContextProvider } from './WindowSystem'
-import { Project, updateProjectReducer } from '../lib/project'
+import { updateProjectReducer, initialProject } from '../lib/project'
 import { DrawContextProvider } from './DrawContext'
 
 export function App() {
-  const [project, updateProject] = useReducer(updateProjectReducer, undefined, () =>
-    updateProjectReducer(new Project(""), {type: "newProject"})
-  )
+  const [{current, history}, updateProject] = useReducer(updateProjectReducer, initialProject)
+  const project = history[current].project
 
   const [sidebarWidth, setSidebarWidth] = useState(250)
 
@@ -18,6 +17,22 @@ export function App() {
       setSidebarWidth(width)
     }
   }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.code === "KeyZ") {
+        if (e.shiftKey) {
+          updateProject({type: "redo"})
+        } else {
+          updateProject({type: "undo"})
+        }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [])
 
   return (
     <>

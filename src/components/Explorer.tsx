@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useProjectContext } from "./ProjectContext"
+import { useWindowSystemContext } from "./WindowSystem"
 import { ExplorerItem } from "./ExplorerItem"
 import { IconButton } from "./IconButton"
 import { Menu } from "./Menu"
@@ -9,6 +10,7 @@ import { Drawing } from "../lib/drawing"
 
 export function Explorer() {
   const { project, updateProject } = useProjectContext()
+  const { windows, closeWindow } = useWindowSystemContext()
 
   let drawings: Drawing[] | null = null
   if (project) {
@@ -28,6 +30,13 @@ export function Explorer() {
 
   const onNewProjectButtonClick = () => {
     updateProject({type: "newProject"})
+
+    Object.values(windows).forEach(window => {
+      if (window.metadata.type === "drawing") {
+        closeWindow(window.windowId)
+      }
+    })
+
     setProjectMenuButtonElement(null)
   }
 
@@ -43,6 +52,12 @@ export function Explorer() {
           if (reader.result) {
             const json = JSON.parse(reader.result.toString())
             updateProject({type: "load", json})
+
+            Object.values(windows).forEach(window => {
+              if (window.metadata.type === "drawing") {
+                closeWindow(window.windowId)
+              }
+            })
           }
         }
         reader.readAsText(files[0])

@@ -120,15 +120,8 @@ export type UpdateProjectAction =
     drawingId: string
     rowIndex: number
     columnIndex: number
-    color: Color
-    chain?: boolean
-  } |
-  {
-    type: "clearPixel"
-    drawingId: string
-    rowIndex: number
-    columnIndex: number
-    chain?: boolean
+    color: Color | null
+    chainId: string
   } |
   {
     type: "trimDrawing"
@@ -141,50 +134,74 @@ export type UpdateProjectAction =
       rowIndex: number
       columnIndex: number
     }
+  } |
+  {
+    type: "undo"
+  } |
+  {
+    type: "redo"
   }
 
-export const updateProjectReducer = (project: Project, action: UpdateProjectAction): Project => {
+type ProjectHistory = {
+  current: number
+  history: {
+    project: Project
+    action: UpdateProjectAction
+  }[]
+}
+
+export const updateProjectReducer = (projectState: ProjectHistory, action: UpdateProjectAction): ProjectHistory => {
+  const { current, history } = projectState
+  const project = history[current].project
   switch (action.type) {
     case "newProject": {
-      const project = new Project("New project")
-      const drawing = Drawing.create(project.getUniqueDrawingName())
-      project.addDrawing(drawing)
-      return project
+      const pjt = new Project("New project")
+      const drawing = Drawing.create(pjt.getUniqueDrawingName())
+      pjt.addDrawing(drawing)
+      return {current: 0, history: [{project: pjt, action}]}
     }
     case "load": {
-      return Project.fromJSON(action.json)
+      const pjt = Project.fromJSON(action.json)
+      return {current: 0, history: [{project: pjt, action}]}
     }
     case "rename": {
       const pjt = project.clone()
       pjt.rename(action.newName)
-      return pjt
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "addDrawing": {
       const pjt = project.clone()
       const drawing = Drawing.create(pjt.getUniqueDrawingName())
       pjt.addDrawing(drawing)
-      return pjt
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "renameDrawing": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
       drawing.rename(pjt.getUniqueDrawingName(action.newName))
       pjt.addDrawing(drawing)
-      return pjt
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "deleteDrawing": {
       const pjt = project.clone()
       pjt.deleteDrawing(action.drawingId)
-      return pjt
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
-    case "setPixel":
-    case "clearPixel": {
+    case "setPixel": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      const color = action.type === "setPixel" ? action.color : null
-      drawing.setPixel(action.rowIndex, action.columnIndex, color)
+      const modified = drawing.setPixel(action.rowIndex, action.columnIndex, action.color)
+      if (!modified) {
+        return projectState
+      }
       pjt.addDrawing(drawing)
-      return pjt
+
+      const prevAction = history.length > 0 ? history[current].action : null
+      if (prevAction !== null && prevAction.type === "setPixel" && prevAction.chainId === action.chainId) {
+        return {current, history: [...history.slice(0, current), {project: pjt, action}]}
+      } else {
+        return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      }
     }
     case "trimDrawing": {
       const { start, end } = action
@@ -197,7 +214,24 @@ export const updateProjectReducer = (project: Project, action: UpdateProjectActi
       const drawing = pjt.getDrawing(action.drawingId).clone()
       drawing.trim({rowIndex: top, columnIndex: left}, {rowIndex: bottom, columnIndex: right})
       pjt.addDrawing(drawing)
-      return pjt
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "undo": {
+      if (current > 0) {
+        return {current: current - 1, history}
+      } else {
+        return projectState
+      }
+    }
+    case "redo": {
+      if (current < history.length - 1) {
+        return {current: current + 1, history}
+      } else {
+        return projectState
+      }
     }
   }
 }
+
+const seed: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
+export const initialProject = updateProjectReducer(seed, {type: "newProject"})
