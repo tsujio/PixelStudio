@@ -115,11 +115,11 @@ export class Drawing {
       if (!Array.isArray(row)) {
         throw new Error("Invalid drawing data row: not an array")
       }
-      if (row.length !== (json.data as unknown[]).length) {
-        throw new Error("Invalid row length")
-      }
       return row.map((v: unknown) => v === null ? null : Color.fromJSON(v))
     })
+    if (new Set(data.map(row => row.length)).size > 1) {
+      throw new Error("Invalid row length")
+    }
 
     const drawing = new Drawing(json.id as string, json.name as string, data)
     return drawing

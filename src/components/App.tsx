@@ -19,6 +19,11 @@ export function App() {
   }
 
   useEffect(() => {
+    const dump = JSON.stringify(project)
+    localStorage.setItem("project", dump)
+  }, [project])
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "KeyZ") {
         if (e.shiftKey) {

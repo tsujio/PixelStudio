@@ -230,5 +230,18 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
   }
 }
 
-const seed: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
-export const initialProject = updateProjectReducer(seed, {type: "newProject"})
+export const initialProject = (() => {
+  const seed: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
+
+  const dump = localStorage.getItem("project")
+  if (dump !== null) {
+    try {
+      const json = JSON.parse(dump)
+      return updateProjectReducer(seed, {type: "load", json})
+    } catch (e) {
+      console.warn("Failed to load project from localStorage", e, dump)
+    }
+  }
+
+  return updateProjectReducer(seed, {type: "newProject"})
+})()

@@ -21,7 +21,7 @@ export class Color {
     if (typeof json !== "string") {
       throw new Error(`Invalid color data: expected=string, got=${typeof json}`)
     }
-    if (/^#[0-9a-fA-F]{6}$/.test(json)) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(json)) {
       throw new Error("Invalid color data format")
     }
     return new Color(json)
