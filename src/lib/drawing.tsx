@@ -1,3 +1,4 @@
+import { applyMask } from "./canvas"
 import { Color } from "./color"
 
 export class Drawing {
@@ -75,6 +76,10 @@ export class Drawing {
       .map(row => row.slice(start.columnIndex, end.columnIndex + 1))
   }
 
+  resize(start: DrawingDataPosition, end: DrawingDataPosition) {
+    this.#data = applyMask(this.#data, {start, end})
+  }
+
   clone() {
     const data = this.#data.map(row => [...row])
     const drawing = new Drawing(this.#id, this.#name, data)
@@ -124,4 +129,9 @@ export class Drawing {
     const drawing = new Drawing(json.id as string, json.name as string, data)
     return drawing
   }
+}
+
+export type DrawingDataPosition = {
+  rowIndex: number
+  columnIndex: number
 }

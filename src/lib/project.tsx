@@ -133,6 +133,18 @@ export type UpdateProjectAction =
     }
   } |
   {
+    type: "resizeDrawing"
+    drawingId: string
+    start: {
+      rowIndex: number
+      columnIndex: number
+    }
+    end: {
+      rowIndex: number
+      columnIndex: number
+    }
+  } |
+  {
     type: "undo"
   } |
   {
@@ -210,6 +222,13 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
       drawing.trim({rowIndex: top, columnIndex: left}, {rowIndex: bottom, columnIndex: right})
+      pjt.addDrawing(drawing)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "resizeDrawing": {
+      const pjt = project.clone()
+      const drawing = pjt.getDrawing(action.drawingId).clone()
+      drawing.resize(action.start, action.end)
       pjt.addDrawing(drawing)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }

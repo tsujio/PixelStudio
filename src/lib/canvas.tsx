@@ -9,8 +9,8 @@ export const getEventPosition = (e: React.MouseEvent | MouseEvent, canvas: HTMLC
 }
 
 export const convertToGridIndices = (x: number, y: number, pixelSize: number): [number, number] => {
-  const columnIndex = Math.floor(x / pixelSize)
-  const rowIndex = Math.floor(y / pixelSize)
+  const columnIndex = Math.trunc(x / pixelSize)
+  const rowIndex = Math.trunc(y / pixelSize)
   return [rowIndex, columnIndex]
 }
 
@@ -27,6 +27,38 @@ export const interpolateEventPositions = ([x, y]: [number, number], [prevX, prev
   const [rowIndex, columnIndex] = convertToGridIndices(x, y, pixelSize)
   indices.push([rowIndex, columnIndex])
   return indices
+}
+
+export const applyMask = (data: (Color | null)[][], mask: {start: {rowIndex: number, columnIndex: number}, end: {rowIndex: number, columnIndex: number}}) => {
+  const [ rowCount, columnCount ] = [data.length, data[0].length]
+  const { start, end } = mask
+
+  if (start.rowIndex > 0) {
+    data = data.slice(start.rowIndex)
+  }
+  if (start.rowIndex < 0) {
+    data = [...Array(-start.rowIndex)].map(() => Array(data[0].length).fill(null)).concat(data)
+  }
+  if (start.columnIndex > 0) {
+    data = data.map(row => row.slice(start.columnIndex))
+  }
+  if (start.columnIndex < 0) {
+    data = data.map(row => Array(-start.columnIndex).fill(null).concat(row))
+  }
+  if (end.rowIndex > rowCount - 1) {
+    data = data.concat([...Array(end.rowIndex - (rowCount - 1))].map(() => Array(data[0].length).fill(null)))
+  }
+  if (end.rowIndex < rowCount - 1) {
+    data = data.slice(0, data.length - ((rowCount - 1) - end.rowIndex))
+  }
+  if (end.columnIndex > columnCount - 1) {
+    data = data.map(row => row.concat(Array(end.columnIndex - (columnCount - 1)).fill(null)))
+  }
+  if (end.columnIndex < columnCount - 1) {
+    data = data.map(row => row.slice(0, data[0].length - ((columnCount - 1) - end.columnIndex)))
+  }
+
+  return data
 }
 
 export const clearCanvas = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {

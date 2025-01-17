@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useMemo } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useDrawContext } from "./DrawContext"
 import { Drawing } from "../lib/drawing"
@@ -10,11 +10,22 @@ import {
   drawGridLines,
   drawPixels,
   drawSelectArea,
+  applyMask,
 } from "../lib/canvas"
 
 type Props = {
   drawing: Drawing
   pixelSize: number
+  mask?: {
+    start: {
+      rowIndex: number
+      columnIndex: number
+    },
+    end: {
+      rowIndex: number
+      columnIndex: number
+    }
+  }
 }
 
 export function Canvas(props: Props) {
@@ -24,8 +35,12 @@ export function Canvas(props: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const canvasWidth = props.pixelSize * props.drawing.columnCount
-  const canvasHeight = props.pixelSize * props.drawing.rowCount
+  const data = useMemo(() => {
+    if (props.mask === undefined) {
+      return props.drawing.data
+    }
+    return applyMask(props.drawing.data, props.mask)
+  }, [props.drawing.data, props.mask])
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -36,13 +51,18 @@ export function Canvas(props: Props) {
       }
 
       clearCanvas(ctx, canvas)
-      drawGridLines(ctx, canvas, props.drawing.rowCount, props.drawing.columnCount, props.pixelSize)
-      drawPixels(ctx, canvas, props.drawing.data, props.pixelSize)
+      drawGridLines(ctx, canvas, data.length, data[0].length, props.pixelSize)
+      drawPixels(ctx, canvas, data, props.pixelSize)
       if (drawContext.select.area !== undefined && drawContext.select.area.drawingId === props.drawing.id) {
         drawSelectArea(ctx, canvas, drawContext.select.area.start, drawContext.select.area.end, props.pixelSize)
       }
     }
-  }, [props.pixelSize, props.drawing.rowCount, props.drawing.columnCount, props.drawing.data, props.drawing.id, drawContext.select.area])
+  }, [
+    props.pixelSize,
+    data,
+    props.drawing.id,
+    drawContext.select.area,
+  ])
 
   const mousePositionRef = useRef<[number, number] | null>(null)
 
@@ -81,17 +101,20 @@ export function Canvas(props: Props) {
 
           const indices = interpolateEventPositions([x, y], [prevX, prevY], props.pixelSize)
           indices.forEach(([rowIndex, columnIndex]) => {
-            if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
-              switch (drawContext.tool) {
-                case "pen":
-                case "eraser": {
+            switch (drawContext.tool) {
+              case "pen":
+              case "eraser": {
+                if (props.drawing.isValidIndices(rowIndex, columnIndex)) {
                   const color = drawContext.tool === "pen" ? drawContext.pen.color : null
                   updateProject({type: "setPixel", drawingId: props.drawing.id, rowIndex, columnIndex, color, chainId})
-                  break
                 }
-                case "select":
-                  expandSelectArea(props.drawing.id, rowIndex, columnIndex)
-                  break
+                break
+              }
+              case "select": {
+                const ri = Math.min(Math.max(rowIndex, 0), props.drawing.rowCount - 1)
+                const ci = Math.min(Math.max(columnIndex, 0), props.drawing.columnCount - 1)
+                expandSelectArea(props.drawing.id, ri, ci)
+                break
               }
             }
           })
@@ -107,6 +130,9 @@ export function Canvas(props: Props) {
       document.addEventListener("mouseup", onMouseUp)
     }
   }
+
+  const canvasWidth = props.pixelSize * data[0].length
+  const canvasHeight = props.pixelSize * data.length
 
   return (
     <canvas

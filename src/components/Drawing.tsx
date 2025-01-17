@@ -1,23 +1,75 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useWindowContext } from "./Window"
+import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
+import { ResizableArea } from "./ResizableArea"
 import { Drawing as DrawingClass } from "../lib/drawing"
 
 type Props = {
   drawing: DrawingClass
 }
 
+type Mask = {
+  start: {
+    rowIndex: number
+    columnIndex: number
+  },
+  end: {
+    rowIndex: number
+    columnIndex: number
+  }
+}
+
 export function Drawing(props: Props) {
   const { setWindowName } = useWindowContext()
+  const { updateProject } = useProjectContext()
+
+  const [mask, setMask] = useState<Mask | null>(null)
+
+  const rowCount = mask ? mask.end.rowIndex - mask.start.rowIndex + 1 : props.drawing.rowCount
+  const columnCount = mask ? mask.end.columnIndex - mask.start.columnIndex + 1 : props.drawing.columnCount
 
   useEffect(() => {
-    setWindowName(`${props.drawing.name} (${props.drawing.rowCount} x ${props.drawing.columnCount})`)
-  }, [setWindowName, props.drawing.name, props.drawing.rowCount, props.drawing.columnCount])
+    setWindowName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
+  }, [setWindowName, props.drawing.name, rowCount, columnCount])
+
+  const pixelSize = 10
+
+  const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
+    const newMask = {
+      start: {
+        rowIndex: Math.min(0 + Math.trunc(diff.top / pixelSize), props.drawing.rowCount - 1),
+        columnIndex: Math.min(0 + Math.trunc(diff.left / pixelSize), props.drawing.columnCount - 1),
+      },
+      end: {
+        rowIndex: Math.max(props.drawing.rowCount - 1 + Math.trunc(diff.bottom / pixelSize), 0),
+        columnIndex: Math.max(props.drawing.columnCount - 1 + Math.trunc(diff.right / pixelSize), 0),
+      }
+    }
+
+    if (fix) {
+      updateProject({type: "resizeDrawing", drawingId: props.drawing.id, start: newMask.start, end: newMask.end})
+
+      setMask(null)
+      return
+    }
+
+    if (mask === null ||
+      newMask.start.rowIndex !== mask.start.rowIndex ||
+      newMask.start.columnIndex !== mask.start.columnIndex ||
+      newMask.end.rowIndex !== mask.end.rowIndex ||
+      newMask.end.columnIndex !== mask.end.columnIndex) {
+      setMask(newMask)
+    }
+  }
 
   return (
-    <Canvas
-      drawing={props.drawing}
-      pixelSize={10}
-    />
+    <ResizableArea onResize={onResize}>
+      <Canvas
+        drawing={props.drawing}
+        pixelSize={pixelSize}
+        mask={mask ?? undefined}
+      />
+    </ResizableArea>
   )
 }
