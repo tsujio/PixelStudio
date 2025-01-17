@@ -27,6 +27,7 @@ export function TextField(props: Props) {
     if (props.blurOnEnter && !e.nativeEvent.isComposing && e.key === "Enter" && ref.current) {
       ref.current.blur()
     }
+    e.stopPropagation()
   }
 
   return (

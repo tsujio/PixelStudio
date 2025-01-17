@@ -36,10 +36,7 @@ export class Project {
   }
 
   addDrawing(drawing: Drawing) {
-    this.#drawings = {
-      ...this.#drawings,
-      [drawing.id]: drawing,
-    }
+    this.#drawings[drawing.id] = drawing
   }
 
   getDrawing(drawingId: string): Drawing {
@@ -56,7 +53,7 @@ export class Project {
 
   clone() {
     const pjt = new Project(this.name)
-    pjt.#drawings = this.drawings
+    pjt.#drawings = {...this.drawings}
     return pjt
   }
 
