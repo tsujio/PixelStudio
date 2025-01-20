@@ -87,7 +87,7 @@ export const drawPixels = (ctx: CanvasRenderingContext2D | OffscreenCanvasRender
   for (let i = 0; i < data.length; i++) {
     for (let j = 0; j < data[i].length; j++) {
       if (data[i][j] !== null) {
-        ctx.fillStyle = data[i][j]!.rgb
+        ctx.fillStyle = data[i][j]!.css
         ctx.fillRect(pixelSize * j, pixelSize * i, pixelSize, pixelSize)
       }
     }

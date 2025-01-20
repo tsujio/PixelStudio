@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo } from 'react'
-import { Color } from '../lib/color'
+import { Color, RGBColor } from '../lib/color'
 import { DrawingDataPosition, DrawingDataRect } from '../lib/drawing'
 
 export type DrawTool = "pen" | "eraser" | "select"
@@ -30,7 +30,7 @@ type DrawContextValue = {
 const initialDrawContext: DrawContext = {
   tool: "pen",
   pen: {
-    color: new Color("#000000"),
+    color: new RGBColor([0, 0, 0]),
   },
   eraser: {},
   select: {},
