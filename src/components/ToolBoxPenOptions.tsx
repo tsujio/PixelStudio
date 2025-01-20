@@ -6,7 +6,7 @@ export function ToolBoxPenOptions() {
   const { drawContext, changePenColor } = useDrawContext()
 
   const onColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const color = new RGBColor([1, 3, 5].map(i => parseInt(e.target.value.substring(i, i + 2), 16)) as [number, number, number])
+    const color = RGBColor.fromHex(e.target.value)
     changePenColor(color)
   }
 

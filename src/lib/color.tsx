@@ -95,6 +95,13 @@ export class RGBColor extends Color {
   toJSON() {
     return {rgb: this.#rgb}
   }
+
+  static fromHex(hex: string) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+      throw new Error(`Invalid rgb hex format: ${hex}`)
+    }
+    return new RGBColor([1, 3, 5].map(i => parseInt(hex.substring(i, i + 2), 16)) as [number, number, number])
+  }
 }
 
 export class HSVColor extends Color {
