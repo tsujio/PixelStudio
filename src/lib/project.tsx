@@ -1,12 +1,15 @@
+import { Color } from "./color"
 import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "./drawing"
 
 export class Project {
   #name: string
   #drawings: {[id:string]: Drawing}
+  #palette: (Color | null)[]
 
   constructor(name: string) {
     this.#name = name
     this.#drawings = {}
+    this.#palette = []
   }
 
   get name() {
@@ -50,9 +53,24 @@ export class Project {
     delete this.#drawings[drawingId]
   }
 
+  get palette() {
+    return [...this.#palette]
+  }
+
+  setPalette(index: number, color: Color | null) {
+    while (this.#palette.length <= index) {
+      this.#palette.push(null)
+    }
+    this.#palette[index] = color
+    while (this.#palette.length > 0 && this.#palette[this.#palette.length - 1] === null) {
+      this.#palette = this.#palette.slice(0, this.#palette.length - 1)
+    }
+  }
+
   clone() {
     const pjt = new Project(this.name)
     pjt.#drawings = {...this.drawings}
+    pjt.#palette = [...this.#palette]
     return pjt
   }
 
@@ -63,6 +81,7 @@ export class Project {
     return {
       name: this.#name,
       drawings: drawings,
+      palette: this.#palette,
     }
   }
 
@@ -79,10 +98,14 @@ export class Project {
     if (!("drawings" in json) || !Array.isArray(json.drawings)) {
       throw new Error(`Invalid project drawings: not an array`)
     }
+    if (!("palette" in json) || !Array.isArray(json.palette)) {
+      throw new Error(`Invalid project palette: not an array`)
+    }
 
     const pjt = new Project(json.name as string)
     const drawings = (json.drawings as unknown[]).map(d => Drawing.fromJSON(d))
     pjt.#drawings = Object.fromEntries(drawings.map(d => [d.id, d]))
+    pjt.#palette = (json.palette as unknown[]).map(c => c !== null ? Color.fromJSON(c) : null)
     return pjt
   }
 }
@@ -127,6 +150,11 @@ export type UpdateProjectAction =
     type: "resizeDrawing"
     drawingId: string
     rect: DrawingDataRect
+  } |
+  {
+    type: "setPalette"
+    index: number
+    color: Color | null
   } |
   {
     type: "undo"
@@ -216,6 +244,11 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
       pjt.addDrawing(drawing)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
+    case "setPalette": {
+      const pjt = project.clone()
+      pjt.setPalette(action.index, action.color)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
     case "undo": {
       if (current > 0) {
         return {current: current - 1, history}
@@ -234,17 +267,17 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
 }
 
 export const initialProject = (() => {
-  const seed: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
+  const dummy: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
 
   const dump = localStorage.getItem("project")
   if (dump !== null) {
     try {
       const json = JSON.parse(dump)
-      return updateProjectReducer(seed, {type: "load", json})
+      return updateProjectReducer(dummy, {type: "load", json})
     } catch (e) {
       console.warn("Failed to load project from localStorage", e, dump)
     }
   }
 
-  return updateProjectReducer(seed, {type: "newProject"})
+  return updateProjectReducer(dummy, {type: "newProject"})
 })()

@@ -1,9 +1,11 @@
 import { useEffect } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
-import { Window } from "./Window"
+import { Window, windowSidePadding } from "./Window"
 import { Drawing } from "./Drawing"
-import { ToolBox } from "./ToolBox"
+import { ToolBox, toolBoxWidth } from "./ToolBox"
+
+const initialWindowWidth = window.innerWidth
 
 export function Main() {
   const { windows, openWindow, closeWindow } = useWindowSystemContext()
@@ -11,7 +13,8 @@ export function Main() {
   const { project } = useProjectContext()
 
   useEffect(() => {
-    const windowId = openWindow(0, 500, {type: "toolBox"})
+    const left = initialWindowWidth - toolBoxWidth - windowSidePadding * 2
+    const windowId = openWindow(0, left, {type: "toolBox"})
     return () => {
       closeWindow(windowId)
     }

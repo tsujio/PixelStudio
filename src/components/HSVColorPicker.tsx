@@ -1,14 +1,17 @@
 import { useRef, useEffect } from "react"
-import { useDrawContext } from "./DrawContext"
 import { HSVColor } from "../lib/color"
 import { convertToDrawingDataPosition, getEventPosition } from "../lib/canvas"
+import { Color } from "../lib/color"
 
 const hueSteps = 180
 
-export function HSVColorPicker() {
-  const { drawContext, changePenColor } = useDrawContext()
+type Props = {
+  color: Color
+  onColorPick: (color: Color) => void
+}
 
-  const hsv = drawContext.pen.color.toHSV().hsv
+export function HSVColorPicker(props: Props) {
+  const hsv = props.color.toHSV().hsv
 
   const hueCanvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -45,7 +48,7 @@ export function HSVColorPicker() {
         const {columnIndex} = convertToDrawingDataPosition(x, y, 1)
         const hue = Math.round(Math.min(Math.max(columnIndex, 0), hueSteps) * 360 / hueSteps)
         const color = new HSVColor([hue, hsv[1], hsv[2]])
-        changePenColor(color)
+        props.onColorPick(color)
       }
     }
 
@@ -109,7 +112,7 @@ export function HSVColorPicker() {
         const s = Math.min(Math.max(columnIndex, 0), 100)
         const v = Math.min(Math.max(100 - rowIndex, 0), 100)
         const color = new HSVColor([hsv[0], s, v])
-        changePenColor(color)
+        props.onColorPick(color)
       }
     }
 

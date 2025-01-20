@@ -1,29 +1,31 @@
-import { RGBColor, HSVColor } from "../lib/color"
-import { useDrawContext } from "./DrawContext"
+import { Color, RGBColor, HSVColor } from "../lib/color"
 
-export function ColorValuePicker() {
-  const { drawContext, changePenColor } = useDrawContext()
+type Props = {
+  color: Color
+  onColorPick: (color: Color) => void
+}
 
-  const rgbColor = drawContext.pen.color.toRGB()
-  const hsvColor = drawContext.pen.color.toHSV()
+export function ColorValuePicker(props: Props) {
+  const rgbColor = props.color.toRGB()
+  const hsvColor = props.color.toHSV()
 
   const onRGBHexValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const color = RGBColor.fromHex(e.target.value)
-    changePenColor(color)
+    props.onColorPick(color)
   }
 
   const onRGBValueChange = (index: 0 | 1 | 2) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const rgb = rgbColor.rgb
     rgb[index] = parseInt(e.target.value)
     const color = new RGBColor(rgb)
-    changePenColor(color)
+    props.onColorPick(color)
   }
 
   const onHSVValueChange = (index: 0 | 1 | 2) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const hsv = hsvColor.hsv
     hsv[index] = parseInt(e.target.value)
     const color = new HSVColor(hsv)
-    changePenColor(color)
+    props.onColorPick(color)
   }
 
   return (

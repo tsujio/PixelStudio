@@ -16,6 +16,8 @@ export function useWindowContext() {
   return value
 }
 
+export const windowSidePadding = 12
+
 type Props = {
   id: string
   top?: number
@@ -89,14 +91,14 @@ export function Window(props: Props) {
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",
           alignItems: "center",
-          padding: "12px",
+          padding: `12px ${windowSidePadding}px`,
         }}
       >
         <span>{windowName}</span>
       </div>
       <div
         style={{
-          padding: "0 12px 12px",
+          padding: `0 ${windowSidePadding}px 12px`,
         }}
       >
         <WindowContext.Provider value={windowContextValue}>

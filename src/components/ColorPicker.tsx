@@ -1,7 +1,13 @@
 import { HSVColorPicker } from "./HSVColorPicker"
 import { ColorValuePicker } from "./ColorValuePicker"
+import { Color } from "../lib/color"
 
-export function ColorPicker() {
+type Props = {
+  color: Color
+  onColorPick: (color: Color) => void
+}
+
+export function ColorPicker(props: Props) {
   return (
     <div
       style={{
@@ -10,10 +16,10 @@ export function ColorPicker() {
       }}
     >
       <div>
-        <HSVColorPicker />
+        <HSVColorPicker color={props.color} onColorPick={props.onColorPick} />
       </div>
       <div style={{marginLeft: "8px"}}>
-        <ColorValuePicker />
+        <ColorValuePicker color={props.color} onColorPick={props.onColorPick} />
       </div>
     </div>
   )
