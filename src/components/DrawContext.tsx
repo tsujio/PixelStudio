@@ -119,7 +119,10 @@ const reducer = (drawContext: DrawContext, action: Action) => {
           ...drawContext.select,
           area: {
             ...drawContext.select.area!,
-            end: {...action.position},
+            rect: {
+              ...drawContext.select.area!.rect,
+              end: {...action.position},
+            },
           }
         }
       }

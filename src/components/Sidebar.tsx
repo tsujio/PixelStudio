@@ -39,11 +39,20 @@ export function Sidebar(props: Props) {
         position: "relative",
       }}
     >
-      <div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateRows: "auto 1fr auto",
+        }}
+      >
         <div>
           <h1>Pixel Studio</h1>
         </div>
         <Explorer />
+        <div style={{textAlign: "center"}}>
+          <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
+          <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>
+        </div>
       </div>
       <div
         style={{
