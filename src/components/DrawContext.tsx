@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback } fr
 import { Color, RGBColor } from '../lib/color'
 import { DrawingDataPosition, DrawingDataRect } from '../lib/drawing'
 
-export type DrawTool = "pen" | "eraser" | "select"
+export type DrawTool = "pen" | "eraser" | "select" | "canvas"
 
 type DrawContext = {
   tool: DrawTool
