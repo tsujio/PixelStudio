@@ -1,5 +1,6 @@
 import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
 import { useWindowSystemContext } from './WindowSystem'
+import { makeDragStartCallback } from '../lib/drag'
 
 type WindowContextValue = {
   windowId: string
@@ -34,29 +35,26 @@ export function Window(props: Props) {
 
   const [dragging, setDragging] = useState<boolean>(false)
 
-  const onMouseDownOnDraggableArea = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onMouseDownOnDraggableArea = makeDragStartCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging && windowRef.current) {
       const w = windowRef.current
       const rect = w.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      const onMouseMove = (e: MouseEvent) => {
+
+      const onDragging = (e: MouseEvent) => {
         moveWindow(props.id, e.pageY - y, e.pageX - x)
       }
 
-      const onMouseUp = () => {
-        document.removeEventListener("mousemove", onMouseMove)
-        document.removeEventListener("mouseup", onMouseUp)
-
+      const onDragEnd = () => {
         setDragging(false)
       }
 
-      document.addEventListener("mousemove", onMouseMove)
-      document.addEventListener("mouseup", onMouseUp)
-
       setDragging(true)
+
+      return { onDragging, onDragEnd }
     }
-  }
+  })
 
   const onMouseDown = () => {
     activateWindow(props.id)
@@ -92,6 +90,7 @@ export function Window(props: Props) {
           display: "flex",
           alignItems: "center",
           padding: `12px ${windowSidePadding}px`,
+          userSelect: "none",
         }}
       >
         <span>{windowName}</span>

@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react"
 import { HSVColor } from "../lib/color"
 import { convertToDrawingDataPosition, getEventPosition } from "../lib/canvas"
 import { Color } from "../lib/color"
+import { makeDragStartCallback } from "../lib/drag"
 
 const hueSteps = 180
 
@@ -41,7 +42,7 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0]])
 
-  const onMouseDownOnHueCanvas = (e: React.MouseEvent) => {
+  const onMouseDownOnHueCanvas = makeDragStartCallback((e: React.MouseEvent) => {
     const onChange = (e: React.MouseEvent | MouseEvent) => {
       if (hueCanvasRef.current) {
         const [x, y] = getEventPosition(e, hueCanvasRef.current)
@@ -52,20 +53,10 @@ export function HSVColorPicker(props: Props) {
       }
     }
 
-    const onMouseMove = (e: MouseEvent) => {
-      onChange(e)
-    }
-  
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
-    }
-
-    document.addEventListener("mousemove", onMouseMove)
-    document.addEventListener("mouseup", onMouseUp)
-
     onChange(e)
-  }
+
+    return {onDragging: onChange}
+  })
 
   const svCanvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -104,7 +95,7 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0], hsv[1], hsv[2]])
 
-  const onMouseDownOnSVCanvas = (e: React.MouseEvent) => {
+  const onMouseDownOnSVCanvas = makeDragStartCallback((e: React.MouseEvent) => {
     const onChange = (e: React.MouseEvent | MouseEvent) => {
       if (svCanvasRef.current) {
         const [x, y] = getEventPosition(e, svCanvasRef.current)
@@ -116,20 +107,10 @@ export function HSVColorPicker(props: Props) {
       }
     }
 
-    const onMouseMove = (e: MouseEvent) => {
-      onChange(e)
-    }
-
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
-    }
-
-    document.addEventListener("mousemove", onMouseMove)
-    document.addEventListener("mouseup", onMouseUp)
-
     onChange(e)
-  }
+
+    return {onDragging: onChange}
+  })
 
   return (
     <div>

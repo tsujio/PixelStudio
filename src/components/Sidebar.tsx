@@ -1,5 +1,6 @@
 import { useRef } from "react"
 import { Explorer } from "./Explorer"
+import { makeDragStartCallback } from "../lib/drag"
 
 type Props = {
   onResize: (width: number) => void
@@ -8,28 +9,25 @@ type Props = {
 export function Sidebar(props: Props) {
   const draggingRef = useRef(false)
 
-  const onMouseDownOnResizableArea = () => {
+  const onMouseDownOnResizableArea = makeDragStartCallback(() => {
     if (draggingRef.current) {
       return
     }
 
     draggingRef.current = true
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onDragging = (e: MouseEvent) => {
       if (draggingRef.current) {
         props.onResize(e.pageX)
       }
     }
 
-    const onMouseUp = () => {
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
+    const onDragEnd = () => {
       draggingRef.current = false
     }
 
-    document.addEventListener("mousemove", onMouseMove)
-    document.addEventListener("mouseup", onMouseUp)
-  }
+    return {onDragging, onDragEnd}
+  })
 
   return (
     <div

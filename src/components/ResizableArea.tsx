@@ -1,3 +1,5 @@
+import { makeDragStartCallback } from "../lib/drag"
+
 type Props = {
   onResizeStart: () => void,
   onResize: (
@@ -14,7 +16,7 @@ type Props = {
 
 export function ResizableArea(props: Props) {
   const onMouseDown = (area: "top,left" | "top" | "top,right" | "left" | "right" | "bottom,left" | "bottom" | "bottom,right") =>
-    (e: React.MouseEvent) => {
+    makeDragStartCallback((e: React.MouseEvent) => {
       const [x, y] = [e.pageX, e.pageY]
 
       const onResize = (e: MouseEvent, fix: boolean) => {
@@ -27,22 +29,18 @@ export function ResizableArea(props: Props) {
         }, fix)
       }
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onDragging = (e: MouseEvent) => {
         onResize(e, false)
       }
 
-      const onMouseUp = (e: MouseEvent) => {
-        document.removeEventListener("mousemove", onMouseMove)
-        document.removeEventListener("mouseup", onMouseUp)
-
+      const onDragEnd = (e: MouseEvent) => {
         onResize(e, true)
       }
 
-      document.addEventListener("mousemove", onMouseMove)
-      document.addEventListener("mouseup", onMouseUp)
-
       props.onResizeStart()
-    }
+
+      return {onDragging, onDragEnd}
+    })
 
   return (
     <div style={{

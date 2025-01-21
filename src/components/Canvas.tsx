@@ -12,6 +12,7 @@ import {
   drawSelectArea,
   applyMask,
 } from "../lib/canvas"
+import { makeDragStartCallback } from "../lib/drag"
 
 type Props = {
   drawing: Drawing
@@ -56,7 +57,7 @@ export function Canvas(props: Props) {
 
   const mousePositionRef = useRef<[number, number] | null>(null)
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  const onMouseDown = makeDragStartCallback((e: React.MouseEvent) => {
     if (canvasRef.current) {
       const [x, y] = getEventPosition(e, canvasRef.current)
       mousePositionRef.current = [x, y]
@@ -80,7 +81,7 @@ export function Canvas(props: Props) {
           break
       }
 
-      const onMouseMove = (e: MouseEvent) => {
+      const onDragging = (e: MouseEvent) => {
         if (canvasRef.current && mousePositionRef.current) {
           const [prevX, prevY] = mousePositionRef.current
           const [x, y] = getEventPosition(e, canvasRef.current)
@@ -111,15 +112,9 @@ export function Canvas(props: Props) {
         }
       }
 
-      const onMouseUp = () => {
-        document.removeEventListener("mousemove", onMouseMove)
-        document.removeEventListener("mouseup", onMouseUp)
-      }
-
-      document.addEventListener("mousemove", onMouseMove)
-      document.addEventListener("mouseup", onMouseUp)
+      return {onDragging}
     }
-  }
+  })
 
   const canvasWidth = props.drawing.pixelSize * data[0].length
   const canvasHeight = props.drawing.pixelSize * data.length
