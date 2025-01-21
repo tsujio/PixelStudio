@@ -152,6 +152,11 @@ export type UpdateProjectAction =
     rect: DrawingDataRect
   } |
   {
+    type: "setPixelSize"
+    drawingId: string
+    pixelSize: number
+  } |
+  {
     type: "setPalette"
     index: number
     color: Color | null
@@ -241,6 +246,13 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
       drawing.resize(action.rect)
+      pjt.addDrawing(drawing)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "setPixelSize": {
+      const pjt = project.clone()
+      const drawing = pjt.getDrawing(action.drawingId).clone()
+      drawing.setPixelSize(action.pixelSize)
       pjt.addDrawing(drawing)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }

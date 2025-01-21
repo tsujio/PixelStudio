@@ -52,17 +52,16 @@ export function ExplorerItem(props: Props) {
   }
 
   const onExportButtonClick = async () => {
-    const pixelSize = 10
-    const height = pixelSize * props.drawing.rowCount
-    const width = pixelSize * props.drawing.columnCount
+    const height = props.drawing.pixelSize * props.drawing.rowCount
+    const width = props.drawing.pixelSize * props.drawing.columnCount
     const canvas = new OffscreenCanvas(width, height)
     const ctx = canvas.getContext("2d")
     if (ctx === null) {
       throw new Error("")
     }
-    drawPixels(ctx, canvas, props.drawing.data, pixelSize)
+    drawPixels(ctx, canvas, props.drawing.data, props.drawing.pixelSize)
 
-    const blob = await canvas.convertToBlob()
+    const blob = await canvas.convertToBlob({type: "image/png"})
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url

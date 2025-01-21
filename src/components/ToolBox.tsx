@@ -2,12 +2,14 @@ import { useDrawContext, DrawTool } from "./DrawContext"
 import { ToolBoxPenOptions } from "./ToolBoxPenOptions"
 import { ToolBoxEraserOptions } from "./ToolBoxEraserOptions"
 import { ToolBoxSelectOptions } from "./ToolBoxSelectOptions"
+import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions"
 import { Palette } from "./Palette"
 
 const tools = [
   {type: "pen"},
   {type: "eraser"},
   {type: "select"},
+  {type: "canvas"},
 ]
 
 export const toolBoxWidth = 300
@@ -44,6 +46,7 @@ export function ToolBox() {
       {drawContext.tool === "pen" && <ToolBoxPenOptions />}
       {drawContext.tool === "eraser" && <ToolBoxEraserOptions />}
       {drawContext.tool === "select" && <ToolBoxSelectOptions />}
+      {drawContext.tool === "canvas" && <ToolBoxCanvasOptions />}
       <div style={{marginTop: "8px"}}>
         <Palette />
       </div>

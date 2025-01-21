@@ -15,7 +15,6 @@ import {
 
 type Props = {
   drawing: Drawing
-  pixelSize: number
   mask?: DrawingDataRect
 }
 
@@ -42,14 +41,14 @@ export function Canvas(props: Props) {
       }
 
       clearCanvas(ctx, canvas)
-      drawGridLines(ctx, canvas, data.length, data[0].length, props.pixelSize)
-      drawPixels(ctx, canvas, data, props.pixelSize)
+      drawGridLines(ctx, canvas, data.length, data[0].length, props.drawing.pixelSize)
+      drawPixels(ctx, canvas, data, props.drawing.pixelSize)
       if (drawContext.select.area !== undefined && drawContext.select.area.drawingId === props.drawing.id) {
-        drawSelectArea(ctx, canvas, drawContext.select.area.rect, props.pixelSize)
+        drawSelectArea(ctx, canvas, drawContext.select.area.rect, props.drawing.pixelSize)
       }
     }
   }, [
-    props.pixelSize,
+    props.drawing.pixelSize,
     data,
     props.drawing.id,
     drawContext.select.area,
@@ -61,7 +60,7 @@ export function Canvas(props: Props) {
     if (canvasRef.current) {
       const [x, y] = getEventPosition(e, canvasRef.current)
       mousePositionRef.current = [x, y]
-      const position = convertToDrawingDataPosition(x, y, props.pixelSize)
+      const position = convertToDrawingDataPosition(x, y, props.drawing.pixelSize)
 
       if (!props.drawing.isValidPosition(position)) {
         return
@@ -90,7 +89,7 @@ export function Canvas(props: Props) {
           }
           mousePositionRef.current = [x, y]
 
-          const positions = interpolateEventPositions([x, y], [prevX, prevY], props.pixelSize)
+          const positions = interpolateEventPositions([x, y], [prevX, prevY], props.drawing.pixelSize)
           positions.forEach(position => {
             switch (drawContext.tool) {
               case "pen":
@@ -122,8 +121,8 @@ export function Canvas(props: Props) {
     }
   }
 
-  const canvasWidth = props.pixelSize * data[0].length
-  const canvasHeight = props.pixelSize * data.length
+  const canvasWidth = props.drawing.pixelSize * data[0].length
+  const canvasHeight = props.drawing.pixelSize * data.length
 
   return (
     <canvas

@@ -5,18 +5,21 @@ export class Drawing {
   #id: string
   #name: string
   #data: DrawingData
+  #pixelSize: number
 
-  constructor(id: string, name: string, data: DrawingData) {
+  constructor(id: string, name: string, data: DrawingData, pixelSize: number) {
     this.#id = id
     this.#name = name
     this.#data = data
+    this.#pixelSize = pixelSize
   }
 
-  static create(name: string, rowCount?: number, columnCount?: number): Drawing {
+  static create(name: string, rowCount?: number, columnCount?: number, pixelSize?: number): Drawing {
     const id = crypto.randomUUID()
 
     rowCount = rowCount ?? 48
     columnCount = columnCount ?? 64
+    pixelSize = pixelSize ?? 10
 
     if (rowCount < 1 || columnCount < 1) {
       throw new Error("rowCount and columnCount should be positive")
@@ -31,7 +34,7 @@ export class Drawing {
       data.push(row)
     }
 
-    return new Drawing(id, name, data)
+    return new Drawing(id, name, data, pixelSize)
   }
 
   get id() {
@@ -52,6 +55,10 @@ export class Drawing {
 
   get columnCount() {
     return this.#data[0].length
+  }
+
+  get pixelSize() {
+    return this.#pixelSize
   }
 
   rename(newName: string) {
@@ -80,9 +87,13 @@ export class Drawing {
     this.#data = applyMask(this.#data, {start, end})
   }
 
+  setPixelSize(pixelSize: number) {
+    this.#pixelSize = pixelSize
+  }
+
   clone() {
     const data = this.#data.map(row => [...row])
-    const drawing = new Drawing(this.#id, this.#name, data)
+    const drawing = new Drawing(this.#id, this.#name, data, this.#pixelSize)
     return drawing
   }
 
@@ -91,6 +102,7 @@ export class Drawing {
       id: this.#id,
       name: this.#name,
       data: this.#data,
+      pixelSize: this.#pixelSize,
     }
   }
 
@@ -125,8 +137,14 @@ export class Drawing {
     if (new Set(data.map(row => row.length)).size > 1) {
       throw new Error("Invalid row length")
     }
+    if (!("pixelSize" in json)) {
+      throw new Error("Missing required property 'pixelSize'")
+    }
+    if (typeof json.pixelSize !== "number") {
+      throw new Error(`Invalid drawing pixel size: expected=number, got=${typeof json.pixelSize}`)
+    }
 
-    const drawing = new Drawing(json.id as string, json.name as string, data)
+    const drawing = new Drawing(json.id as string, json.name as string, data, json.pixelSize)
     return drawing
   }
 }

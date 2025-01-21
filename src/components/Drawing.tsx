@@ -24,8 +24,6 @@ export function Drawing(props: Props) {
     setWindowName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
   }, [setWindowName, props.drawing.name, rowCount, columnCount])
 
-  const pixelSize = 10
-
   const windowPositionBeforeResizeRef = useRef<[number, number] | null>(null)
   const onResizeStart = () => {
     const window = windows[windowId]
@@ -35,12 +33,12 @@ export function Drawing(props: Props) {
   const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
     const newMask = {
       start: {
-        rowIndex: Math.min(0 + Math.trunc(diff.top / pixelSize), props.drawing.rowCount - 1),
-        columnIndex: Math.min(0 + Math.trunc(diff.left / pixelSize), props.drawing.columnCount - 1),
+        rowIndex: Math.min(0 + Math.trunc(diff.top / props.drawing.pixelSize), props.drawing.rowCount - 1),
+        columnIndex: Math.min(0 + Math.trunc(diff.left / props.drawing.pixelSize), props.drawing.columnCount - 1),
       },
       end: {
-        rowIndex: Math.max(props.drawing.rowCount - 1 + Math.trunc(diff.bottom / pixelSize), 0),
-        columnIndex: Math.max(props.drawing.columnCount - 1 + Math.trunc(diff.right / pixelSize), 0),
+        rowIndex: Math.max(props.drawing.rowCount - 1 + Math.trunc(diff.bottom / props.drawing.pixelSize), 0),
+        columnIndex: Math.max(props.drawing.columnCount - 1 + Math.trunc(diff.right / props.drawing.pixelSize), 0),
       }
     }
 
@@ -56,8 +54,8 @@ export function Drawing(props: Props) {
     }
 
     if (windowPositionBeforeResizeRef.current) {
-      const top = windowPositionBeforeResizeRef.current[0] + newMask.start.rowIndex * pixelSize
-      const left = windowPositionBeforeResizeRef.current[1] + newMask.start.columnIndex * pixelSize
+      const top = windowPositionBeforeResizeRef.current[0] + newMask.start.rowIndex * props.drawing.pixelSize
+      const left = windowPositionBeforeResizeRef.current[1] + newMask.start.columnIndex * props.drawing.pixelSize
       moveWindow(windowId, top, left)
     }
   }
@@ -66,7 +64,6 @@ export function Drawing(props: Props) {
     <ResizableArea onResizeStart={onResizeStart} onResize={onResize}>
       <Canvas
         drawing={props.drawing}
-        pixelSize={pixelSize}
         mask={mask ?? undefined}
       />
     </ResizableArea>

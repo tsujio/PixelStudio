@@ -5,6 +5,7 @@ type WindowSystemContextValue = {
   openWindow: (top: number, left: number, metadata: WindowMetadata) => string
   closeWindow: (windowId: string) => void
   activateWindow: (windowId: string) => void
+  getActiveWindowId: (onlyDrawingWindow: boolean) => string | null
   moveWindow: (windowId: string, top: number, left: number) => void
 }
 
@@ -138,6 +139,15 @@ export const WindowSystemContextProvider = (props: Props) => {
     updateWindows({type: "activate", windowId})
   }, [])
 
+  const getActiveWindowId = useCallback((onlyDrawingWindow?: boolean) => {
+    const ws = Object.values(windows)
+      .filter(w => onlyDrawingWindow ? w.metadata.type === "drawing" : true)
+    if (Object.keys(ws).length === 0) {
+      return null
+    }
+    return ws.reduce((prev, cur) => prev.zIndex > cur.zIndex ? prev : cur).windowId
+  }, [windows])
+
   const moveWindow = useCallback((windowId: string, top: number, left: number) => {
     updateWindows({type: "move", windowId, top, left})
   }, [])
@@ -147,8 +157,9 @@ export const WindowSystemContextProvider = (props: Props) => {
     openWindow,
     closeWindow,
     activateWindow,
+    getActiveWindowId,
     moveWindow,
-  }), [windows, openWindow, closeWindow, activateWindow, moveWindow])
+  }), [windows, openWindow, closeWindow, activateWindow, getActiveWindowId, moveWindow])
 
   return (
     <WindowSystemContext.Provider value={contextValue}>
