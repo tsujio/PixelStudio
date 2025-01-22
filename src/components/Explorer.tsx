@@ -28,9 +28,13 @@ export function Explorer() {
     setProjectMenuButtonElement(null)
   }
 
+  const [fileHandle, setFileHandle] = useState<FileSystemFileHandle | null>(null)
+
   const onNewProjectButtonClick = () => {
     updateProject({type: "newProject"})
+    setFileHandle(null)
 
+    // Close all drawing windows
     Object.values(windows).forEach(window => {
       if (window.metadata.type === "drawing") {
         closeWindow(window.windowId)
@@ -40,32 +44,37 @@ export function Explorer() {
     setProjectMenuButtonElement(null)
   }
 
-  const onOpenProjectButtonClick = () => {
-    const input = document.createElement("input")
-    input.type = "file"
-    input.addEventListener("change", e => {
-      const target = e.target as HTMLInputElement
-      const files = target.files
-      if (files !== null && files.length > 0) {
-        const reader = new FileReader()
-        reader.onload = () => {
-          if (reader.result) {
-            const json = JSON.parse(reader.result.toString())
-            updateProject({type: "load", json})
-
-            Object.values(windows).forEach(window => {
-              if (window.metadata.type === "drawing") {
-                closeWindow(window.windowId)
-              }
-            })
-          }
+  const filePickerOpts: OpenFilePickerOptions & SaveFilePickerOptions = {
+    startIn: fileHandle ?? "documents",
+    types: [
+      {
+        description: "Pixel Studio Project Files",
+        accept: {
+          "application/json": [".json"]
         }
-        reader.readAsText(files[0])
+      }
+    ],
+  }
+
+  const onOpenProjectButtonClick = async () => {
+    const [fileHandle] = await window.showOpenFilePicker({
+      ...filePickerOpts,
+      excludeAcceptAllOption: true,
+      multiple: false,
+    })
+    const file = await fileHandle.getFile()
+    const contents = await file.text()
+
+    const json = JSON.parse(contents)
+    updateProject({type: "load", json})
+    setFileHandle(fileHandle)
+
+    // Close all drawing windows
+    Object.values(windows).forEach(window => {
+      if (window.metadata.type === "drawing") {
+        closeWindow(window.windowId)
       }
     })
-    document.body.appendChild(input)
-    input.click()
-    document.body.removeChild(input)
   }
 
   const [newProjectName, setNewProjectName] = useState<string | null>(null)
@@ -86,13 +95,40 @@ export function Explorer() {
     setNewProjectName(null)
   }
 
+  const saveFile = async (fileHandle: FileSystemFileHandle) => {
+    const writable = await fileHandle.createWritable()
+    try {
+      const json = JSON.stringify(project)
+      writable.write(json)
+    } finally {
+      await writable.close()
+    }
+  }
+
+  const onSaveProjectButtonClick = async () => {
+    if (fileHandle) {
+      saveFile(fileHandle)
+    }
+  }
+
+  const onSaveAsProjectButtonClick = async () => {
+    const newFileHandle: FileSystemFileHandle = await window.showSaveFilePicker({
+      ...filePickerOpts,
+      suggestedName: project.nameToDownload,
+    })
+
+    await saveFile(newFileHandle)
+
+    setFileHandle(newFileHandle)
+  }
+
   const onDownloadProjectButtonClick = () => {
     const json = JSON.stringify(project, null, 2)
     const blob = new Blob([json], {type: "application/json"})
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = project.name + ".json"
+    a.download = project.nameToDownload
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -142,6 +178,8 @@ export function Explorer() {
             <MenuItem onClick={onNewProjectButtonClick}>New</MenuItem>
             <MenuItem onClick={onOpenProjectButtonClick}>Open</MenuItem>
             <MenuItem onClick={onRenameProjectButtonClick}>Rename</MenuItem>
+            <MenuItem onClick={onSaveProjectButtonClick}>Save</MenuItem>
+            <MenuItem onClick={onSaveAsProjectButtonClick}>Save As</MenuItem>
             <MenuItem onClick={onDownloadProjectButtonClick}>Download</MenuItem>
           </Menu>
         </div>

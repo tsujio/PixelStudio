@@ -22,6 +22,10 @@ export class Project {
     return this.#name
   }
 
+  get nameToDownload() {
+    return this.#name + ".json"
+  }
+
   rename(newName: string) {
     this.#name = newName
   }

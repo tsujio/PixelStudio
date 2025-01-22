@@ -27,7 +27,7 @@ export const makeDragStartCallback = <T,>(
     document.addEventListener("mouseup", onMouseUp)
 
     // Prevent dragstart event since it conflicts with mousemove
-    const selection = getSelection()
+    const selection = window.getSelection()
     if (selection) {
       selection.removeAllRanges()
     }
