@@ -84,7 +84,7 @@ export function ExplorerItem(props: Props) {
   }
 
   const onNewNameInputBlur = () => {
-    if (newName !== null && newName !== "") {
+    if (newName !== null && newName !== "" && newName !== props.drawing.name) {
       updateProject({type: "renameDrawing", drawingId: props.drawing.id, newName: newName})
     }
     setNewName(null)

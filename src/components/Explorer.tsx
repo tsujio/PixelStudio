@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
 import { ExplorerItem } from "./ExplorerItem"
@@ -90,7 +90,7 @@ export function Explorer() {
   }
 
   const onNewProjectNameInputBlur = () => {
-    if (newProjectName !== null && newProjectName !== "") {
+    if (newProjectName !== null && newProjectName !== "" && newProjectName !== project.name) {
       updateProject({type: "rename", newName: newProjectName})
     }
     setNewProjectName(null)
@@ -139,6 +139,24 @@ export function Explorer() {
   const onAddDrawingButtonClick = () => {
     updateProject({type: "addDrawing"})
   }
+
+  useEffect(() => {
+    const onKeyDown = async (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.code === "KeyS") {
+        e.preventDefault()
+
+        if (fileHandle) {
+          await onSaveProjectButtonClick()
+        } else {
+          await onSaveAsProjectButtonClick()
+        }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [fileHandle, onSaveProjectButtonClick, onSaveAsProjectButtonClick])
 
   return (
     <div>
