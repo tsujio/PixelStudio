@@ -134,7 +134,7 @@ export function Explorer() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 24px",
+          gridTemplateColumns: "1fr auto",
           padding: "16px 12px",
         }}
       >
@@ -143,6 +143,8 @@ export function Explorer() {
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
+            display: "flex",
+            alignItems: "center",
           }}
         >
           {newProjectName === null ?
@@ -155,7 +157,12 @@ export function Explorer() {
             blurOnEnter={true}
           />}
         </div>
-        <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           <IconButton
             icon="menu"
             onClick={onProjectMenuClick}

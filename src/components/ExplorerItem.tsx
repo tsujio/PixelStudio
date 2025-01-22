@@ -7,6 +7,7 @@ import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
 import { Drawing } from "../lib/drawing"
 import { drawPixels } from "../lib/canvas"
+import { useHover } from "../lib/hover"
 
 type Props = {
   drawing: Drawing
@@ -17,15 +18,7 @@ export function ExplorerItem(props: Props) {
 
   const { updateProject } = useProjectContext()
 
-  const [ hover, setHover ] = useState(false)
-
-  const onMouseEnter = () => {
-    setHover(true)
-  }
-
-  const onMouseLeave = () => {
-    setHover(false)
-  }
+  const [ hover, hoverHandlers ] = useHover()
 
   const onDrawingNameClick = () => {
     openWindow(100, 300, {type: "drawing", drawingId: props.drawing.id})
@@ -99,17 +92,18 @@ export function ExplorerItem(props: Props) {
       style={{
         padding: "12px 8px",
         display: "grid",
-        gridTemplateColumns: "1fr 24px",
+        gridTemplateColumns: "1fr auto",
         background: hover ? "whitesmoke" : "white",
       }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      {...hoverHandlers}
     >
       <div
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
+          display: "flex",
+          alignItems: "center",
         }}
       >
         {newName === null ?

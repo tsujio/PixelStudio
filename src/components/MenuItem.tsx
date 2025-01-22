@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useHover } from "../lib/hover"
 
 type Props = {
   disabled?: boolean
@@ -7,15 +7,7 @@ type Props = {
 }
 
 export function MenuItem(props: Props) {
-  const [hover, setHover] = useState(false)
-
-  const onMouseEnter = () => {
-    setHover(true)
-  }
-
-  const onMouseLeave = () => {
-    setHover(false)
-  }
+  const [hover, hoverHandlers] = useHover()
 
   const onClick = () => {
     if (props.disabled !== true && props.onClick) {
@@ -31,8 +23,7 @@ export function MenuItem(props: Props) {
         background: props.disabled ? "lightgray" : hover ? "whitesmoke" : "white",
       }}
       onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      {...hoverHandlers}
     >{props.children}</div>
   )
 }
