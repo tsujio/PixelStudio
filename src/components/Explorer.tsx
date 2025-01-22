@@ -7,6 +7,7 @@ import { Menu } from "./Menu"
 import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { Drawing } from "../lib/drawing"
+import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 
 export function Explorer() {
   const { project, updateProject } = useProjectContext()
@@ -58,14 +59,7 @@ export function Explorer() {
   }
 
   const onOpenProjectButtonClick = async () => {
-    const [fileHandle] = await window.showOpenFilePicker({
-      ...filePickerOpts,
-      excludeAcceptAllOption: true,
-      multiple: false,
-    })
-    const file = await fileHandle.getFile()
-    const contents = await file.text()
-
+    const {fileHandle, contents} = await openFile()
     const json = JSON.parse(contents)
     updateProject({type: "load", json})
     setFileHandle(fileHandle)
@@ -96,31 +90,16 @@ export function Explorer() {
     setNewProjectName(null)
   }
 
-  const saveFile = async (fileHandle: FileSystemFileHandle) => {
-    const writable = await fileHandle.createWritable()
-    try {
-      const json = JSON.stringify(project)
-      writable.write(json)
-    } finally {
-      await writable.close()
-    }
-  }
-
   const onSaveProjectButtonClick = async () => {
     if (fileHandle) {
-      saveFile(fileHandle)
+      writeToFile(fileHandle, JSON.stringify(project))
     }
   }
 
   const onSaveAsProjectButtonClick = async () => {
-    const newFileHandle: FileSystemFileHandle = await window.showSaveFilePicker({
-      ...filePickerOpts,
-      suggestedName: project.nameToDownload,
-    })
-
-    await saveFile(newFileHandle)
-
-    setFileHandle(newFileHandle)
+    const json = JSON.stringify(project)
+    const fileHandle = await createFile(json, project.nameToDownload)
+    setFileHandle(fileHandle)
   }
 
   const onDownloadProjectButtonClick = () => {
@@ -151,12 +130,17 @@ export function Explorer() {
           await onSaveAsProjectButtonClick()
         }
       }
+
+      if (e.ctrlKey && e.code === "KeyO") {
+        e.preventDefault()
+        await onOpenProjectButtonClick()
+      }
     }
     document.addEventListener("keydown", onKeyDown)
     return () => {
       document.removeEventListener("keydown", onKeyDown)
     }
-  }, [fileHandle, onSaveProjectButtonClick, onSaveAsProjectButtonClick])
+  }, [fileHandle, onSaveProjectButtonClick, onSaveAsProjectButtonClick, onOpenProjectButtonClick])
 
   return (
     <div>
@@ -197,8 +181,8 @@ export function Explorer() {
             <MenuItem onClick={onNewProjectButtonClick}>New</MenuItem>
             <MenuItem onClick={onOpenProjectButtonClick}>Open</MenuItem>
             <MenuItem onClick={onRenameProjectButtonClick}>Rename</MenuItem>
-            <MenuItem onClick={onSaveProjectButtonClick}>Save</MenuItem>
-            <MenuItem onClick={onSaveAsProjectButtonClick}>Save As</MenuItem>
+            <MenuItem disabled={!supportFileSystemAPI || !fileHandle} onClick={onSaveProjectButtonClick}>Save</MenuItem>
+            <MenuItem disabled={!supportFileSystemAPI} onClick={onSaveAsProjectButtonClick}>Save As</MenuItem>
             <MenuItem onClick={onDownloadProjectButtonClick}>Download</MenuItem>
           </Menu>
         </div>
