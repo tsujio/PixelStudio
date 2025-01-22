@@ -45,7 +45,8 @@ export function Explorer() {
   }
 
   const filePickerOpts: OpenFilePickerOptions & SaveFilePickerOptions = {
-    startIn: fileHandle ?? "documents",
+    id: "project",
+    startIn: "documents",
     types: [
       {
         description: "Pixel Studio Project Files",
