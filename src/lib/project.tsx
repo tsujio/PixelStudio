@@ -2,14 +2,20 @@ import { Color } from "./color"
 import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "./drawing"
 
 export class Project {
+  #id: string
   #name: string
   #drawings: {[id:string]: Drawing}
   #palette: (Color | null)[]
 
-  constructor(name: string) {
-    this.#name = name
-    this.#drawings = {}
-    this.#palette = []
+  constructor(id?: string, name?: string, drawings?: Drawing[], palette?: (Color | null)[]) {
+    this.#id = id ?? crypto.randomUUID()
+    this.#name = name ?? "New project"
+    this.#drawings = drawings ? Object.fromEntries(drawings.map(d => [d.id, d])) : {}
+    this.#palette = [...palette ?? []]
+  }
+
+  get id() {
+    return this.#id
   }
 
   get name() {
@@ -68,10 +74,7 @@ export class Project {
   }
 
   clone() {
-    const pjt = new Project(this.name)
-    pjt.#drawings = {...this.drawings}
-    pjt.#palette = [...this.#palette]
-    return pjt
+    return new Project(this.#id, this.#name, Object.values(this.#drawings), this.#palette)
   }
 
   toJSON() {
@@ -79,6 +82,7 @@ export class Project {
     drawings.sort((a, b) => a.id.localeCompare(b.id))
 
     return {
+      id: this.#id,
       name: this.#name,
       drawings: drawings,
       palette: this.#palette,
@@ -88,6 +92,12 @@ export class Project {
   static fromJSON(json: unknown) {
     if (typeof json !== "object" || json === null) {
       throw new Error(`Invalid project data: expected=object, got=${json !== null ? typeof json : json}`)
+    }
+    if (!("id" in json)) {
+      throw new Error("Missing required property 'id'")
+    }
+    if (typeof json.id !== "string") {
+      throw new Error(`Invalid project id: expected=string, got=${typeof json.id}`)
     }
     if (!("name" in json)) {
       throw new Error("Missing required property 'name'")
@@ -102,11 +112,9 @@ export class Project {
       throw new Error(`Invalid project palette: not an array`)
     }
 
-    const pjt = new Project(json.name as string)
     const drawings = (json.drawings as unknown[]).map(d => Drawing.fromJSON(d))
-    pjt.#drawings = Object.fromEntries(drawings.map(d => [d.id, d]))
-    pjt.#palette = (json.palette as unknown[]).map(c => c !== null ? Color.fromJSON(c) : null)
-    return pjt
+    const palette = (json.palette as unknown[]).map(c => c !== null ? Color.fromJSON(c) : null)
+    return new Project(json.id, json.name, drawings, palette)
   }
 }
 
@@ -181,7 +189,7 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
   const project = history[current].project
   switch (action.type) {
     case "newProject": {
-      const pjt = new Project("New project")
+      const pjt = new Project()
       const drawing = Drawing.create(pjt.getUniqueDrawingName())
       pjt.addDrawing(drawing)
       return {current: 0, history: [{project: pjt, action}]}
@@ -279,7 +287,7 @@ export const updateProjectReducer = (projectState: ProjectHistory, action: Updat
 }
 
 export const initialProject = (() => {
-  const dummy: ProjectHistory = {current: 0, history: [{project: new Project(""), action: {type: "newProject"}}]}
+  const dummy: ProjectHistory = {current: 0, history: [{project: new Project(), action: {type: "newProject"}}]}
 
   const dump = localStorage.getItem("project")
   if (dump !== null) {
