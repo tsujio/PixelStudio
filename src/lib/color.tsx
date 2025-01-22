@@ -7,7 +7,7 @@ export abstract class Color {
 
   abstract toHSV(): HSVColor
 
-  abstract toJSON(): any
+  abstract toJSON(): unknown
 
   static fromJSON(json: unknown) {
     if (typeof json !== "object" || json === null) {

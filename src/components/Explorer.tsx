@@ -45,19 +45,6 @@ export function Explorer() {
     setProjectMenuButtonElement(null)
   }
 
-  const filePickerOpts: OpenFilePickerOptions & SaveFilePickerOptions = {
-    id: "project",
-    startIn: "documents",
-    types: [
-      {
-        description: "Pixel Studio Project Files",
-        accept: {
-          "application/json": [".json"]
-        }
-      }
-    ],
-  }
-
   const onOpenProjectButtonClick = async () => {
     const {fileHandle, contents} = await openFile()
     const json = JSON.parse(contents)
@@ -103,7 +90,7 @@ export function Explorer() {
   }
 
   const onDownloadProjectButtonClick = () => {
-    const json = JSON.stringify(project, null, 2)
+    const json = JSON.stringify(project)
     const blob = new Blob([json], {type: "application/json"})
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
