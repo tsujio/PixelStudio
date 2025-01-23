@@ -35,6 +35,10 @@ type Action =
     drawingId: string
   } |
   {
+    type: "copyDrawing"
+    drawingId: string
+  } |
+  {
     type: "setPixel"
     drawingId: string
     position: DrawingDataPosition
@@ -111,6 +115,14 @@ const reducer = (projectState: ProjectHistory, action: Action): ProjectHistory =
     case "deleteDrawing": {
       const pjt = project.clone()
       pjt.deleteDrawing(action.drawingId)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "copyDrawing": {
+      const pjt = project.clone()
+      const src = pjt.getDrawing(action.drawingId).clone()
+      const tmp = Drawing.create(pjt.getUniqueDrawingName(src.name))
+      const dest = new Drawing(tmp.id, tmp.name, src.data, src.pixelSize)
+      pjt.addDrawing(dest)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "setPixel": {

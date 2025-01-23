@@ -87,6 +87,11 @@ export function ExplorerItem(props: Props) {
     setNewName(null)
   }
 
+  const onCopyButtonClick = () => {
+    updateProject({type: "copyDrawing", drawingId: props.drawing.id})
+    setMenuButtonElement(null)
+  }
+
   const onDeleteButtonClick = () => {
     updateProject({type: "deleteDrawing", drawingId: props.drawing.id})
     setMenuButtonElement(null)
@@ -141,6 +146,7 @@ export function ExplorerItem(props: Props) {
           <MenuItem onClick={onExportButtonClick} icon="download">Export</MenuItem>
           <MenuItem onClick={onCloseButtonClick} icon="close">Close</MenuItem>
           <MenuItem onClick={onRenameButtonClick} icon="rename">Rename</MenuItem>
+          <MenuItem onClick={onCopyButtonClick} icon="rename">Copy</MenuItem>
           <MenuItem onClick={onDeleteButtonClick} icon="delete">Delete</MenuItem>
         </Menu>
       </div>
