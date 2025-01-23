@@ -142,13 +142,17 @@ export function Explorer() {
           style={{
             whiteSpace: "nowrap",
             overflow: "hidden",
-            textOverflow: "ellipsis",
             display: "flex",
             alignItems: "center",
           }}
         >
           {newProjectName === null ?
-          project.name :
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >{project.name}</span> :
           <TextField
             value={newProjectName}
             onChange={onNewProjectNameInputChange}
@@ -172,12 +176,12 @@ export function Explorer() {
             anchor={projectMenuButtonElement}
             onClose={onProjectMenuClose}
           >
-            <MenuItem onClick={onNewProjectButtonClick}>New</MenuItem>
-            <MenuItem onClick={onOpenProjectButtonClick}>Open</MenuItem>
-            <MenuItem onClick={onRenameProjectButtonClick}>Rename</MenuItem>
-            <MenuItem disabled={!supportFileSystemAPI || !fileHandle} onClick={onSaveProjectButtonClick}>Save</MenuItem>
-            <MenuItem disabled={!supportFileSystemAPI} onClick={onSaveAsProjectButtonClick}>Save As</MenuItem>
-            <MenuItem onClick={onDownloadProjectButtonClick}>Download</MenuItem>
+            <MenuItem onClick={onNewProjectButtonClick} icon="new">New</MenuItem>
+            <MenuItem onClick={onOpenProjectButtonClick} icon="open">Open</MenuItem>
+            <MenuItem onClick={onRenameProjectButtonClick} icon="rename">Rename</MenuItem>
+            <MenuItem disabled={!supportFileSystemAPI || !fileHandle} onClick={onSaveProjectButtonClick} icon="save">Save</MenuItem>
+            <MenuItem disabled={!supportFileSystemAPI} onClick={onSaveAsProjectButtonClick} icon="saveas">Save As</MenuItem>
+            <MenuItem onClick={onDownloadProjectButtonClick} icon="download">Download</MenuItem>
           </Menu>
         </div>
       </div>

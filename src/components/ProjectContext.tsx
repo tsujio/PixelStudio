@@ -216,6 +216,10 @@ export const ProjectContextProvider = (props: Props) => {
           updateProject({type: "undo"})
         }
       }
+
+      if (e.ctrlKey && e.code === "KeyY") {
+        updateProject({type: "redo"})
+      }
     }
     document.addEventListener("keydown", onKeyDown)
     return () => {

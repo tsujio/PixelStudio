@@ -1,9 +1,9 @@
-import menuImg from "../assets/menu.png"
-import addImg from "../assets/add.png"
 import { useHover } from "../lib/hover"
+import { IconType } from "../lib/icon"
+import { Icon } from "./Icon"
 
 type Props = {
-  icon: "menu" | "add"
+  icon: IconType
   display?: string
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
@@ -11,37 +11,29 @@ type Props = {
 export function IconButton(props: Props) {
   const [hover, hoverHandlers] = useHover()
 
-  let url
-  switch (props.icon) {
-    case "menu": url = menuImg; break
-    case "add":  url = addImg; break
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    if (props.onClick) {
+      props.onClick(e)
+    }
   }
 
   return (
     <button
       {...hoverHandlers}
-      onClick={props.onClick}
+      onClick={onClick}
       style={{
         display: props.display,
         background: hover ? "whitesmoke" : "white",
         border: "none",
-        borderRadius: "21px",
-        width: "42px",
-        height: "42px",
+        borderRadius: "50%",
         cursor: "pointer",
         userSelect: "none",
         verticalAlign: "middle",
+        padding: "12px",
       }}
     >
-      <img
-        src={url}
-        draggable={false}
-        style={{
-          width: "64%",
-          display: "block",
-          margin: "auto",
-        }}
-      />
+      <Icon icon={props.icon} />
     </button>
   )
 }

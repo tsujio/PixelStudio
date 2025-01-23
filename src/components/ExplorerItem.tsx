@@ -39,9 +39,11 @@ export function ExplorerItem(props: Props) {
       const metadata = windows[windowId].metadata
       if (metadata.type === "drawing" && metadata.drawingId === props.drawing.id) {
         closeWindow(windowId)
-        return
+        break
       }
     }
+
+    setMenuButtonElement(null)
   }
 
   const onExportButtonClick = async () => {
@@ -63,6 +65,8 @@ export function ExplorerItem(props: Props) {
     a.click()
     URL.revokeObjectURL(url)
     document.body.removeChild(a)
+
+    setMenuButtonElement(null)
   }
 
   const [newName, setNewName] = useState<string | null>(null)
@@ -85,15 +89,18 @@ export function ExplorerItem(props: Props) {
 
   const onDeleteButtonClick = () => {
     updateProject({type: "deleteDrawing", drawingId: props.drawing.id})
+    setMenuButtonElement(null)
   }
 
   return (
     <div
+      onClick={onDrawingNameClick}
       style={{
         padding: "12px 8px",
         display: "grid",
         gridTemplateColumns: "1fr auto",
         background: hover ? "whitesmoke" : "white",
+        cursor: "pointer",
       }}
       {...hoverHandlers}
     >
@@ -101,13 +108,17 @@ export function ExplorerItem(props: Props) {
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
-          textOverflow: "ellipsis",
           display: "flex",
           alignItems: "center",
         }}
       >
         {newName === null ?
-        <span onClick={onDrawingNameClick}>{props.drawing.name}</span> :
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >{props.drawing.name}</span> :
         <TextField
             value={newName}
             onChange={onNewNameInputChange}
@@ -127,10 +138,10 @@ export function ExplorerItem(props: Props) {
           anchor={menuButtonElement}
           onClose={onMenuClose}
         >
-          <MenuItem onClick={onExportButtonClick}>Export</MenuItem>
-          <MenuItem onClick={onCloseButtonClick}>Close</MenuItem>
-          <MenuItem onClick={onRenameButtonClick}>Rename</MenuItem>
-          <MenuItem onClick={onDeleteButtonClick}>Delete</MenuItem>
+          <MenuItem onClick={onExportButtonClick} icon="download">Export</MenuItem>
+          <MenuItem onClick={onCloseButtonClick} icon="close">Close</MenuItem>
+          <MenuItem onClick={onRenameButtonClick} icon="rename">Rename</MenuItem>
+          <MenuItem onClick={onDeleteButtonClick} icon="delete">Delete</MenuItem>
         </Menu>
       </div>
     </div>

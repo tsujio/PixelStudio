@@ -4,21 +4,22 @@ import { ToolBoxEraserOptions } from "./ToolBoxEraserOptions"
 import { ToolBoxSelectOptions } from "./ToolBoxSelectOptions"
 import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions"
 import { Palette } from "./Palette"
+import { Icon } from "./Icon"
 
 const tools = [
-  {type: "pen"},
-  {type: "eraser"},
-  {type: "select"},
-  {type: "canvas"},
-]
+  {type: "pen", icon: "pen"},
+  {type: "eraser", icon: "eraser"},
+  {type: "select", icon: "select"},
+  {type: "canvas", icon: "close"},
+] as const
 
 export const toolBoxWidth = 300
 
 export function ToolBox() {
   const { drawContext, changeTool } = useDrawContext()
 
-  const onToolChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    changeTool(e.target.value as DrawTool)
+  const onToolChange = (tool: DrawTool) => () => {
+    changeTool(tool)
   }
 
   return (
@@ -27,19 +28,25 @@ export function ToolBox() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(6, 1fr)",
+          gap: "8px",
+          marginBottom: "8px",
         }}
       >
         {tools.map(tool =>
           <div
             key={tool.type}
+            onClick={onToolChange(tool.type)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              border: drawContext.tool === tool.type ? "4px solid gray" : "none",
+              borderRadius: "4px",
+              aspectRatio: "1 / 1",
+            }}
           >
-            <input
-              type="radio"
-              name="tool"
-              value={tool.type}
-              checked={drawContext.tool === tool.type}
-              onChange={onToolChange}
-            />
+            <Icon icon={tool.icon} />
           </div>
         )}
       </div>

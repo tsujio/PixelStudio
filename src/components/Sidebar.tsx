@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import { Explorer } from "./Explorer"
 import { makeDragStartCallback } from "../lib/drag"
+import logoImg from "../assets/logo.png"
 
 type Props = {
   onResize: (width: number) => void
@@ -43,8 +44,8 @@ export function Sidebar(props: Props) {
           gridTemplateRows: "auto 1fr auto",
         }}
       >
-        <div>
-          <h1>Pixel Studio</h1>
+        <div style={{overflow: "hidden"}}>
+          <img src={logoImg} />
         </div>
         <Explorer />
         <div style={{textAlign: "center"}}>

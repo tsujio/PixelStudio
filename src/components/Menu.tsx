@@ -31,6 +31,7 @@ export function Menu(props: Props) {
         left: props.anchor.offsetLeft,
         background: "white",
         boxShadow: "1px 2px 6px 0px gray",
+        padding: "8px 0",
       }}
       onBlur={props.onClose}
     >
