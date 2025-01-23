@@ -96,7 +96,7 @@ export function ExplorerItem(props: Props) {
     <div
       onClick={onDrawingNameClick}
       style={{
-        padding: "12px 8px",
+        padding: "12px",
         display: "grid",
         gridTemplateColumns: "1fr auto",
         background: hover ? "whitesmoke" : "white",

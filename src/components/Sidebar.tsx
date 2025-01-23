@@ -35,17 +35,32 @@ export function Sidebar(props: Props) {
       style={{
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
+        gridTemplateRows: "minmax(0, 1fr)",
         position: "relative",
       }}
     >
       <div
         style={{
           display: "grid",
-          gridTemplateRows: "auto 1fr auto",
+          gridTemplateRows: "auto minmax(0, 1fr) auto",
         }}
       >
-        <div style={{overflow: "hidden"}}>
-          <img src={logoImg} />
+        <div
+          style={{
+            overflow: "hidden",
+            padding: "12px",
+          }}
+        >
+          <img
+            src={logoImg}
+            style={{
+              backgroundSize: "8px 8px",
+              backgroundImage: "repeating-linear-gradient(gray 0px 1px, transparent 1px 100%), repeating-linear-gradient(90deg, gray 0 1px, transparent 1px 100%)",
+              border: "1px solid gray",
+              borderTop: "none",
+              borderLeft: "none",
+            }}
+          />
         </div>
         <Explorer />
         <div style={{textAlign: "center"}}>

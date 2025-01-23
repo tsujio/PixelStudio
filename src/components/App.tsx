@@ -23,6 +23,7 @@ export function App() {
               style={{
                 display: "grid",
                 gridTemplateColumns: `${sidebarWidth}px 1fr`,
+                gridTemplateRows: "minmax(0, 1fr)",
                 height: "100%",
               }}
             >

@@ -130,7 +130,7 @@ export function Explorer() {
   }, [fileHandle, onSaveProjectButtonClick, onSaveAsProjectButtonClick, onOpenProjectButtonClick])
 
   return (
-    <div>
+    <div style={{display: "grid", gridTemplateRows: "auto minmax(0, 1fr)"}}>
       <div
         style={{
           display: "grid",
@@ -185,14 +185,20 @@ export function Explorer() {
           </Menu>
         </div>
       </div>
-      <div style={{borderTop: "1px solid gray"}}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateRows: "auto minmax(0, 1fr)",
+          borderTop: "1px solid gray",
+        }}
+      >
         <div style={{padding: "12px"}}>
           <IconButton
             icon="add"
             onClick={onAddDrawingButtonClick}
           />
         </div>
-        <div>
+        <div style={{overflowY: "scroll"}}>
           {drawings && drawings.map(drawing =>
             <ExplorerItem key={drawing.id} drawing={drawing} />
           )}
