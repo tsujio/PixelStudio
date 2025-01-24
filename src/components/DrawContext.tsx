@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback } from 'react'
 import { Color, RGBColor } from '../lib/color'
-import { DrawingDataPosition, DrawingDataRect } from '../lib/drawing'
+import { DrawingData, DrawingDataPosition, DrawingDataRect } from '../lib/drawing'
+import { Project } from '../lib/project'
 
 export type DrawTool = "pen" | "eraser" | "select" | "canvas"
 
@@ -17,7 +18,15 @@ type DrawContext = {
       rect: DrawingDataRect
     }
   }
+  clipboard: ClipboardValue
 }
+
+type ClipboardValue =
+  {
+    type: "data"
+    data: DrawingData
+  } |
+  null
 
 type DrawContextValue = {
   drawContext: DrawContext
@@ -26,6 +35,7 @@ type DrawContextValue = {
   changePenSetPalette: (setPalette: boolean) => void
   startSelectArea: (drawingId: string, position: DrawingDataPosition) => void
   expandSelectArea: (drawingId: string, position: DrawingDataPosition) => void
+  copySelectArea: (project: Project) => void
   clearSelectArea: (drawingId: string) => void
 }
 
@@ -37,6 +47,7 @@ const initialDrawContext: DrawContext = {
   },
   eraser: {},
   select: {},
+  clipboard: null,
 }
 
 type Action =
@@ -61,6 +72,10 @@ type Action =
     type: "expandSelectArea"
     drawingId: string
     position: DrawingDataPosition
+  } |
+  {
+    type: "copySelectArea"
+    project: Project
   } |
   {
     type: "clearSelectArea"
@@ -127,6 +142,28 @@ const reducer = (drawContext: DrawContext, action: Action) => {
         }
       }
     }
+    case "copySelectArea": {
+      if (!drawContext.select.area) {
+        return {
+          ...drawContext,
+          clipboard: null,
+        }
+      }
+      const drawing = action.project.getDrawing(drawContext.select.area.drawingId)
+      const { start, end } = drawContext.select.area.rect
+      const top = Math.min(start.rowIndex, end.rowIndex)
+      const left = Math.min(start.columnIndex, end.columnIndex)
+      const bottom = Math.max(start.rowIndex, end.rowIndex)
+      const right = Math.max(start.columnIndex, end.columnIndex)
+      const data = drawing.data.filter((_, i) => top <= i && i <= bottom).map(row => row.filter((_, j) => left <= j && j <= right))
+      return {
+        ...drawContext,
+        clipboard: {
+          type: "data" as const,
+          data,
+        }
+      }
+    }
     case "clearSelectArea": {
       return {
         ...drawContext,
@@ -153,6 +190,7 @@ export const DrawContextProvider = (props: Props) => {
   const changePenSetPalette = useCallback((setPalette: boolean) => updateDrawContext({type: "changePenSetPalette", setPalette}), [])
   const startSelectArea = useCallback((drawingId: string, position: DrawingDataPosition) => updateDrawContext({type: "startSelectArea", drawingId, position}), [])
   const expandSelectArea = useCallback((drawingId: string, position: DrawingDataPosition) => updateDrawContext({type: "expandSelectArea", drawingId, position}), [])
+  const copySelectArea = useCallback((project: Project) => updateDrawContext({type: "copySelectArea", project}), [])
   const clearSelectArea = useCallback((drawingId: string) => updateDrawContext({type: "clearSelectArea", drawingId}), [])
 
   const contextValue = useMemo(() => ({
@@ -162,6 +200,7 @@ export const DrawContextProvider = (props: Props) => {
     changePenSetPalette,
     startSelectArea,
     expandSelectArea,
+    copySelectArea,
     clearSelectArea,
   }), [
     drawContext,
@@ -170,6 +209,7 @@ export const DrawContextProvider = (props: Props) => {
     changePenSetPalette,
     startSelectArea,
     expandSelectArea,
+    copySelectArea,
     clearSelectArea,
   ])
 
