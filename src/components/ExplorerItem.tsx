@@ -52,7 +52,7 @@ export function ExplorerItem(props: Props) {
     const canvas = new OffscreenCanvas(width, height)
     const ctx = canvas.getContext("2d")
     if (ctx === null) {
-      throw new Error("")
+      throw new Error("Failed to get context from offscreen canvas")
     }
     drawPixels(ctx, canvas, props.drawing.data, props.drawing.pixelSize)
 
@@ -104,7 +104,7 @@ export function ExplorerItem(props: Props) {
         padding: "12px",
         display: "grid",
         gridTemplateColumns: "1fr auto",
-        background: hover ? "whitesmoke" : "white",
+        background: hover || menuButtonElement ? "whitesmoke" : "white",
         cursor: "pointer",
       }}
       {...hoverHandlers}

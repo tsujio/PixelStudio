@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar'
 import { Main } from './Main'
 import { WindowSystemContextProvider } from './WindowSystem'
 import { DrawContextProvider } from './DrawContext'
+import { ToolBox } from './ToolBox'
 
 export function App() {
   const [sidebarWidth, setSidebarWidth] = useState(250)
@@ -22,15 +23,18 @@ export function App() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: `${sidebarWidth}px 1fr`,
+                gridTemplateColumns: `${sidebarWidth}px 1fr auto`,
                 gridTemplateRows: "minmax(0, 1fr)",
                 height: "100%",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
               <Sidebar
                 onResize={onSidebarResize}
               />
               <Main />
+              <ToolBox />
             </div>
           </ProjectContextProvider>
         </DrawContextProvider>

@@ -17,7 +17,7 @@ export function useWindowContext() {
   return value
 }
 
-export const windowSidePadding = 12
+const windowSidePadding = 12
 
 type Props = {
   id: string
@@ -56,7 +56,8 @@ export function Window(props: Props) {
     }
   })
 
-  const onMouseDown = () => {
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
     activateWindow(props.id)
   }
 

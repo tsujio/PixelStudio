@@ -19,7 +19,7 @@ export function TextField(props: Props) {
 
   useEffect(() => {
     if (focus && ref.current !== null) {
-      ref.current.focus()
+      ref.current.focus({preventScroll: true})
     }
   }, [focus])
 

@@ -37,6 +37,8 @@ export function Sidebar(props: Props) {
         display: "grid",
         gridTemplateRows: "minmax(0, 1fr)",
         position: "relative",
+        zIndex: 9999,
+        background: "white",
       }}
     >
       <div

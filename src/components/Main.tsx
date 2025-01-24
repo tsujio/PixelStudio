@@ -1,30 +1,46 @@
-import { useEffect } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
-import { Window, windowSidePadding } from "./Window"
+import { Window } from "./Window"
 import { Drawing } from "./Drawing"
-import { ToolBox, toolBoxWidth } from "./ToolBox"
-
-const initialWindowWidth = window.innerWidth
+import { makeDragStartCallback } from "../lib/drag"
+import { useRef, useState } from "react"
 
 export function Main() {
-  const { windows, openWindow, closeWindow } = useWindowSystemContext()
+  const { windows, moveWindow } = useWindowSystemContext()
 
   const { project } = useProjectContext()
 
-  useEffect(() => {
-    const left = initialWindowWidth - toolBoxWidth - windowSidePadding * 2
-    const windowId = openWindow(0, left, {type: "toolBox"})
-    return () => {
-      closeWindow(windowId)
+  const [dragging, setDragging] = useState(false)
+  const windowPositionsOnDragStartRef = useRef<{[windowId: string]: [number, number]}>({})
+  const onMouseDown = makeDragStartCallback((e: React.MouseEvent) => {
+    const [x, y] = [e.pageX, e.pageY]
+    windowPositionsOnDragStartRef.current = Object.fromEntries(Object.values(windows).map(w => [w.windowId, [w.top, w.left]]))
+
+    const onDragging = (e: MouseEvent) => {
+      const [diffX, diffY] = [e.pageX - x, e.pageY - y]
+      Object.entries(windowPositionsOnDragStartRef.current).forEach(([windowId, [top, left]]) => {
+        moveWindow(windowId, top + diffY, left + diffX)
+      })
     }
-  }, [openWindow, closeWindow])
+
+    const onDragEnd = () => {
+      setDragging(false)
+    }
+
+    setDragging(true)
+
+    return {onDragging, onDragEnd}
+  })
 
   const drawingWindows = Object.values(windows).filter(w => w.metadata.type === "drawing" && w.metadata.drawingId in project.drawings)
-  const toolBoxWindow = Object.values(windows).find((w) => w.metadata.type === "toolBox")
 
   return (
-    <>
+    <div
+      onMouseDown={onMouseDown}
+      style={{
+        cursor: dragging ? "grabbing" : "inherit",
+      }}
+    >
       {drawingWindows.map(window =>
         <Window
           key={window.windowId}
@@ -39,16 +55,6 @@ export function Main() {
           />}
         </Window>
       )}
-      {toolBoxWindow &&
-      <Window
-        key={toolBoxWindow.windowId}
-        id={toolBoxWindow.windowId}
-        top={toolBoxWindow.top}
-        left={toolBoxWindow.left}
-        zIndex={toolBoxWindow.zIndex}
-      >
-        <ToolBox />
-      </Window>}
-    </>
+    </div>
   )
 }

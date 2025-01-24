@@ -13,7 +13,7 @@ const tools = [
   {type: "canvas", icon: "close"},
 ] as const
 
-export const toolBoxWidth = 300
+const toolBoxWidth = 300
 
 export function ToolBox() {
   const { drawContext, changeTool } = useDrawContext()
@@ -23,7 +23,18 @@ export function ToolBox() {
   }
 
   return (
-    <div style={{width: toolBoxWidth + "px"}}>
+    <div
+      style={{
+        width: toolBoxWidth + "px",
+        position: "absolute",
+        top: 0,
+        right: 0,
+        padding: "16px",
+        boxShadow: "0 0 8px 0 gray",
+        zIndex: 9999,
+        background: "white",
+      }}
+    >
       <div
         style={{
           display: "grid",

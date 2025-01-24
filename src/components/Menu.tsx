@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   open: boolean
   anchor: HTMLElement | null
+  zIndex?: number
   onClose: () => void
   children: React.ReactNode
 }
@@ -10,11 +11,25 @@ type Props = {
 export function Menu(props: Props) {
   const ref = useRef<HTMLDivElement | null>(null)
 
+  const [position, setPosition] = useState<[number, number] | null>(null)
+
   useEffect(() => {
-    if (props.open && ref.current) {
-      ref.current.focus()
+    if (props.open && props.anchor && ref.current) {
+      ref.current.focus({preventScroll: true})
+
+      const anchorRect = props.anchor.getBoundingClientRect()
+      const menuRect = ref.current.getBoundingClientRect()
+      if (anchorRect.bottom + menuRect.height < window.innerHeight) {
+        setPosition([anchorRect.bottom, anchorRect.left])
+      } else {
+        setPosition([anchorRect.bottom - menuRect.height, anchorRect.right])
+      }
     }
-  }, [props.open])
+  }, [props.open, props.anchor])
+
+  if (!props.open && position) {
+    setPosition(null)
+  }
 
   if (!props.anchor) {
     return null
@@ -26,12 +41,14 @@ export function Menu(props: Props) {
       tabIndex={-1}
       style={{
         display: props.open ? "block" : "none",
+        opacity: props.open && position ? 1 : 0,
         position: "absolute",
-        top: props.anchor.offsetTop + props.anchor.offsetHeight,
-        left: props.anchor.offsetLeft,
+        top: position?.[0] ?? 0,
+        left: position?.[1] ?? 0,
         background: "white",
         boxShadow: "1px 2px 6px 0px gray",
         padding: "8px 0",
+        zIndex: props.zIndex ?? 9999,
       }}
       onBlur={props.onClose}
     >
