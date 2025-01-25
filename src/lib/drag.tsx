@@ -14,10 +14,6 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
     const ret = onDragStart ? onDragStart(e) : undefined
     const { onDragging, onDragEnd } = ret ?? {}
 
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault()
-    }
-
     const onPointerMove = (e: PointerEvent) => {
       e.preventDefault()
 
@@ -29,7 +25,6 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
     const onPointerUp = (e: PointerEvent) => {
       e.preventDefault()
 
-      target.removeEventListener("touchmove", onTouchMove)
       target.removeEventListener("pointermove", onPointerMove)
       target.removeEventListener("pointerup", onPointerUp)
       target.releasePointerCapture(e.pointerId)
@@ -39,7 +34,6 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
       }
     }
 
-    target.addEventListener("touchmove", onTouchMove)
     target.addEventListener("pointermove", onPointerMove)
     target.addEventListener("pointerup", onPointerUp)
 
