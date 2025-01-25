@@ -1,14 +1,15 @@
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Explorer } from "./Explorer"
 import { makeDragStartCallback } from "../lib/drag"
 import logoImg from "../assets/logo.png"
+import { IconButton } from "./IconButton"
 
-type Props = {
-  onResize: (width: number) => void
-}
+export function Sidebar() {
+  const contentRef = useRef(null)
 
-export function Sidebar(props: Props) {
   const draggingRef = useRef(false)
+
+  const [width, setWidth] = useState(250)
 
   const onPointerDownOnResizableArea = makeDragStartCallback(() => {
     if (draggingRef.current) {
@@ -19,7 +20,10 @@ export function Sidebar(props: Props) {
 
     const onDragging = (e: PointerEvent) => {
       if (draggingRef.current) {
-        props.onResize(e.pageX)
+        const width = e.pageX
+        if (width > 0 && width < window.innerWidth) {
+          setWidth(width)
+        }
       }
     }
 
@@ -30,9 +34,29 @@ export function Sidebar(props: Props) {
     return {onDragging, onDragEnd}
   })
 
+  const [pinned, setPinned] = useState(true)
+
+  useEffect(() => {
+    if (contentRef.current && pinned) {
+      const contentWidth = parseInt(window.getComputedStyle(contentRef.current).width)
+      if (width < contentWidth) {
+        setWidth(contentWidth)
+      }
+    }
+  }, [width, pinned])
+
+  const onPinClick = () => {
+    setPinned(false)
+  }
+
+  const onHamburgerClick = () => {
+    setPinned(true)
+  }
+
   return (
     <div
       style={{
+        width: pinned ? width : 0,
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
         gridTemplateRows: "minmax(0, 1fr)",
@@ -42,14 +66,16 @@ export function Sidebar(props: Props) {
       }}
     >
       <div
+        ref={contentRef}
         style={{
+          width: pinned ? undefined : 0,
+          overflowX: pinned ? "inherit" : "hidden",
           display: "grid",
           gridTemplateRows: "auto minmax(0, 1fr) auto",
         }}
       >
         <div
           style={{
-            overflow: "hidden",
             padding: "12px",
           }}
         >
@@ -65,7 +91,7 @@ export function Sidebar(props: Props) {
           />
         </div>
         <Explorer />
-        <div style={{textAlign: "center"}}>
+        <div style={{textAlign: "center", whiteSpace: "nowrap"}}>
           <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
           <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>
         </div>
@@ -80,6 +106,34 @@ export function Sidebar(props: Props) {
         }}
         onPointerDown={onPointerDownOnResizableArea}
       />
+      {pinned &&
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+        }}
+      >
+        <IconButton
+          icon="pin"
+          size="small"
+          onClick={onPinClick}
+        />
+      </div>}
+      {!pinned &&
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: -50,
+        }}
+      >
+        <IconButton
+          icon="hamburger"
+          size="small"
+          onClick={onHamburgerClick}
+        />
+      </div>}
     </div>
   )
 }

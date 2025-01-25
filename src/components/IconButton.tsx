@@ -5,6 +5,7 @@ import { Icon } from "./Icon"
 type Props = {
   icon: IconType
   display?: string
+  size?: "small" | "medium" | "large"
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
@@ -33,7 +34,7 @@ export function IconButton(props: Props) {
         padding: "12px",
       }}
     >
-      <Icon icon={props.icon} />
+      <Icon icon={props.icon} size={props.size} />
     </button>
   )
 }
