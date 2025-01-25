@@ -15,11 +15,11 @@ type Props = {
 }
 
 export function ResizableArea(props: Props) {
-  const onMouseDown = (area: "top,left" | "top" | "top,right" | "left" | "right" | "bottom,left" | "bottom" | "bottom,right") =>
-    makeDragStartCallback((e: React.MouseEvent) => {
+  const onPointerDown = (area: "top,left" | "top" | "top,right" | "left" | "right" | "bottom,left" | "bottom" | "bottom,right") =>
+    makeDragStartCallback((e: React.PointerEvent) => {
       const [x, y] = [e.pageX, e.pageY]
 
-      const onResize = (e: MouseEvent, fix: boolean) => {
+      const onResize = (e: PointerEvent, fix: boolean) => {
         const [diffX, diffY] = [e.pageX - x, e.pageY - y]
         props.onResize({
           top: area.includes("top") ? diffY : 0,
@@ -29,11 +29,11 @@ export function ResizableArea(props: Props) {
         }, fix)
       }
 
-      const onDragging = (e: MouseEvent) => {
+      const onDragging = (e: PointerEvent) => {
         onResize(e, false)
       }
 
-      const onDragEnd = (e: MouseEvent) => {
+      const onDragEnd = (e: PointerEvent) => {
         onResize(e, true)
       }
 
@@ -50,15 +50,15 @@ export function ResizableArea(props: Props) {
       width: "fit-content",
       margin: "auto",
     }}>
-      <div style={{cursor: "nwse-resize"}} onMouseDown={onMouseDown("top,left")}></div>
-      <div style={{cursor: "ns-resize	"}} onMouseDown={onMouseDown("top")}></div>
-      <div style={{cursor: "nesw-resize"}} onMouseDown={onMouseDown("top,right")}></div>
-      <div style={{cursor: "ew-resize"}} onMouseDown={onMouseDown("left")}></div>
+      <div style={{cursor: "nwse-resize"}} onPointerDown={onPointerDown("top,left")}></div>
+      <div style={{cursor: "ns-resize	"}} onPointerDown={onPointerDown("top")}></div>
+      <div style={{cursor: "nesw-resize"}} onPointerDown={onPointerDown("top,right")}></div>
+      <div style={{cursor: "ew-resize"}} onPointerDown={onPointerDown("left")}></div>
       <div>{props.children}</div>
-      <div style={{cursor: "ew-resize"}} onMouseDown={onMouseDown("right")}></div>
-      <div style={{cursor: "nesw-resize"}} onMouseDown={onMouseDown("bottom,left")}></div>
-      <div style={{cursor: "ns-resize	"}} onMouseDown={onMouseDown("bottom")}></div>
-      <div style={{cursor: "nwse-resize"}} onMouseDown={onMouseDown("bottom,right")}></div>
+      <div style={{cursor: "ew-resize"}} onPointerDown={onPointerDown("right")}></div>
+      <div style={{cursor: "nesw-resize"}} onPointerDown={onPointerDown("bottom,left")}></div>
+      <div style={{cursor: "ns-resize	"}} onPointerDown={onPointerDown("bottom")}></div>
+      <div style={{cursor: "nwse-resize"}} onPointerDown={onPointerDown("bottom,right")}></div>
     </div>
   )
 }

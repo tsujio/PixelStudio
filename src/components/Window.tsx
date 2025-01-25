@@ -35,14 +35,14 @@ export function Window(props: Props) {
 
   const [dragging, setDragging] = useState<boolean>(false)
 
-  const onMouseDownOnDraggableArea = makeDragStartCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const onPointerDownOnDraggableArea = makeDragStartCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging && windowRef.current) {
       const w = windowRef.current
       const rect = w.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
 
-      const onDragging = (e: MouseEvent) => {
+      const onDragging = (e: PointerEvent) => {
         moveWindow(props.id, e.pageY - y, e.pageX - x)
       }
 
@@ -56,7 +56,7 @@ export function Window(props: Props) {
     }
   })
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  const onPointerDown = (e: React.PointerEvent) => {
     e.stopPropagation()
     activateWindow(props.id)
   }
@@ -71,7 +71,7 @@ export function Window(props: Props) {
   return (
     <div
       ref={windowRef}
-      onMouseDown={onMouseDown}
+      onPointerDown={onPointerDown}
       style={{
         position: "absolute",
         top: props.top,
@@ -85,7 +85,7 @@ export function Window(props: Props) {
       }}
     >
       <div
-        onMouseDown={onMouseDownOnDraggableArea}
+        onPointerDown={onPointerDownOnDraggableArea}
         style={{
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",

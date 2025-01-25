@@ -48,7 +48,7 @@ export function ToolBoxSelectOptions() {
         for (let i = 0; i < value.data.length; i++) {
           for (let j = 0; j < value.data[i].length; j++) {
             const position = {rowIndex: top + i, columnIndex: left + j}
-            if (drawing.isValidPosition(position)) {
+            if (drawing.isValidPosition(position) && value.data[i][j] !== null) {
               updateProject({
                 type: "setPixel",
                 drawingId: drawing.id,

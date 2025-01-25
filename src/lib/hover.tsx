@@ -3,29 +3,29 @@ import { useCallback, useMemo, useState } from "react"
 type UseHover = [
   boolean,
   {
-    onMouseEnter: React.MouseEventHandler
-    onMouseLeave: React.MouseEventHandler
+    onPointerEnter: React.PointerEventHandler
+    onPointerLeave: React.PointerEventHandler
   }
 ]
 
 export const useHover = (): UseHover => {
   const [hover, setHover] = useState(false)
 
-  const onMouseEnter = useCallback(() => {
+  const onPointerEnter = useCallback(() => {
     setHover(true)
   }, [])
 
-  const onMouseLeave = useCallback(() => {
+  const onPointerLeave = useCallback(() => {
     setHover(false)
   }, [])
 
   const ret = useMemo(() => [
     hover,
     {
-      onMouseEnter,
-      onMouseLeave,
+      onPointerEnter,
+      onPointerLeave,
     }
-  ], [hover, onMouseEnter, onMouseLeave])
+  ], [hover, onPointerEnter, onPointerLeave])
 
   return ret as UseHover
 }

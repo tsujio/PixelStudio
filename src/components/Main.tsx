@@ -12,11 +12,11 @@ export function Main() {
 
   const [dragging, setDragging] = useState(false)
   const windowPositionsOnDragStartRef = useRef<{[windowId: string]: [number, number]}>({})
-  const onMouseDown = makeDragStartCallback((e: React.MouseEvent) => {
+  const onPointerDown = makeDragStartCallback((e: React.PointerEvent) => {
     const [x, y] = [e.pageX, e.pageY]
     windowPositionsOnDragStartRef.current = Object.fromEntries(Object.values(windows).map(w => [w.windowId, [w.top, w.left]]))
 
-    const onDragging = (e: MouseEvent) => {
+    const onDragging = (e: PointerEvent) => {
       const [diffX, diffY] = [e.pageX - x, e.pageY - y]
       Object.entries(windowPositionsOnDragStartRef.current).forEach(([windowId, [top, left]]) => {
         moveWindow(windowId, top + diffY, left + diffX)
@@ -36,7 +36,7 @@ export function Main() {
 
   return (
     <div
-      onMouseDown={onMouseDown}
+      onPointerDown={onPointerDown}
       style={{
         cursor: dragging ? "grabbing" : "inherit",
       }}

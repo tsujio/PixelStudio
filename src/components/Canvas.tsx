@@ -55,12 +55,12 @@ export function Canvas(props: Props) {
     drawContext.select.area,
   ])
 
-  const mousePositionRef = useRef<[number, number] | null>(null)
+  const pointerPositionRef = useRef<[number, number] | null>(null)
 
-  const onMouseDown = makeDragStartCallback((e: React.MouseEvent) => {
+  const onPointerDown = makeDragStartCallback((e: React.PointerEvent) => {
     if (canvasRef.current) {
       const [x, y] = getEventPosition(e, canvasRef.current)
-      mousePositionRef.current = [x, y]
+      pointerPositionRef.current = [x, y]
       const position = convertToDrawingDataPosition(x, y, props.drawing.pixelSize)
 
       if (!props.drawing.isValidPosition(position)) {
@@ -81,14 +81,14 @@ export function Canvas(props: Props) {
           break
       }
 
-      const onDragging = (e: MouseEvent) => {
-        if (canvasRef.current && mousePositionRef.current) {
-          const [prevX, prevY] = mousePositionRef.current
+      const onDragging = (e: PointerEvent) => {
+        if (canvasRef.current && pointerPositionRef.current) {
+          const [prevX, prevY] = pointerPositionRef.current
           const [x, y] = getEventPosition(e, canvasRef.current)
           if (x === prevX && y === prevY) {
             return
           }
-          mousePositionRef.current = [x, y]
+          pointerPositionRef.current = [x, y]
 
           const positions = interpolateEventPositions([x, y], [prevX, prevY], props.drawing.pixelSize)
           positions.forEach(position => {
@@ -124,7 +124,7 @@ export function Canvas(props: Props) {
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
-      onMouseDown={onMouseDown}
+      onPointerDown={onPointerDown}
       style={{
         display: "block",
         border: "1px solid gray",

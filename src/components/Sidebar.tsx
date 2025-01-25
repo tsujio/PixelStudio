@@ -10,14 +10,14 @@ type Props = {
 export function Sidebar(props: Props) {
   const draggingRef = useRef(false)
 
-  const onMouseDownOnResizableArea = makeDragStartCallback(() => {
+  const onPointerDownOnResizableArea = makeDragStartCallback(() => {
     if (draggingRef.current) {
       return
     }
 
     draggingRef.current = true
 
-    const onDragging = (e: MouseEvent) => {
+    const onDragging = (e: PointerEvent) => {
       if (draggingRef.current) {
         props.onResize(e.pageX)
       }
@@ -78,7 +78,7 @@ export function Sidebar(props: Props) {
           width: "4px",
           right: 0,
         }}
-        onMouseDown={onMouseDownOnResizableArea}
+        onPointerDown={onPointerDownOnResizableArea}
       />
     </div>
   )

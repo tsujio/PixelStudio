@@ -1,7 +1,7 @@
 import React from "react"
 import { DrawingData, DrawingDataPosition, DrawingDataRect } from "./drawing"
 
-export const getEventPosition = (e: React.MouseEvent | MouseEvent, canvas: HTMLCanvasElement): [number, number] => {
+export const getEventPosition = (e: React.PointerEvent | PointerEvent, canvas: HTMLCanvasElement): [number, number] => {
   const rect = canvas.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top

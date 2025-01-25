@@ -42,8 +42,8 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0]])
 
-  const onMouseDownOnHueCanvas = makeDragStartCallback((e: React.MouseEvent) => {
-    const onChange = (e: React.MouseEvent | MouseEvent) => {
+  const onPointerDownOnHueCanvas = makeDragStartCallback((e: React.PointerEvent) => {
+    const onChange = (e: React.PointerEvent | PointerEvent) => {
       if (hueCanvasRef.current) {
         const [x, y] = getEventPosition(e, hueCanvasRef.current)
         const {columnIndex} = convertToDrawingDataPosition(x, y, 1)
@@ -95,8 +95,8 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0], hsv[1], hsv[2]])
 
-  const onMouseDownOnSVCanvas = makeDragStartCallback((e: React.MouseEvent) => {
-    const onChange = (e: React.MouseEvent | MouseEvent) => {
+  const onPointerDownOnSVCanvas = makeDragStartCallback((e: React.PointerEvent) => {
+    const onChange = (e: React.PointerEvent | PointerEvent) => {
       if (svCanvasRef.current) {
         const [x, y] = getEventPosition(e, svCanvasRef.current)
         const {rowIndex, columnIndex} = convertToDrawingDataPosition(x, y, 2)
@@ -119,7 +119,7 @@ export function HSVColorPicker(props: Props) {
           ref={hueCanvasRef}
           width={hueSteps}
           height={20}
-          onMouseDown={onMouseDownOnHueCanvas}
+          onPointerDown={onPointerDownOnHueCanvas}
           style={{
             display: "block",
           }}
@@ -130,7 +130,7 @@ export function HSVColorPicker(props: Props) {
           ref={svCanvasRef}
           width={2 * 100}
           height={2 * 100}
-          onMouseDown={onMouseDownOnSVCanvas}
+          onPointerDown={onPointerDownOnSVCanvas}
           style={{
             display: "block",
           }}
