@@ -1,30 +1,47 @@
-export const makeDragStartCallback = <T,>(
-  onDragStart?: (e: T) => {
+export const makeDragStartCallback = <T extends HTMLElement,>(
+  onDragStart?: (e: React.PointerEvent<T>) => {
     onDragging?: (e: PointerEvent) => void,
     onDragEnd?: (e: PointerEvent) => void,
   } | undefined,
 ) => {
-  return (e: T) => {
+  return (e: React.PointerEvent<T>) => {
+    e.preventDefault()
+
+    const target = e.currentTarget
+
+    target.setPointerCapture(e.pointerId)
+
     const ret = onDragStart ? onDragStart(e) : undefined
     const { onDragging, onDragEnd } = ret ?? {}
 
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault()
+    }
+
     const onPointerMove = (e: PointerEvent) => {
+      e.preventDefault()
+
       if (onDragging) {
         onDragging(e)
       }
     }
 
     const onPointerUp = (e: PointerEvent) => {
-      document.removeEventListener("pointermove", onPointerMove)
-      document.removeEventListener("pointerup", onPointerUp)
+      e.preventDefault()
+
+      target.removeEventListener("touchmove", onTouchMove)
+      target.removeEventListener("pointermove", onPointerMove)
+      target.removeEventListener("pointerup", onPointerUp)
+      target.releasePointerCapture(e.pointerId)
 
       if (onDragEnd) {
         onDragEnd(e)
       }
     }
 
-    document.addEventListener("pointermove", onPointerMove)
-    document.addEventListener("pointerup", onPointerUp)
+    target.addEventListener("touchmove", onTouchMove)
+    target.addEventListener("pointermove", onPointerMove)
+    target.addEventListener("pointerup", onPointerUp)
 
     // Prevent dragstart event since it conflicts with pointermove
     const selection = window.getSelection()

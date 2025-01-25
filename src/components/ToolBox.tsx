@@ -37,7 +37,9 @@ export function ToolBox() {
       style={{
         width: pinned ? "330px" : 0,
         height: "fit-content",
-        position: "relative",
+        position: "absolute",
+        top: 0,
+        right: 0,
         boxShadow: "0 0 8px 0 gray",
         zIndex: 9999,
         background: "white",
