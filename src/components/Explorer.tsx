@@ -114,7 +114,7 @@ export function Explorer() {
     const onDragging = (e: PointerEvent) => {
       const diff = e.pageY - prevY
       if (explorerItemContainerRef.current) {
-        explorerItemContainerRef.current.scrollBy(0, diff)
+        explorerItemContainerRef.current.scrollBy(0, -diff)
       }
       prevY = e.pageY
     }
