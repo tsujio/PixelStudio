@@ -5,29 +5,39 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
   } | undefined,
 ) => {
   return (e: React.PointerEvent<T>) => {
-    e.preventDefault()
+    if (!e.isPrimary) {
+      return
+    }
 
     const target = e.currentTarget
-
     target.setPointerCapture(e.pointerId)
 
     const ret = onDragStart ? onDragStart(e) : undefined
     const { onDragging, onDragEnd } = ret ?? {}
 
     const onPointerMove = (e: PointerEvent) => {
-      e.preventDefault()
+      if (!e.isPrimary) {
+        return
+      }
 
       if (onDragging) {
         onDragging(e)
       }
     }
 
-    const onPointerUp = (e: PointerEvent) => {
-      e.preventDefault()
-
+    const cleanupListeners = (e: PointerEvent) => {
       target.removeEventListener("pointermove", onPointerMove)
       target.removeEventListener("pointerup", onPointerUp)
+      target.removeEventListener("pointercancel", cleanupListeners)
       target.releasePointerCapture(e.pointerId)
+    }
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (!e.isPrimary) {
+        return
+      }
+
+      cleanupListeners(e)
 
       if (onDragEnd) {
         onDragEnd(e)
@@ -36,6 +46,7 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
 
     target.addEventListener("pointermove", onPointerMove)
     target.addEventListener("pointerup", onPointerUp)
+    target.addEventListener("pointercancel", cleanupListeners)
 
     // Prevent dragstart event since it conflicts with pointermove
     const selection = window.getSelection()
