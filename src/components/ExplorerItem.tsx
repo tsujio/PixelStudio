@@ -14,7 +14,7 @@ type Props = {
 }
 
 export function ExplorerItem(props: Props) {
-  const { windows, openWindow, closeWindow } = useWindowSystemContext()
+  const { windows, openWindow, closeWindow, getActiveWindowId } = useWindowSystemContext()
 
   const { updateProject } = useProjectContext()
 
@@ -98,6 +98,13 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
+  let isWindowActive = false
+  const activeWindowId = getActiveWindowId(true)
+  if (activeWindowId) {
+    const activeWindow = windows[activeWindowId]
+    isWindowActive = activeWindow?.metadata?.type === "drawing" && activeWindow?.metadata?.drawingId === props.drawing.id
+  }
+
   return (
     <div
       onClick={onDrawingNameClick}
@@ -105,7 +112,7 @@ export function ExplorerItem(props: Props) {
         padding: "12px",
         display: "grid",
         gridTemplateColumns: "1fr auto",
-        background: hover || menuButtonElement ? "whitesmoke" : "white",
+        background: hover || menuButtonElement || isWindowActive ? "whitesmoke" : "white",
         cursor: "pointer",
       }}
       {...hoverHandlers}
@@ -136,7 +143,7 @@ export function ExplorerItem(props: Props) {
       <div>
         <IconButton
           icon="menu"
-          display={hover || menuButtonElement ? "inline-block" : "none"}
+          display={hover || menuButtonElement || isWindowActive ? "inline-block" : "none"}
           onClick={onMenuClick}
         />
         <Menu
