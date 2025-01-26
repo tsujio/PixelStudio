@@ -3,6 +3,7 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
     onDragging?: (e: PointerEvent) => void,
     onDragEnd?: (e: PointerEvent) => void,
   } | undefined,
+  disablePointerCapture?: boolean,
 ) => {
   return (e: React.PointerEvent<T>) => {
     if (!e.isPrimary) {
@@ -10,7 +11,10 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
     }
 
     const target = e.currentTarget
-    target.setPointerCapture(e.pointerId)
+
+    if (disablePointerCapture !== true) {
+      target.setPointerCapture(e.pointerId)
+    }
 
     const ret = onDragStart ? onDragStart(e) : undefined
     const { onDragging, onDragEnd } = ret ?? {}
@@ -29,7 +33,10 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
       target.removeEventListener("pointermove", onPointerMove)
       target.removeEventListener("pointerup", onPointerUp)
       target.removeEventListener("pointercancel", cleanupListeners)
-      target.releasePointerCapture(e.pointerId)
+
+      if (disablePointerCapture !== true) {
+        target.releasePointerCapture(e.pointerId)
+      }
     }
 
     const onPointerUp = (e: PointerEvent) => {
