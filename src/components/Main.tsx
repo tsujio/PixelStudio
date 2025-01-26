@@ -3,24 +3,31 @@ import { useWindowSystemContext } from "./WindowSystem"
 import { Window } from "./Window"
 import { Drawing } from "./Drawing"
 import { makeDragStartCallback } from "../lib/drag"
-import { useRef, useState } from "react"
+import { useState } from "react"
+
+const backgroundGridSize = 42
 
 export function Main() {
   const { windows, moveWindow } = useWindowSystemContext()
 
   const { project } = useProjectContext()
 
+  const [backgroundPositionOffset, setBackgroundPositionOffset] = useState<[number, number]>([0, 0])
+
   const [dragging, setDragging] = useState(false)
-  const windowPositionsOnDragStartRef = useRef<{[windowId: string]: [number, number]}>({})
   const onPointerDown = makeDragStartCallback((e: React.PointerEvent) => {
     const [x, y] = [e.pageX, e.pageY]
-    windowPositionsOnDragStartRef.current = Object.fromEntries(Object.values(windows).map(w => [w.windowId, [w.top, w.left]]))
 
     const onDragging = (e: PointerEvent) => {
       const [diffX, diffY] = [e.pageX - x, e.pageY - y]
-      Object.entries(windowPositionsOnDragStartRef.current).forEach(([windowId, [top, left]]) => {
-        moveWindow(windowId, top + diffY, left + diffX)
+      Object.values(windows).forEach(w => {
+        moveWindow(w.windowId, w.top + diffY, w.left + diffX)
       })
+
+      setBackgroundPositionOffset([
+        (backgroundPositionOffset[0] + diffX) % backgroundGridSize,
+        (backgroundPositionOffset[1] + diffY) % backgroundGridSize,
+      ])
     }
 
     const onDragEnd = () => {
@@ -38,6 +45,10 @@ export function Main() {
     <div
       onPointerDown={onPointerDown}
       style={{
+        backgroundSize: `${backgroundGridSize}px ${backgroundGridSize}px`,
+        backgroundImage: "radial-gradient(circle, gray 1px, transparent 1px)",
+        backgroundPositionX: backgroundPositionOffset[0] + "px",
+        backgroundPositionY: backgroundPositionOffset[1] + "px",
         cursor: dragging ? "grabbing" : "inherit",
       }}
     >
