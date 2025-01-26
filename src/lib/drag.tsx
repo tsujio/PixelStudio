@@ -1,59 +1,99 @@
-export const makeDragStartCallback = <T extends HTMLElement,>(
-  onDragStart?: (e: React.PointerEvent<T>) => {
-    onDragging?: (e: PointerEvent) => void,
-    onDragEnd?: (e: PointerEvent) => void,
-  } | undefined,
-  disablePointerCapture?: boolean,
+import { useRef } from "react"
+
+type GestureCallbacks = {
+  onDragMove?: (e: PointerEvent) => void,
+  onDragEnd?: (e: PointerEvent) => void,
+  onPinchStart?: (e1: PointerEvent, e2: PointerEvent, triggerEvent: PointerEvent) => void,
+  onPinchMove?: (e1: PointerEvent, e2: PointerEvent, triggerEvent: PointerEvent) => void,
+  onPinchEnd?: (e1: PointerEvent, e2: PointerEvent, triggerEvent: PointerEvent) => void,
+}
+
+export const useGesture = <T extends HTMLElement,>(
+  onGestureStart: (e: React.PointerEvent<T>) => GestureCallbacks| undefined,
 ) => {
+  const eventsRef = useRef<(PointerEvent | null)[]>([])
+  const callbacksRef = useRef<GestureCallbacks>({})
+
   return (e: React.PointerEvent<T>) => {
-    if (!e.isPrimary) {
+    if (e.isPrimary) {
+      if (eventsRef.current.some(e => e !== null)) {
+        console.warn("Found not cleaned up events")
+      }
+
+      callbacksRef.current = {}
+      eventsRef.current = []
+    }
+
+    if (eventsRef.current.length >= 2) {
       return
     }
 
-    const target = e.currentTarget
+    eventsRef.current = [...eventsRef.current, e.nativeEvent]
 
-    if (disablePointerCapture !== true) {
-      target.setPointerCapture(e.pointerId)
+    const target = e.currentTarget
+    target.setPointerCapture(e.pointerId)
+
+    if (eventsRef.current.length === 2 && eventsRef.current[0] && eventsRef.current[1]) {
+      // Pinch start
+      if (callbacksRef.current.onPinchStart) {
+        callbacksRef.current.onPinchStart(eventsRef.current[0], eventsRef.current[1], e.nativeEvent)
+      }
+      return
     }
 
-    const ret = onDragStart ? onDragStart(e) : undefined
-    const { onDragging, onDragEnd } = ret ?? {}
+    // Drag start
+
+    callbacksRef.current = onGestureStart(e) ?? {}
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!e.isPrimary) {
-        return
+      const index = eventsRef.current.findIndex(ev => ev?.pointerId === e.pointerId)
+      if (index !== -1) {
+        const events = [...eventsRef.current]
+        events[index] = e
+        eventsRef.current = events
       }
 
-      if (onDragging) {
-        onDragging(e)
+      if (index === 0 && callbacksRef.current.onDragMove) {
+        callbacksRef.current.onDragMove(e)
       }
-    }
 
-    const cleanupListeners = (e: PointerEvent) => {
-      target.removeEventListener("pointermove", onPointerMove)
-      target.removeEventListener("pointerup", onPointerUp)
-      target.removeEventListener("pointercancel", cleanupListeners)
-
-      if (disablePointerCapture !== true) {
-        target.releasePointerCapture(e.pointerId)
+      if (eventsRef.current.length === 2 && eventsRef.current[0] && eventsRef.current[1] && callbacksRef.current.onPinchMove) {
+        callbacksRef.current.onPinchMove(eventsRef.current[0], eventsRef.current[1], e)
       }
     }
 
     const onPointerUp = (e: PointerEvent) => {
-      if (!e.isPrimary) {
-        return
+      const index = eventsRef.current.findIndex(ev => ev && ev.pointerId === e.pointerId)
+      if (index !== -1) {
+        const events = [...eventsRef.current]
+        events[index] = e
+        eventsRef.current = events
       }
 
-      cleanupListeners(e)
+      if (eventsRef.current.length === 2 && eventsRef.current[0] && eventsRef.current[1] && callbacksRef.current.onPinchEnd) {
+        callbacksRef.current.onPinchEnd(eventsRef.current[0], eventsRef.current[1], e)
+      }
 
-      if (onDragEnd) {
-        onDragEnd(e)
+      if (index === 0 && callbacksRef.current.onDragEnd) {
+        callbacksRef.current.onDragEnd(e)
+      }
+
+      if (index !== -1) {
+        const events = [...eventsRef.current]
+        events[index] = null
+        eventsRef.current = events
+      }
+
+      target.releasePointerCapture(e.pointerId)
+
+      if (eventsRef.current.every(e => e === null)) {
+        target.removeEventListener("pointermove", onPointerMove)
+        target.removeEventListener("pointerup", onPointerUp)
       }
     }
 
     target.addEventListener("pointermove", onPointerMove)
     target.addEventListener("pointerup", onPointerUp)
-    target.addEventListener("pointercancel", cleanupListeners)
 
     // Prevent dragstart event since it conflicts with pointermove
     const selection = window.getSelection()
@@ -62,3 +102,14 @@ export const makeDragStartCallback = <T extends HTMLElement,>(
     }
   }
 }
+
+export const makeDragStartCallback = <T extends HTMLElement,>(
+  onDragStart: (e: React.PointerEvent<T>) => {
+    onDragging?: (e: PointerEvent) => void,
+    onDragEnd?: (e: PointerEvent) => void,
+  } | undefined,
+) => useGesture((e: React.PointerEvent<T>) => {
+  const ret = onDragStart ? onDragStart(e) : undefined
+  const { onDragging, onDragEnd } = ret ?? {}
+  return {onDragMove: onDragging, onDragEnd}
+})

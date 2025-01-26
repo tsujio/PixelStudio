@@ -21,7 +21,6 @@ export function ExplorerItem(props: Props) {
   const [ hover, hoverHandlers ] = useHover()
 
   const onDrawingNameClick = () => {
-    console.log("clock")
     openWindow(100, 300, {type: "drawing", drawingId: props.drawing.id})
   }
 

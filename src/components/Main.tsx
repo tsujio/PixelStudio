@@ -2,7 +2,7 @@ import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
 import { Window } from "./Window"
 import { Drawing } from "./Drawing"
-import { makeDragStartCallback } from "../lib/drag"
+import { useGesture } from "../lib/drag"
 import { useState } from "react"
 
 const backgroundGridSize = 42
@@ -15,10 +15,10 @@ export function Main() {
   const [backgroundPositionOffset, setBackgroundPositionOffset] = useState<[number, number]>([0, 0])
 
   const [dragging, setDragging] = useState(false)
-  const onPointerDown = makeDragStartCallback((e: React.PointerEvent) => {
+  const onPointerDown = useGesture((e: React.PointerEvent) => {
     const [x, y] = [e.pageX, e.pageY]
 
-    const onDragging = (e: PointerEvent) => {
+    const onDragMove = (e: PointerEvent) => {
       const [diffX, diffY] = [e.pageX - x, e.pageY - y]
       Object.values(windows).forEach(w => {
         moveWindow(w.windowId, w.top + diffY, w.left + diffX)
@@ -34,10 +34,24 @@ export function Main() {
       setDragging(false)
     }
 
+    let prevDistanceSq = -1
+    const onPinchStart = (e1: PointerEvent, e2: PointerEvent) => {
+      prevDistanceSq = Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
+    }
+
+    const onPinchMove = (e1: PointerEvent, e2: PointerEvent) => {
+      const distanceSq = Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
+      const diff = distanceSq - prevDistanceSq
+      prevDistanceSq = distanceSq
+      setD(diff)
+    }
+
     setDragging(true)
 
-    return {onDragging, onDragEnd}
+    return {onDragMove, onDragEnd, onPinchStart, onPinchMove}
   })
+
+  const [d, setD] = useState(0)
 
   const drawingWindows = Object.values(windows).filter(w => w.metadata.type === "drawing" && w.metadata.drawingId in project.drawings)
 
@@ -52,6 +66,7 @@ export function Main() {
         cursor: dragging ? "grabbing" : "inherit",
       }}
     >
+      <span>{d}</span>
       {drawingWindows.map(window =>
         <Window
           key={window.windowId}
