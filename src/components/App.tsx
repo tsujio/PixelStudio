@@ -5,9 +5,6 @@ import { WindowSystemContextProvider } from './WindowSystem'
 import { DrawContextProvider } from './DrawContext'
 import { ToolBox } from './ToolBox'
 
-// Prevent scroll, zoom, and swipe refresh on mobile devices.
-//document.addEventListener("touchmove", e => { e.preventDefault() }, { passive: false })
-
 document.documentElement.style.overscrollBehavior = "none"
 document.documentElement.style.touchAction = "none"
 

@@ -201,6 +201,7 @@ export function Explorer() {
         <div
           style={{
             overflowY: "scroll",
+            overscrollBehavior: "none",
           }}
         >
           {drawings && drawings.map(drawing =>
