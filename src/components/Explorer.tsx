@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
 import { ExplorerItem } from "./ExplorerItem"
@@ -8,7 +8,6 @@ import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { Drawing } from "../lib/drawing"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
-import { makeDragStartCallback } from "../lib/drag"
 
 export function Explorer() {
   const { project, updateProject } = useProjectContext()
@@ -107,21 +106,6 @@ export function Explorer() {
     updateProject({type: "addDrawing"})
   }
 
-  const explorerItemContainerRef = useRef<HTMLDivElement>(null)
-  const onPointerDown = makeDragStartCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    let prevY = e.pageY
-
-    const onDragging = (e: PointerEvent) => {
-      const diff = e.pageY - prevY
-      if (explorerItemContainerRef.current) {
-        explorerItemContainerRef.current.scrollBy(0, -diff)
-      }
-      prevY = e.pageY
-    }
-
-    return {onDragging}
-  }, true)
-
   useEffect(() => {
     const onKeyDown = async (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "KeyS") {
@@ -215,11 +199,9 @@ export function Explorer() {
           />
         </div>
         <div
-          ref={explorerItemContainerRef}
           style={{
             overflowY: "scroll",
           }}
-          onPointerDown={onPointerDown}
         >
           {drawings && drawings.map(drawing =>
             <ExplorerItem key={drawing.id} drawing={drawing} />
