@@ -34,7 +34,9 @@ export function Sidebar() {
     return {onDragging, onDragEnd}
   })
 
-  const [pinned, setPinned] = useState(true)
+  const [pinned, setPinned] = useState(() => {
+    return window.innerWidth > 1000
+  })
 
   useEffect(() => {
     if (contentRef.current && pinned) {

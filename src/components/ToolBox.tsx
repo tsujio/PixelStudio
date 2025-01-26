@@ -22,7 +22,9 @@ export function ToolBox() {
     changeTool(tool)
   }
 
-  const [pinned, setPinned] = useState(true)
+  const [pinned, setPinned] = useState(() => {
+    return window.innerWidth > 700
+  })
 
   const onPinClick = () => {
     setPinned(false)
