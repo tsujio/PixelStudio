@@ -1,23 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 import { useProjectContext } from "./ProjectContext"
-import { useWindowSystemContext } from "./WindowSystem"
 import { ExplorerItem } from "./ExplorerItem"
 import { IconButton } from "./IconButton"
 import { Menu } from "./Menu"
 import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
-import { Drawing } from "../lib/drawing"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 
 export function Explorer() {
   const { project, updateProject } = useProjectContext()
-  const { windows, closeWindow } = useWindowSystemContext()
 
-  let drawings: Drawing[] | null = null
-  if (project) {
-    drawings = Object.values(project.drawings)
-    drawings.sort((a, b) => a.name.localeCompare(b.name))
-  }
+  const drawings = Object.values(project.drawings)
+  drawings.sort((a, b) => a.name.localeCompare(b.name))
 
   const [projectMenuButtonElement, setProjectMenuButtonElement] = useState<HTMLElement | null>(null)
 
@@ -34,14 +28,6 @@ export function Explorer() {
   const onNewProjectButtonClick = () => {
     updateProject({type: "newProject"})
     setFileHandle(null)
-
-    // Close all drawing windows
-    Object.values(windows).forEach(window => {
-      if (window.metadata.type === "drawing") {
-        closeWindow(window.windowId)
-      }
-    })
-
     setProjectMenuButtonElement(null)
   }
 
@@ -50,13 +36,6 @@ export function Explorer() {
     const json = JSON.parse(contents)
     updateProject({type: "load", json})
     setFileHandle(fileHandle)
-
-    // Close all drawing windows
-    Object.values(windows).forEach(window => {
-      if (window.metadata.type === "drawing") {
-        closeWindow(window.windowId)
-      }
-    })
   }
 
   const [newProjectName, setNewProjectName] = useState<string | null>(null)

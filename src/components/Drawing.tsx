@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useWindowContext } from "./Window"
-import { useWindowSystemContext } from "./WindowSystem"
 import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
 import { ResizableArea } from "./ResizableArea"
@@ -11,8 +10,7 @@ type Props = {
 }
 
 export function Drawing(props: Props) {
-  const { windowId, setWindowName } = useWindowContext()
-  const { windows, moveWindow } = useWindowSystemContext()
+  const { setWindowName, setWindowPositionOffset } = useWindowContext()
   const { updateProject } = useProjectContext()
 
   const [mask, setMask] = useState<DrawingDataRect | null>(null)
@@ -23,12 +21,6 @@ export function Drawing(props: Props) {
   useEffect(() => {
     setWindowName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
   }, [setWindowName, props.drawing.name, rowCount, columnCount])
-
-  const windowPositionBeforeResizeRef = useRef<[number, number] | null>(null)
-  const onResizeStart = () => {
-    const window = windows[windowId]
-    windowPositionBeforeResizeRef.current = [window.top, window.left]
-  }
 
   const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
     const newMask = {
@@ -45,23 +37,19 @@ export function Drawing(props: Props) {
     if (fix) {
       updateProject({type: "resizeDrawing", drawingId: props.drawing.id, rect: newMask})
       setMask(null)
+      setWindowPositionOffset([0, 0])
     } else if (mask === null ||
       newMask.start.rowIndex !== mask.start.rowIndex ||
       newMask.start.columnIndex !== mask.start.columnIndex ||
       newMask.end.rowIndex !== mask.end.rowIndex ||
       newMask.end.columnIndex !== mask.end.columnIndex) {
       setMask(newMask)
-    }
-
-    if (windowPositionBeforeResizeRef.current) {
-      const top = windowPositionBeforeResizeRef.current[0] + newMask.start.rowIndex * props.drawing.pixelSize
-      const left = windowPositionBeforeResizeRef.current[1] + newMask.start.columnIndex * props.drawing.pixelSize
-      moveWindow(windowId, top, left)
+      setWindowPositionOffset([newMask.start.columnIndex * props.drawing.pixelSize, newMask.start.rowIndex * props.drawing.pixelSize])
     }
   }
 
   return (
-    <ResizableArea onResizeStart={onResizeStart} onResize={onResize}>
+    <ResizableArea onResize={onResize}>
       <Canvas
         drawing={props.drawing}
         mask={mask ?? undefined}

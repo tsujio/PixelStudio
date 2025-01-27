@@ -4,24 +4,22 @@ import { Menu } from "./Menu"
 import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { useProjectContext } from "./ProjectContext"
-import { useWindowSystemContext } from "./WindowSystem"
 import { Drawing } from "../lib/drawing"
 import { drawPixels } from "../lib/canvas"
 import { useHover } from "../lib/hover"
+import { DrawingPanel } from "../lib/panel"
 
 type Props = {
   drawing: Drawing
 }
 
 export function ExplorerItem(props: Props) {
-  const { windows, openWindow, closeWindow, getActiveWindowId } = useWindowSystemContext()
-
-  const { updateProject } = useProjectContext()
+  const { project, updateProject } = useProjectContext()
 
   const [ hover, hoverHandlers ] = useHover()
 
   const onDrawingNameClick = () => {
-    openWindow(100, 300, {type: "drawing", drawingId: props.drawing.id})
+    updateProject({type: "openPanel", drawingId: props.drawing.id, x: 300, y: 100})
   }
 
   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null)
@@ -35,14 +33,10 @@ export function ExplorerItem(props: Props) {
   }
 
   const onCloseButtonClick = () => {
-    for (const windowId in windows) {
-      const metadata = windows[windowId].metadata
-      if (metadata.type === "drawing" && metadata.drawingId === props.drawing.id) {
-        closeWindow(windowId)
-        break
-      }
+    const panel = project.panels.find(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id)
+    if (panel) {
+      updateProject({type: "closePanel", panelId: panel.id})
     }
-
     setMenuButtonElement(null)
   }
 
@@ -97,12 +91,7 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
-  let isWindowActive = false
-  const activeWindowId = getActiveWindowId(true)
-  if (activeWindowId) {
-    const activeWindow = windows[activeWindowId]
-    isWindowActive = activeWindow?.metadata?.type === "drawing" && activeWindow?.metadata?.drawingId === props.drawing.id
-  }
+  const isWindowActive = project.panels.length > 0 && project.panels.findIndex(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id) === project.panels.length - 1
 
   return (
     <div

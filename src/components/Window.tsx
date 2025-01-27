@@ -1,10 +1,12 @@
 import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
-import { useWindowSystemContext } from './WindowSystem'
-import { makeDragStartCallback } from '../lib/drag'
+import { useGesture } from '../lib/drag'
+import { useProjectContext } from './ProjectContext'
+import { Panel } from '../lib/panel'
 
 type WindowContextValue = {
   windowId: string
   setWindowName: (name: string) => void
+  setWindowPositionOffset: (position: [number, number]) => void
 }
 
 const WindowContext = createContext<WindowContextValue | null>(null)
@@ -20,53 +22,58 @@ export function useWindowContext() {
 const windowSidePadding = 12
 
 type Props = {
-  id: string
-  top?: number
-  left?: number
-  right?: number
+  panel: Panel
+  top: number
+  left: number
   zIndex?: number
   children: React.ReactNode
 }
 
 export function Window(props: Props) {
-  const { activateWindow, moveWindow } = useWindowSystemContext()
+  const { updateProject } = useProjectContext()
 
   const windowRef = useRef<HTMLDivElement>(null)
 
   const [dragging, setDragging] = useState<boolean>(false)
 
-  const onPointerDownOnDraggableArea = makeDragStartCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging && windowRef.current) {
-      const w = windowRef.current
-      const rect = w.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
+  const [windowPositionOffset, setWindowPositionOffset] = useState<[number, number]>([0, 0])
 
-      const onDragging = (e: PointerEvent) => {
-        moveWindow(props.id, e.pageY - y, e.pageX - x)
-      }
-
-      const onDragEnd = () => {
-        setDragging(false)
-      }
-
+  const draggableAreaGestureHandlers = useGesture({
+    onDragStart: e => {
       setDragging(true)
-
-      return { onDragging, onDragEnd }
-    }
+      return {
+        panelPos: [props.panel.x, props.panel.y] as const,
+        eventPos: [e.pageX, e.pageY] as const,
+      }
+    },
+    onDragMove: (e, dragStartData) => {
+      if (dragStartData) {
+        const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
+        setWindowPositionOffset([diffX, diffY])
+      }
+    },
+    onDragEnd: (e, dragStartData) => {
+      if (dragStartData) {
+        const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
+        updateProject({type: "movePanel", panelId: props.panel.id, x: dragStartData.panelPos[0] + diffX, y: dragStartData.panelPos[1] + diffY})
+      }
+      setWindowPositionOffset([0, 0])
+      setDragging(false)
+    },
   })
 
   const onPointerDown = (e: React.PointerEvent) => {
     e.stopPropagation()
-    activateWindow(props.id)
+    updateProject({type: "activatePanel", panelId: props.panel.id})
   }
 
   const [windowName, setWindowName] = useState<string>("")
 
   const windowContextValue = useMemo(() => ({
-    windowId: props.id,
+    windowId: props.panel.id,
     setWindowName,
-  }), [props.id])
+    setWindowPositionOffset,
+  }), [props.panel.id])
 
   return (
     <div
@@ -74,9 +81,8 @@ export function Window(props: Props) {
       onPointerDown={onPointerDown}
       style={{
         position: "absolute",
-        top: props.top,
-        left: props.left,
-        right: props.right,
+        top: props.top + windowPositionOffset[1],
+        left: props.left + windowPositionOffset[0],
         zIndex: props.zIndex,
         display: "inline-block",
         borderRadius: "8px",
@@ -85,7 +91,7 @@ export function Window(props: Props) {
       }}
     >
       <div
-        onPointerDown={onPointerDownOnDraggableArea}
+        {...draggableAreaGestureHandlers}
         style={{
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",

@@ -1,19 +1,16 @@
 import { Drawing } from "../lib/drawing"
+import { DrawingPanel } from "../lib/panel"
 import { useProjectContext } from "./ProjectContext"
-import { useWindowSystemContext } from "./WindowSystem"
 
 export function ToolBoxCanvasOptions() {
   const { project, updateProject } = useProjectContext()
-  const { windows, getActiveWindowId } = useWindowSystemContext()
 
-  const activeDrawingWindowId = getActiveWindowId(true)
   let drawing: Drawing | undefined
-  if (activeDrawingWindowId !== null) {
-    const window = windows[activeDrawingWindowId]
-    if (window.metadata.type !== "drawing") {
-      throw new Error("Not a drawing window")
+  if (project.panels.length > 0) {
+    const panel = project.panels[project.panels.length - 1]
+    if (panel instanceof DrawingPanel) {
+      drawing = project.getDrawing(panel.drawingId)
     }
-    drawing = project.getDrawing(window.metadata.drawingId)
   }
 
   const onPixelSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

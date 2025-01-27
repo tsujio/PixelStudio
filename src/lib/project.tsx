@@ -1,17 +1,20 @@
 import { Color } from "./color"
 import { Drawing } from "./drawing"
+import { DrawingPanel, Panel } from "./panel"
 
 export class Project {
   #id: string
   #name: string
   #drawings: {[id:string]: Drawing}
   #palette: (Color | null)[]
+  #panels: Panel[]
 
-  constructor(id?: string, name?: string, drawings?: Drawing[], palette?: (Color | null)[]) {
+  constructor(id?: string, name?: string, drawings?: Drawing[], palette?: (Color | null)[], panels?: Panel[]) {
     this.#id = id ?? crypto.randomUUID()
     this.#name = name ?? "New project"
     this.#drawings = drawings ? Object.fromEntries(drawings.map(d => [d.id, d])) : {}
     this.#palette = [...palette ?? []]
+    this.#panels = [...panels ?? []]
   }
 
   get id() {
@@ -77,8 +80,57 @@ export class Project {
     }
   }
 
+  get panels() {
+    return [...this.#panels]
+  }
+
+  openDrawingPanel(drawingId: string, x: number, y: number) {
+    if (this.#panels.some(p => p instanceof DrawingPanel && p.drawingId === drawingId)) {
+      throw new Error(`Drawing panel with drawingId=${drawingId} is already open`)
+    }
+
+    const panel = new DrawingPanel(crypto.randomUUID(), x, y, drawingId)
+    this.#panels.push(panel)
+
+    return panel
+  }
+
+  closePanel(panelId: string) {
+    const index = this.#panels.findIndex(p => p.id === panelId)
+    if (index === -1) {
+      throw new Error(`Invalid panel id: ${panelId}`)
+    }
+    this.#panels.splice(index, 1)
+  }
+
+  getPanel(panelId: string) {
+    const panel = this.#panels.find(p => p.id === panelId)
+    if (panel === undefined) {
+      throw new Error(`Invalid panel id: ${panelId}`)
+    }
+    return panel
+  }
+
+  replacePanel(panel: Panel) {
+    const index = this.#panels.findIndex(p => p.id === panel.id)
+    if (index === -1) {
+      throw new Error(`Invalid panel id: ${panel.id}`)
+    }
+    this.#panels[index] = panel
+  }
+
+  activatePanel(panelId: string) {
+    const index = this.#panels.findIndex(p => p.id === panelId)
+    if (index === -1) {
+      throw new Error(`Invalid panel id: ${panelId}`)
+    }
+    const panel = this.#panels[index]
+    this.#panels.splice(index, 1)
+    this.#panels.push(panel)
+  }
+
   clone() {
-    return new Project(this.#id, this.#name, Object.values(this.#drawings), this.#palette)
+    return new Project(this.#id, this.#name, Object.values(this.#drawings), [...this.#palette], [...this.#panels])
   }
 
   toJSON() {
@@ -90,6 +142,7 @@ export class Project {
       name: this.#name,
       drawings: drawings,
       palette: this.#palette,
+      panels: this.#panels,
     }
   }
 
@@ -115,9 +168,13 @@ export class Project {
     if (!("palette" in json) || !Array.isArray(json.palette)) {
       throw new Error(`Invalid project palette: not an array`)
     }
+    if (!("panels" in json) || !Array.isArray(json.panels)) {
+      throw new Error(`Invalid project panels: not an array`)
+    }
 
     const drawings = (json.drawings as unknown[]).map(d => Drawing.fromJSON(d))
     const palette = (json.palette as unknown[]).map(c => c !== null ? Color.fromJSON(c) : null)
-    return new Project(json.id, json.name, drawings, palette)
+    const panels = (json.panels as unknown[]).map(p => Panel.fromJSON(p))
+    return new Project(json.id, json.name, drawings, palette, panels)
   }
 }

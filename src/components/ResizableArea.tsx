@@ -1,7 +1,7 @@
 import { makeDragStartCallback } from "../lib/drag"
 
 type Props = {
-  onResizeStart: () => void,
+  onResizeStart?: () => void,
   onResize: (
     diff: {
       top: number,
@@ -37,7 +37,9 @@ export function ResizableArea(props: Props) {
         onResize(e, true)
       }
 
-      props.onResizeStart()
+      if (props.onResizeStart) {
+        props.onResizeStart()
+      }
 
       return {onDragging, onDragEnd}
     })

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useEffect, useReducer } from
 import { Project } from '../lib/project'
 import { Color } from "../lib/color"
 import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "../lib/drawing"
+import { DrawingPanel } from '../lib/panel'
 
 type ProjectContextValue = {
   project: Project
@@ -66,6 +67,27 @@ type Action =
     color: Color | null
   } |
   {
+    type: "openPanel"
+    drawingId: string
+    x: number
+    y: number
+  } |
+  {
+    type: "closePanel"
+    panelId: string
+  } |
+  {
+    type: "activatePanel"
+    panelId: string
+  } |
+  {
+    type: "movePanel"
+    panelId: string
+    x: number
+    y: number
+    chainId?: string
+  } |
+  {
     type: "undo"
   } |
   {
@@ -80,8 +102,8 @@ type ProjectHistory = {
   }[]
 }
 
-const reducer = (projectState: ProjectHistory, action: Action): ProjectHistory => {
-  const { current, history } = projectState
+const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory => {
+  const { current, history } = projectHistory
   const project = history[current].project
   switch (action.type) {
     case "newProject": {
@@ -130,7 +152,7 @@ const reducer = (projectState: ProjectHistory, action: Action): ProjectHistory =
       const drawing = pjt.getDrawing(action.drawingId).clone()
       const modified = drawing.setPixel(action.position, action.color)
       if (!modified) {
-        return projectState
+        return projectHistory
       }
       pjt.addDrawing(drawing)
 
@@ -159,6 +181,16 @@ const reducer = (projectState: ProjectHistory, action: Action): ProjectHistory =
       const drawing = pjt.getDrawing(action.drawingId).clone()
       drawing.resize(action.rect)
       pjt.addDrawing(drawing)
+
+      const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)?.clone()
+      if (panel) {
+        panel.move(
+          panel.x + action.rect.start.columnIndex * drawing.pixelSize,
+          panel.y + action.rect.start.rowIndex * drawing.pixelSize,
+        )
+        pjt.replacePanel(panel)
+      }
+
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "setPixelSize": {
@@ -173,18 +205,52 @@ const reducer = (projectState: ProjectHistory, action: Action): ProjectHistory =
       pjt.setPalette(action.index, action.color)
       return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
+    case "openPanel": {
+      const pjt = project.clone()
+      const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)
+      if (panel !== undefined) {
+        // Just activate if the specified drawing id already open
+        pjt.activatePanel(panel.id)
+      } else {
+        pjt.openDrawingPanel(action.drawingId, action.x, action.y)
+      }
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "closePanel": {
+      const pjt = project.clone()
+      pjt.closePanel(action.panelId)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "activatePanel": {
+      const pjt = project.clone()
+      pjt.activatePanel(action.panelId)
+      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+    }
+    case "movePanel": {
+      const pjt = project.clone()
+      const panel = pjt.getPanel(action.panelId).clone()
+      panel.move(action.x, action.y)
+      pjt.replacePanel(panel)
+
+      const prevAction = history.length > 0 ? history[current].action : null
+      if (prevAction !== null && prevAction.type === "movePanel" && action.chainId !== undefined && prevAction.chainId === action.chainId) {
+        return {current, history: [...history.slice(0, current), {project: pjt, action}]}
+      } else {
+        return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      }
+    }
     case "undo": {
       if (current > 0) {
         return {current: current - 1, history}
       } else {
-        return projectState
+        return projectHistory
       }
     }
     case "redo": {
       if (current < history.length - 1) {
         return {current: current + 1, history}
       } else {
-        return projectState
+        return projectHistory
       }
     }
   }
