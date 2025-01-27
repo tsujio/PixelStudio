@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useProjectContext } from "./ProjectContext"
 import { useWindowSystemContext } from "./WindowSystem"
 import { ExplorerItem } from "./ExplorerItem"
@@ -129,6 +129,27 @@ export function Explorer() {
     }
   }, [fileHandle, onSaveProjectButtonClick, onSaveAsProjectButtonClick, onOpenProjectButtonClick])
 
+  // HACK: `overscroll-behavior: none` does not work on Android chrome if `overflow: scroll` is set.
+  //       So enable them only if overflow is detected by observing `scrollHeight`.
+  const [explorerItemContainerOverflow, setExplorerItemContainerOverflow] = useState(false)
+  const explorerItemContainerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (explorerItemContainerRef.current) {
+      const update = () => {
+        const el = explorerItemContainerRef.current
+        if (el) {
+          setExplorerItemContainerOverflow(el.scrollHeight > el.clientHeight)
+        }
+      }
+      update()
+      const o = new MutationObserver(update)
+      o.observe(explorerItemContainerRef.current, {childList: true})
+      return () => {
+        o.disconnect()
+      }
+    }
+  }, [])
+
   return (
     <div style={{display: "grid", gridTemplateRows: "auto minmax(0, 1fr)"}}>
       <div
@@ -199,9 +220,10 @@ export function Explorer() {
           />
         </div>
         <div
+          ref={explorerItemContainerRef}
           style={{
-            overflowY: "scroll",
-            overscrollBehavior: "none",
+            // See explorerItemContainerOverflow declaration
+            ...(explorerItemContainerOverflow ? {overflow: "scroll", overscrollBehavior: "none"} : {}),
           }}
         >
           {drawings && drawings.map(drawing =>
