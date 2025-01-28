@@ -1,4 +1,4 @@
-import { makeDragStartCallback } from "../lib/drag"
+import { useGesture } from "../lib/gesture"
 
 type Props = {
   onResizeStart?: () => void,
@@ -15,34 +15,32 @@ type Props = {
 }
 
 export function ResizableArea(props: Props) {
-  const onPointerDown = (area: "top,left" | "top" | "top,right" | "left" | "right" | "bottom,left" | "bottom" | "bottom,right") =>
-    makeDragStartCallback((e: React.PointerEvent) => {
-      const [x, y] = [e.pageX, e.pageY]
+  const gestureHandlersArray = ["top,left", "top", "top,right", "left", "right", "bottom,left", "bottom", "bottom,right"].map(area =>
+    useGesture({
+      onDragStart: e => {
+        if (props.onResizeStart) {
+          props.onResizeStart()
+        }
 
-      const onResize = (e: PointerEvent, fix: boolean) => {
-        const [diffX, diffY] = [e.pageX - x, e.pageY - y]
-        props.onResize({
-          top: area.includes("top") ? diffY : 0,
-          left: area.includes("left") ? diffX : 0,
-          bottom: area.includes("bottom") ? diffY : 0,
-          right: area.includes("right") ? diffX : 0,
-        }, fix)
+        const [x, y] = [e.pageX, e.pageY]
+        return (e: React.PointerEvent, fix: boolean) => {
+          const [diffX, diffY] = [e.pageX - x, e.pageY - y]
+          props.onResize({
+            top: area.includes("top") ? diffY : 0,
+            left: area.includes("left") ? diffX : 0,
+            bottom: area.includes("bottom") ? diffY : 0,
+            right: area.includes("right") ? diffX : 0,
+          }, fix)
+        }
+      },
+      onDragMove: (e, dragStartData) => {
+        dragStartData(e, false)
+      },
+      onDragEnd: (e, dragStartData) => {
+        dragStartData(e, true)
       }
-
-      const onDragging = (e: PointerEvent) => {
-        onResize(e, false)
-      }
-
-      const onDragEnd = (e: PointerEvent) => {
-        onResize(e, true)
-      }
-
-      if (props.onResizeStart) {
-        props.onResizeStart()
-      }
-
-      return {onDragging, onDragEnd}
     })
+  )
 
   return (
     <div style={{
@@ -52,15 +50,15 @@ export function ResizableArea(props: Props) {
       width: "fit-content",
       margin: "auto",
     }}>
-      <div style={{cursor: "nwse-resize"}} onPointerDown={onPointerDown("top,left")}></div>
-      <div style={{cursor: "ns-resize	"}} onPointerDown={onPointerDown("top")}></div>
-      <div style={{cursor: "nesw-resize"}} onPointerDown={onPointerDown("top,right")}></div>
-      <div style={{cursor: "ew-resize"}} onPointerDown={onPointerDown("left")}></div>
+      <div style={{cursor: "nwse-resize"}} {...gestureHandlersArray[0]}></div>
+      <div style={{cursor: "ns-resize	"}} {...gestureHandlersArray[1]}></div>
+      <div style={{cursor: "nesw-resize"}} {...gestureHandlersArray[2]}></div>
+      <div style={{cursor: "ew-resize"}} {...gestureHandlersArray[3]}></div>
       <div>{props.children}</div>
-      <div style={{cursor: "ew-resize"}} onPointerDown={onPointerDown("right")}></div>
-      <div style={{cursor: "nesw-resize"}} onPointerDown={onPointerDown("bottom,left")}></div>
-      <div style={{cursor: "ns-resize	"}} onPointerDown={onPointerDown("bottom")}></div>
-      <div style={{cursor: "nwse-resize"}} onPointerDown={onPointerDown("bottom,right")}></div>
+      <div style={{cursor: "ew-resize"}} {...gestureHandlersArray[4]}></div>
+      <div style={{cursor: "nesw-resize"}} {...gestureHandlersArray[5]}></div>
+      <div style={{cursor: "ns-resize	"}} {...gestureHandlersArray[6]}></div>
+      <div style={{cursor: "nwse-resize"}} {...gestureHandlersArray[7]}></div>
     </div>
   )
 }

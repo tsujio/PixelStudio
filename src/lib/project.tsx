@@ -71,13 +71,21 @@ export class Project {
   }
 
   setPalette(index: number, color: Color | null) {
+    let modified = false
     while (this.#palette.length <= index) {
       this.#palette.push(null)
+      modified = true
     }
+
+    modified = this.#palette[index] !== color
     this.#palette[index] = color
+
     while (this.#palette.length > 0 && this.#palette[this.#palette.length - 1] === null) {
       this.#palette = this.#palette.slice(0, this.#palette.length - 1)
+      modified = true
     }
+
+    return modified
   }
 
   get panels() {
@@ -127,6 +135,10 @@ export class Project {
     const panel = this.#panels[index]
     this.#panels.splice(index, 1)
     this.#panels.push(panel)
+  }
+
+  getActivePanel() {
+    return this.#panels.length > 0 ? this.#panels[this.#panels.length - 1] : undefined
   }
 
   clone() {

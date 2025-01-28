@@ -65,11 +65,14 @@ export function ToolBoxSelectOptions() {
 
   const onTrimButtonClick = () => {
     if (drawContext.select.area !== undefined) {
-      updateProject({
-        type: "trimDrawing",
-        drawingId: drawContext.select.area.drawingId,
-        rect: drawContext.select.area.rect,
-      })
+      const { start, end } = drawContext.select.area.rect
+      const top = Math.min(start.rowIndex, end.rowIndex)
+      const left = Math.min(start.columnIndex, end.columnIndex)
+      const bottom = Math.max(start.rowIndex, end.rowIndex)
+      const right = Math.max(start.columnIndex, end.columnIndex)
+      const rect = {start: {rowIndex: top, columnIndex: left}, end: {rowIndex: bottom, columnIndex: right}}
+
+      updateProject({type: "resizeDrawing", drawingId: drawContext.select.area.drawingId, rect})
     }
   }
 

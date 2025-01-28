@@ -12,7 +12,7 @@ import {
   drawSelectArea,
   applyMask,
 } from "../lib/canvas"
-import { makeDragStartCallback } from "../lib/drag"
+import { useGesture } from "../lib/gesture"
 
 type Props = {
   drawing: Drawing
@@ -55,64 +55,66 @@ export function Canvas(props: Props) {
     drawContext.select.area,
   ])
 
-  const pointerPositionRef = useRef<[number, number] | null>(null)
-
-  const onPointerDown = makeDragStartCallback((e: React.PointerEvent) => {
-    if (canvasRef.current) {
-      const [x, y] = getEventPosition(e, canvasRef.current)
-      pointerPositionRef.current = [x, y]
-      const position = convertToDrawingDataPosition(x, y, props.drawing.pixelSize)
-
-      if (!props.drawing.isValidPosition(position)) {
+  const gestureHandlers = useGesture({
+    onDragStart: e => {
+      if (!canvasRef.current) {
         return
       }
 
       const chainId = crypto.randomUUID()
 
-      switch (drawContext.tool) {
-        case "pen":
-        case "eraser": {
-          const color = drawContext.tool === "pen" ? drawContext.pen.color : null
-          updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId})
-          break
-        }
-        case "select":
-          startSelectArea(props.drawing.id, position)
-          break
-      }
+      const [x, y] = getEventPosition(e, canvasRef.current)
+      const position = convertToDrawingDataPosition(x, y, props.drawing.pixelSize)
 
-      const onDragging = (e: PointerEvent) => {
-        if (canvasRef.current && pointerPositionRef.current) {
-          const [prevX, prevY] = pointerPositionRef.current
-          const [x, y] = getEventPosition(e, canvasRef.current)
-          if (x === prevX && y === prevY) {
-            return
+      if (props.drawing.isValidPosition(position)) {
+        switch (drawContext.tool) {
+          case "pen":
+          case "eraser": {
+            const color = drawContext.tool === "pen" ? drawContext.pen.color : null
+            updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId})
+            break
           }
-          pointerPositionRef.current = [x, y]
-
-          const positions = interpolateEventPositions([x, y], [prevX, prevY], props.drawing.pixelSize)
-          positions.forEach(position => {
-            switch (drawContext.tool) {
-              case "pen":
-              case "eraser": {
-                if (props.drawing.isValidPosition(position)) {
-                  const color = drawContext.tool === "pen" ? drawContext.pen.color : null
-                  updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId})
-                }
-                break
-              }
-              case "select": {
-                const ri = Math.min(Math.max(position.rowIndex, 0), props.drawing.rowCount - 1)
-                const ci = Math.min(Math.max(position.columnIndex, 0), props.drawing.columnCount - 1)
-                expandSelectArea(props.drawing.id, {rowIndex: ri, columnIndex: ci})
-                break
-              }
-            }
-          })
+          case "select":
+            startSelectArea(props.drawing.id, position)
+            break
         }
       }
 
-      return {onDragging}
+      return {chainId, x, y}
+    },
+    onDragMove: (e, dragStartData, prevDragMoveData: [number, number] | undefined): [number, number] => {
+      if (!canvasRef.current || !dragStartData) {
+        return [NaN, NaN]
+      }
+
+      const [x, y] = getEventPosition(e, canvasRef.current)
+
+      const [prevX, prevY] = prevDragMoveData ?? [dragStartData.x, dragStartData.y]
+      if (isNaN(prevX) || isNaN(prevY) || (x === prevX && y === prevY)) {
+        return [x, y]
+      }
+
+      const positions = interpolateEventPositions([x, y], [prevX, prevY], props.drawing.pixelSize)
+      positions.forEach(position => {
+        switch (drawContext.tool) {
+          case "pen":
+          case "eraser": {
+            if (props.drawing.isValidPosition(position)) {
+              const color = drawContext.tool === "pen" ? drawContext.pen.color : null
+              updateProject({type: "setPixel", drawingId: props.drawing.id, position, color, chainId: dragStartData.chainId})
+            }
+            break
+          }
+          case "select": {
+            const ri = Math.min(Math.max(position.rowIndex, 0), props.drawing.rowCount - 1)
+            const ci = Math.min(Math.max(position.columnIndex, 0), props.drawing.columnCount - 1)
+            expandSelectArea(props.drawing.id, {rowIndex: ri, columnIndex: ci})
+            break
+          }
+        }
+      })
+
+      return [x, y]
     }
   })
 
@@ -124,7 +126,7 @@ export function Canvas(props: Props) {
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
-      onPointerDown={onPointerDown}
+      {...gestureHandlers}
       style={{
         display: "block",
         border: "1px solid gray",

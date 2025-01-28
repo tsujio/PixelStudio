@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react"
 import { HSVColor } from "../lib/color"
 import { convertToDrawingDataPosition, getEventPosition } from "../lib/canvas"
 import { Color } from "../lib/color"
-import { makeDragStartCallback } from "../lib/drag"
+import { useGesture } from "../lib/gesture"
 
 const hueSteps = 180
 
@@ -42,20 +42,25 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0]])
 
-  const onPointerDownOnHueCanvas = makeDragStartCallback((e: React.PointerEvent) => {
-    const onChange = (e: React.PointerEvent | PointerEvent) => {
-      if (hueCanvasRef.current) {
-        const [x, y] = getEventPosition(e, hueCanvasRef.current)
-        const {columnIndex} = convertToDrawingDataPosition(x, y, 1)
-        const hue = Math.round(Math.min(Math.max(columnIndex, 0), hueSteps) * 360 / hueSteps)
-        const color = new HSVColor([hue, hsv[1], hsv[2]])
-        props.onColorPick(color)
+  const hueCanvasGestureHandlers = useGesture({
+    onDragStart: e => {
+      const onChange = (e: React.PointerEvent) => {
+        if (hueCanvasRef.current) {
+          const [x, y] = getEventPosition(e, hueCanvasRef.current)
+          const {columnIndex} = convertToDrawingDataPosition(x, y, 1)
+          const hue = Math.round(Math.min(Math.max(columnIndex, 0), hueSteps) * 360 / hueSteps)
+          const color = new HSVColor([hue, hsv[1], hsv[2]])
+          props.onColorPick(color)
+        }
       }
+
+      onChange(e)
+
+      return onChange
+    },
+    onDragMove: (e, onChange) => {
+      onChange(e)
     }
-
-    onChange(e)
-
-    return {onDragging: onChange}
   })
 
   const svCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -95,21 +100,26 @@ export function HSVColorPicker(props: Props) {
     }
   }, [hsv[0], hsv[1], hsv[2]])
 
-  const onPointerDownOnSVCanvas = makeDragStartCallback((e: React.PointerEvent) => {
-    const onChange = (e: React.PointerEvent | PointerEvent) => {
-      if (svCanvasRef.current) {
-        const [x, y] = getEventPosition(e, svCanvasRef.current)
-        const {rowIndex, columnIndex} = convertToDrawingDataPosition(x, y, 2)
-        const s = Math.min(Math.max(columnIndex, 0), 100)
-        const v = Math.min(Math.max(100 - rowIndex, 0), 100)
-        const color = new HSVColor([hsv[0], s, v])
-        props.onColorPick(color)
+  const svCanvasGestureHandlers = useGesture({
+    onDragStart: e => {
+      const onChange = (e: React.PointerEvent | PointerEvent) => {
+        if (svCanvasRef.current) {
+          const [x, y] = getEventPosition(e, svCanvasRef.current)
+          const {rowIndex, columnIndex} = convertToDrawingDataPosition(x, y, 2)
+          const s = Math.min(Math.max(columnIndex, 0), 100)
+          const v = Math.min(Math.max(100 - rowIndex, 0), 100)
+          const color = new HSVColor([hsv[0], s, v])
+          props.onColorPick(color)
+        }
       }
+
+      onChange(e)
+
+      return onChange
+    },
+    onDragMove: (e, onChange) => {
+      onChange(e)
     }
-
-    onChange(e)
-
-    return {onDragging: onChange}
   })
 
   return (
@@ -119,7 +129,7 @@ export function HSVColorPicker(props: Props) {
           ref={hueCanvasRef}
           width={hueSteps}
           height={20}
-          onPointerDown={onPointerDownOnHueCanvas}
+          {...hueCanvasGestureHandlers}
           style={{
             display: "block",
           }}
@@ -130,7 +140,7 @@ export function HSVColorPicker(props: Props) {
           ref={svCanvasRef}
           width={2 * 100}
           height={2 * 100}
-          onPointerDown={onPointerDownOnSVCanvas}
+          {...svCanvasGestureHandlers}
           style={{
             display: "block",
           }}

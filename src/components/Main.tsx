@@ -1,7 +1,7 @@
 import { useProjectContext } from "./ProjectContext"
 import { Window } from "./Window"
 import { Drawing } from "./Drawing"
-import { useGesture } from "../lib/drag"
+import { useGesture } from "../lib/gesture"
 import { useState } from "react"
 import { DrawingPanel } from "../lib/panel"
 
@@ -14,28 +14,26 @@ export function Main() {
 
   const [dragging, setDragging] = useState(false)
   const gestureHandlers = useGesture({
-    onDragStart: () => {
+    onDragStart: e => {
       setDragging(true)
+      return [e.pageX, e.pageY] as [number, number]
     },
-    onDragMove: (e, _, prevDragMoveData: [number, number] | undefined) => {
-      if (prevDragMoveData) {
-        const [diffX, diffY] = [e.pageX - prevDragMoveData[0], e.pageY - prevDragMoveData[1]]
-        setPerspective(perspective => [
-          perspective[0] - diffX,
-          perspective[1] - diffY,
-        ])
-      }
+    onDragMove: (e, dragStartData, prevDragMoveData: [number, number] | undefined) => {
+      const [prevX, prevY] = prevDragMoveData ?? dragStartData
+      const [diffX, diffY] = [e.pageX - prevX, e.pageY - prevY]
+      setPerspective(perspective => [
+        perspective[0] - diffX,
+        perspective[1] - diffY,
+      ])
       return [e.pageX, e.pageY] as [number, number]
     },
     onDragEnd: () => {
       setDragging(false)
     },
-    onPinchStart: events => {
-      const [e1, e2] = events
+    onPinchStart: ([e1, e2]) => {
       return Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
     },
-    onPinchMove: (events, _, pinchStartData, prevPinchMoveData: number | undefined) => {
-      const [e1, e2] = events
+    onPinchMove: ([e1, e2], _, pinchStartData, prevPinchMoveData: number | undefined) => {
       const distanceSq = Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
       const diff = distanceSq - (prevPinchMoveData ?? pinchStartData ?? 0)
       setD(diff)

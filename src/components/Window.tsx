@@ -1,5 +1,5 @@
 import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
-import { useGesture } from '../lib/drag'
+import { useGesture } from '../lib/gesture'
 import { useProjectContext } from './ProjectContext'
 import { Panel } from '../lib/panel'
 
@@ -47,16 +47,12 @@ export function Window(props: Props) {
       }
     },
     onDragMove: (e, dragStartData) => {
-      if (dragStartData) {
-        const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
-        setWindowPositionOffset([diffX, diffY])
-      }
+      const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
+      setWindowPositionOffset([diffX, diffY])
     },
     onDragEnd: (e, dragStartData) => {
-      if (dragStartData) {
-        const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
-        updateProject({type: "movePanel", panelId: props.panel.id, x: dragStartData.panelPos[0] + diffX, y: dragStartData.panelPos[1] + diffY})
-      }
+      const [diffX, diffY] = [e.pageX - dragStartData.eventPos[0], e.pageY - dragStartData.eventPos[1]]
+      updateProject({type: "movePanel", panelId: props.panel.id, x: dragStartData.panelPos[0] + diffX, y: dragStartData.panelPos[1] + diffY})
       setWindowPositionOffset([0, 0])
       setDragging(false)
     },

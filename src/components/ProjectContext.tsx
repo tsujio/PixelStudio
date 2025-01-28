@@ -47,11 +47,6 @@ type Action =
     chainId: string
   } |
   {
-    type: "trimDrawing"
-    drawingId: string
-    rect: DrawingDataRect
-  } |
-  {
     type: "resizeDrawing"
     drawingId: string
     rect: DrawingDataRect
@@ -104,6 +99,18 @@ type ProjectHistory = {
 
 const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory => {
   const { current, history } = projectHistory
+
+  const pushHistory = (project: Project, replace?: boolean) => {
+    if (replace) {
+      return {current, history: [...history.slice(0, current), {project, action}]}
+    } else {
+      return {
+        current: current + 1,
+        history: [...history.slice(0, current + 1), {project, action}],
+      }
+    }
+  }
+
   const project = history[current].project
   switch (action.type) {
     case "newProject": {
@@ -118,26 +125,32 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     }
     case "rename": {
       const pjt = project.clone()
+      if (pjt.name === action.newName) {
+        return projectHistory
+      }
       pjt.rename(action.newName)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "addDrawing": {
       const pjt = project.clone()
       const drawing = Drawing.create(pjt.getUniqueDrawingName())
       pjt.addDrawing(drawing)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "renameDrawing": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
+      if (drawing.name === action.newName) {
+        return projectHistory
+      }
       drawing.rename(pjt.getUniqueDrawingName(action.newName))
       pjt.addDrawing(drawing)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "deleteDrawing": {
       const pjt = project.clone()
       pjt.deleteDrawing(action.drawingId)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "copyDrawing": {
       const pjt = project.clone()
@@ -145,7 +158,7 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
       const tmp = Drawing.create(pjt.getUniqueDrawingName(src.name))
       const dest = new Drawing(tmp.id, tmp.name, src.data, src.pixelSize)
       pjt.addDrawing(dest)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "setPixel": {
       const pjt = project.clone()
@@ -158,28 +171,18 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
 
       const prevAction = history.length > 0 ? history[current].action : null
       if (prevAction !== null && prevAction.type === "setPixel" && prevAction.chainId === action.chainId) {
-        return {current, history: [...history.slice(0, current), {project: pjt, action}]}
+        return pushHistory(pjt, true)
       } else {
-        return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+        return pushHistory(pjt)
       }
-    }
-    case "trimDrawing": {
-      const { start, end } = action.rect
-      const top = Math.min(start.rowIndex, end.rowIndex)
-      const left = Math.min(start.columnIndex, end.columnIndex)
-      const bottom = Math.max(start.rowIndex, end.rowIndex)
-      const right = Math.max(start.columnIndex, end.columnIndex)
-
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.trim({start: {rowIndex: top, columnIndex: left}, end: {rowIndex: bottom, columnIndex: right}})
-      pjt.addDrawing(drawing)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
     }
     case "resizeDrawing": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
-      drawing.resize(action.rect)
+      const modified = drawing.resize(action.rect)
+      if (!modified) {
+        return projectHistory
+      }
       pjt.addDrawing(drawing)
 
       const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)?.clone()
@@ -191,52 +194,67 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
         pjt.replacePanel(panel)
       }
 
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "setPixelSize": {
       const pjt = project.clone()
       const drawing = pjt.getDrawing(action.drawingId).clone()
+      if (drawing.pixelSize === action.pixelSize) {
+        return projectHistory
+      }
       drawing.setPixelSize(action.pixelSize)
       pjt.addDrawing(drawing)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "setPalette": {
       const pjt = project.clone()
-      pjt.setPalette(action.index, action.color)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      const modified = pjt.setPalette(action.index, action.color)
+      if (!modified) {
+        return projectHistory
+      }
+      return pushHistory(pjt)
     }
     case "openPanel": {
       const pjt = project.clone()
       const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)
       if (panel !== undefined) {
         // Just activate if the specified drawing id already open
+        if (pjt.getActivePanel()?.id === panel.id) {
+          return projectHistory
+        }
         pjt.activatePanel(panel.id)
       } else {
         pjt.openDrawingPanel(action.drawingId, action.x, action.y)
       }
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "closePanel": {
       const pjt = project.clone()
       pjt.closePanel(action.panelId)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "activatePanel": {
       const pjt = project.clone()
+      if (pjt.getActivePanel()?.id === action.panelId) {
+        return projectHistory
+      }
       pjt.activatePanel(action.panelId)
-      return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+      return pushHistory(pjt)
     }
     case "movePanel": {
       const pjt = project.clone()
       const panel = pjt.getPanel(action.panelId).clone()
+      if (panel.x === action.x && panel.y === action.y) {
+        return projectHistory
+      }
       panel.move(action.x, action.y)
       pjt.replacePanel(panel)
 
       const prevAction = history.length > 0 ? history[current].action : null
       if (prevAction !== null && prevAction.type === "movePanel" && action.chainId !== undefined && prevAction.chainId === action.chainId) {
-        return {current, history: [...history.slice(0, current), {project: pjt, action}]}
+        return pushHistory(pjt, true)
       } else {
-        return {current: current + 1, history: [...history.slice(0, current + 1), {project: pjt, action}]}
+        return pushHistory(pjt)
       }
     }
     case "undo": {

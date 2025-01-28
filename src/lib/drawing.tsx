@@ -84,7 +84,12 @@ export class Drawing {
   }
 
   resize({ start, end }: DrawingDataRect) {
-    this.#data = applyMask(this.#data, {start, end})
+    if (start.rowIndex === 0 && start.columnIndex === 0 && end.rowIndex === this.rowCount - 1 && end.columnIndex === this.columnCount - 1) {
+      return false
+    } else {
+      this.#data = applyMask(this.#data, {start, end})
+      return true
+    }
   }
 
   setPixelSize(pixelSize: number) {

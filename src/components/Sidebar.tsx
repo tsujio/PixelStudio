@@ -1,37 +1,21 @@
 import { useEffect, useRef, useState } from "react"
 import { Explorer } from "./Explorer"
-import { makeDragStartCallback } from "../lib/drag"
+import { useGesture } from "../lib/gesture"
 import logoImg from "../assets/logo.png"
 import { IconButton } from "./IconButton"
 
 export function Sidebar() {
   const contentRef = useRef(null)
 
-  const draggingRef = useRef(false)
-
   const [width, setWidth] = useState(250)
 
-  const onPointerDownOnResizableArea = makeDragStartCallback(() => {
-    if (draggingRef.current) {
-      return
-    }
-
-    draggingRef.current = true
-
-    const onDragging = (e: PointerEvent) => {
-      if (draggingRef.current) {
-        const width = e.pageX
-        if (width > 0 && width < window.innerWidth) {
-          setWidth(width)
-        }
+  const gestureHandlers = useGesture({
+    onDragMove: e => {
+      const width = e.pageX
+      if (width > 0 && width < window.innerWidth) {
+        setWidth(width)
       }
     }
-
-    const onDragEnd = () => {
-      draggingRef.current = false
-    }
-
-    return {onDragging, onDragEnd}
   })
 
   const [pinned, setPinned] = useState(() => {
@@ -106,7 +90,7 @@ export function Sidebar() {
           width: "4px",
           right: 0,
         }}
-        onPointerDown={onPointerDownOnResizableArea}
+        {...gestureHandlers}
       />
       {pinned &&
       <div
