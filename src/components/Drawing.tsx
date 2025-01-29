@@ -4,12 +4,14 @@ import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
 import { ResizableArea } from "./ResizableArea"
 import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing"
+import { useBoardContext } from "./Board"
 
 type Props = {
   drawing: DrawingClass
 }
 
 export function Drawing(props: Props) {
+  const { boardNavigation } = useBoardContext()
   const { setPanelName, setPanelPositionOffset } = usePanelContext()
   const { updateProject } = useProjectContext()
 
@@ -49,7 +51,7 @@ export function Drawing(props: Props) {
   }
 
   return (
-    <ResizableArea onResize={onResize}>
+    <ResizableArea onResize={onResize} draggableAreaSpan={2 * boardNavigation.zoom}>
       <Canvas
         drawing={props.drawing}
         mask={mask ?? undefined}

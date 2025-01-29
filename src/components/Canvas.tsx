@@ -134,7 +134,7 @@ export function Canvas(props: Props) {
       {...gestureHandlers}
       style={{
         display: "block",
-        border: "1px solid gray",
+        border: `${1 * boardNavigation.zoom}px solid gray`,
       }}
     />
   )

@@ -2,6 +2,7 @@ import React, { useRef, useState, createContext, useContext, useMemo } from 'rea
 import { useGesture } from '../lib/gesture'
 import { useProjectContext } from './ProjectContext'
 import { Panel as PanelClass } from '../lib/panel'
+import { useBoardContext } from './Board'
 
 type PanelContextValue = {
   panelId: string
@@ -19,8 +20,6 @@ export function usePanelContext() {
   return value
 }
 
-const panelSidePadding = 12
-
 type Props = {
   panel: PanelClass
   top: number
@@ -31,6 +30,7 @@ type Props = {
 
 export function Panel(props: Props) {
   const { updateProject } = useProjectContext()
+  const { boardNavigation } = useBoardContext()
 
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -68,6 +68,8 @@ export function Panel(props: Props) {
     setPanelPositionOffset,
   }), [props.panel.id])
 
+  const zoom = boardNavigation.zoom
+
   return (
     <div
       ref={panelRef}
@@ -78,7 +80,7 @@ export function Panel(props: Props) {
         left: props.left + panelPositionOffset[0],
         zIndex: props.zIndex,
         display: "inline-block",
-        borderRadius: "8px",
+        borderRadius: `${8 * zoom}px`,
         boxShadow: "2px 4px 16px 4px lightgray",
         background: "white",
       }}
@@ -89,15 +91,17 @@ export function Panel(props: Props) {
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",
           alignItems: "center",
-          padding: `12px ${panelSidePadding}px`,
+          height: `${48 * zoom}px`,
+          padding: `0 ${12 * zoom}px`,
+          boxSizing: "border-box",
           userSelect: "none",
         }}
       >
-        <span>{panelName}</span>
+        <span style={{fontSize: `${Math.max(zoom * 100, 25)}%`}}>{panelName}</span>
       </div>
       <div
         style={{
-          padding: `0 ${panelSidePadding}px 12px`,
+          padding: `0 ${12 * zoom}px ${12 * zoom}px`,
         }}
       >
         <PanelContext.Provider value={panelContextValue}>

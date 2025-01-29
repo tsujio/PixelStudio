@@ -11,6 +11,7 @@ type Props = {
     },
     fix: boolean,
   ) => void
+  draggableAreaSpan: number,
   children: React.ReactNode
 }
 
@@ -45,8 +46,8 @@ export function ResizableArea(props: Props) {
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "2px 1fr 2px",
-      gridTemplateRows: "2px 1fr 2px",
+      gridTemplateColumns: `${props.draggableAreaSpan}px 1fr ${props.draggableAreaSpan}px`,
+      gridTemplateRows: `${props.draggableAreaSpan}px 1fr ${props.draggableAreaSpan}px`,
       width: "fit-content",
       margin: "auto",
     }}>
