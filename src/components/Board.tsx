@@ -89,16 +89,16 @@ export const Board = () => {
     onPinchStart: ([e1, e2]) => {
       setDragging(false)
       return {
+        zoom: boardNavigation.zoom,
         basePoint: [(e1.pageX + e2.pageX) / 2, (e1.pageY + e2.pageY) / 2] as [number, number],
         distance: Math.sqrt(Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)),
       }
     },
-    onPinchMove: ([e1, e2], _, pinchStartData, prevPinchMoveData: number | undefined) => {
+    onPinchMove: ([e1, e2], _, pinchStartData) => {
       const distance = Math.sqrt(Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2))
-      const diff = distance - (prevPinchMoveData ?? pinchStartData.distance ?? 0)
-      const zoom = boardNavigation.zoom + diff / 300
+      const ratio = distance / pinchStartData.distance
+      const zoom = pinchStartData.zoom * ratio
       updateBoardNavigation({type: "setZoom", zoom, basePoint: pinchStartData.basePoint})
-      return distance
     },
   })
 
