@@ -39,7 +39,7 @@ export function Main() {
       const center = [(e1.pageX + e2.pageX) / 2, (e1.pageY + e2.pageY) / 2]
       const diff = distanceSq - (prevPinchMoveData ?? pinchStartData ?? 0)
 
-      const newZoom = state.zoom + diff / 1000
+      const newZoom = state.zoom + diff / 1.0e4
       updateWindowSystemState({type: "setZoom", zoom: newZoom})
       setPerspective(perspective => {
         const [f1, p1, z1, z2]  = [center, perspective, state.zoom, newZoom]
