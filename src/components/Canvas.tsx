@@ -13,6 +13,7 @@ import {
   applyMask,
 } from "../lib/canvas"
 import { useGesture } from "../lib/gesture"
+import { useWindowSystemContext } from "./WindowSystem"
 
 type Props = {
   drawing: Drawing
@@ -24,7 +25,11 @@ export function Canvas(props: Props) {
 
   const { drawContext, startSelectArea, expandSelectArea } = useDrawContext()
 
+  const { state } = useWindowSystemContext()
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const pixelSize = props.drawing.pixelSize * state.zoom
 
   const data = useMemo(() => {
     if (props.mask === undefined) {
@@ -42,14 +47,14 @@ export function Canvas(props: Props) {
       }
 
       clearCanvas(ctx, canvas)
-      drawGridLines(ctx, canvas, data.length, data[0].length, props.drawing.pixelSize)
-      drawPixels(ctx, canvas, data, props.drawing.pixelSize)
+      drawGridLines(ctx, canvas, data.length, data[0].length, pixelSize)
+      drawPixels(ctx, canvas, data, pixelSize)
       if (drawContext.select.area !== undefined && drawContext.select.area.drawingId === props.drawing.id) {
-        drawSelectArea(ctx, canvas, drawContext.select.area.rect, props.drawing.pixelSize)
+        drawSelectArea(ctx, canvas, drawContext.select.area.rect, pixelSize)
       }
     }
   }, [
-    props.drawing.pixelSize,
+    pixelSize,
     data,
     props.drawing.id,
     drawContext.select.area,
@@ -64,7 +69,7 @@ export function Canvas(props: Props) {
       const chainId = crypto.randomUUID()
 
       const [x, y] = getEventPosition(e, canvasRef.current)
-      const position = convertToDrawingDataPosition(x, y, props.drawing.pixelSize)
+      const position = convertToDrawingDataPosition(x, y, pixelSize)
 
       if (props.drawing.isValidPosition(position)) {
         switch (drawContext.tool) {
@@ -94,7 +99,7 @@ export function Canvas(props: Props) {
         return [x, y]
       }
 
-      const positions = interpolateEventPositions([x, y], [prevX, prevY], props.drawing.pixelSize)
+      const positions = interpolateEventPositions([x, y], [prevX, prevY], pixelSize)
       positions.forEach(position => {
         switch (drawContext.tool) {
           case "pen":
@@ -118,8 +123,8 @@ export function Canvas(props: Props) {
     }
   })
 
-  const canvasWidth = props.drawing.pixelSize * data[0].length
-  const canvasHeight = props.drawing.pixelSize * data.length
+  const canvasWidth = pixelSize * data[0].length
+  const canvasHeight = pixelSize * data.length
 
   return (
     <canvas
