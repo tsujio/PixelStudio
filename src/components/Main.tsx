@@ -20,18 +20,21 @@ export function Main() {
       return [e.pageX, e.pageY] as [number, number]
     },
     onDragMove: (e, dragStartData, prevDragMoveData: [number, number] | undefined) => {
-      const [prevX, prevY] = prevDragMoveData ?? dragStartData
-      const [diffX, diffY] = [e.pageX - prevX, e.pageY - prevY]
-      setPerspective(perspective => [
-        perspective[0] - diffX,
-        perspective[1] - diffY,
-      ])
+      if (dragging) {
+        const [prevX, prevY] = prevDragMoveData ?? dragStartData
+        const [diffX, diffY] = [e.pageX - prevX, e.pageY - prevY]
+        setPerspective(perspective => [
+          perspective[0] - diffX / state.zoom,
+          perspective[1] - diffY / state.zoom,
+        ])
+      }
       return [e.pageX, e.pageY] as [number, number]
     },
     onDragEnd: () => {
       setDragging(false)
     },
     onPinchStart: ([e1, e2]) => {
+      setDragging(false)
       return Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
     },
     onPinchMove: ([e1, e2], _, pinchStartData, prevPinchMoveData: number | undefined) => {
@@ -105,15 +108,16 @@ export function Main() {
       document.removeEventListener("keydown", onKeyDown)
     }
   }, [state.zoom])
-const [ff, setFF] = useState(5000.0)
+const [ff, setFF] = useState(50000.0)
   return (
     <div
       {...gestureHandlers}
       style={{
-        backgroundSize: `${backgroundGridSize}px ${backgroundGridSize}px`,
+        position: "relative",
+        backgroundSize: `${backgroundGridSize * state.zoom}px ${backgroundGridSize * state.zoom}px`,
         backgroundImage: "radial-gradient(circle, gray 1px, transparent 1px)",
-        backgroundPositionX: backgroundGridSize - (perspective[0] % backgroundGridSize) + "px",
-        backgroundPositionY: backgroundGridSize - (perspective[1] % backgroundGridSize) + "px",
+        backgroundPositionX:  -perspective[0] * state.zoom + "px",
+        backgroundPositionY:  -perspective[1] * state.zoom + "px",
         cursor: dragging ? "grabbing" : "inherit",
       }}
     >
