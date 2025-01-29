@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useS
 import { useProjectContext } from './ProjectContext'
 import { Panel } from "./Panel"
 import { Drawing } from "./Drawing"
-import { useGesture } from '../lib/gesture'
+import { useGesture } from './GestureContext'
 import { DrawingPanel } from '../lib/panel'
 import { ToolBox } from './ToolBox'
 
@@ -68,8 +68,11 @@ export const Board = () => {
 
   const [dragging, setDragging] = useState(false)
   const gestureHandlers = useGesture({
+    forceAcquireLockOnPinchStart: true,
     onDragStart: e => {
-      setDragging(true)
+      if (e.target === e.currentTarget) {
+        setDragging(true)
+      }
       return [e.pageX, e.pageY] as [number, number]
     },
     onDragMove: (e, dragStartData, prevDragMoveData: [number, number] | undefined) => {
@@ -87,7 +90,6 @@ export const Board = () => {
       setDragging(false)
     },
     onPinchStart: ([e1, e2]) => {
-      setDragging(false)
       return {
         zoom: boardNavigation.zoom,
         basePoint: [(e1.pageX + e2.pageX) / 2, (e1.pageY + e2.pageY) / 2] as [number, number],
@@ -117,7 +119,6 @@ export const Board = () => {
     const onKeyDown = async (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "Semicolon") {
         e.preventDefault()
-        console.log(pointerPositionRef.current)
         updateBoardNavigation({type: "setZoom", zoom: boardNavigation.zoom + 0.1, basePoint: pointerPositionRef.current})
       }
 

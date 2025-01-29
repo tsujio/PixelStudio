@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react"
 import { HSVColor } from "../lib/color"
 import { convertToDrawingDataPosition, getEventPosition } from "../lib/canvas"
 import { Color } from "../lib/color"
-import { useGesture } from "../lib/gesture"
+import { useGesture } from "./GestureContext"
 
 const hueSteps = 180
 

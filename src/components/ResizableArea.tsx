@@ -1,4 +1,4 @@
-import { useGesture } from "../lib/gesture"
+import { useGesture } from "./GestureContext"
 
 type Props = {
   onResizeStart?: () => void,
@@ -39,7 +39,7 @@ export function ResizableArea(props: Props) {
       },
       onDragEnd: (e, dragStartData) => {
         dragStartData(e, true)
-      }
+      },
     })
   )
 

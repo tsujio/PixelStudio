@@ -12,7 +12,7 @@ import {
   drawSelectArea,
   applyMask,
 } from "../lib/canvas"
-import { useGesture } from "../lib/gesture"
+import { useGesture } from "./GestureContext"
 import { useBoardContext } from "./Board"
 
 type Props = {
@@ -120,7 +120,7 @@ export function Canvas(props: Props) {
       })
 
       return [x, y]
-    }
+    },
   })
 
   const canvasWidth = pixelSize * data[0].length

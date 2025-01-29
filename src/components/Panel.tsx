@@ -1,5 +1,5 @@
 import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
-import { useGesture } from '../lib/gesture'
+import { useGesture } from './GestureContext'
 import { useProjectContext } from './ProjectContext'
 import { Panel as PanelClass } from '../lib/panel'
 import { useBoardContext } from './Board'
@@ -49,14 +49,13 @@ export function Panel(props: Props) {
     },
     onDragEnd: (e, dragStartData) => {
       const [diffX, diffY] = [e.pageX - dragStartData[0], e.pageY - dragStartData[1]]
-      updateProject({type: "movePanel", panelId: props.panel.id, x: props.panel.x + diffX, y: props.panel.y + diffY})
+      updateProject({type: "movePanel", panelId: props.panel.id, x: props.panel.x + diffX / boardNavigation.zoom, y: props.panel.y + diffY / boardNavigation.zoom})
       setPanelPositionOffset([0, 0])
       setDragging(false)
     },
   })
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    e.stopPropagation()
+  const onPointerDown = () => {
     updateProject({type: "activatePanel", panelId: props.panel.id})
   }
 

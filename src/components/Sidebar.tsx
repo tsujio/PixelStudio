@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Explorer } from "./Explorer"
-import { useGesture } from "../lib/gesture"
+import { useGesture } from "./GestureContext"
 import logoImg from "../assets/logo.png"
 import { IconButton } from "./IconButton"
 
