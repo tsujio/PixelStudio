@@ -39,7 +39,7 @@ export function Main() {
       const center = [(e1.pageX + e2.pageX) / 2, (e1.pageY + e2.pageY) / 2]
       const diff = distanceSq - (prevPinchMoveData ?? pinchStartData ?? 0)
 
-      const newZoom = state.zoom + diff / 1.0e4
+      const newZoom = state.zoom + diff / ff
       updateWindowSystemState({type: "setZoom", zoom: newZoom})
       setPerspective(perspective => {
         const [f1, p1, z1, z2]  = [center, perspective, state.zoom, newZoom]
@@ -105,7 +105,7 @@ export function Main() {
       document.removeEventListener("keydown", onKeyDown)
     }
   }, [state.zoom])
-
+const [ff, setFF] = useState(5000.0)
   return (
     <div
       {...gestureHandlers}
@@ -117,6 +117,7 @@ export function Main() {
         cursor: dragging ? "grabbing" : "inherit",
       }}
     >
+      <input type="text" value={ff} onChange={e => setFF(parseInt(e.target.value))} />
       {project.panels.map((panel, i) =>
         <Window
           key={panel.id}
