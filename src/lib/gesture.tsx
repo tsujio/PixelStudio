@@ -14,8 +14,10 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
   const pinchStartDataRef = useRef<{data: PS}>()
   const pinchMoveDataRef = useRef<{data: PM}>()
 
+  const getActiveEvents = () => eventsRef.current.filter(e => e !== null)
+
   const setPointerCapture = (target: T) => {
-    eventsRef.current.filter(e => e !== null).forEach(e => {
+    getActiveEvents().forEach(e => {
       if (!target.hasPointerCapture(e.pointerId)) {
         target.setPointerCapture(e.pointerId)
       }
@@ -29,7 +31,7 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
     }
 
     if (e.isPrimary) {
-      if (eventsRef.current.some(e => e !== null)) {
+      if (getActiveEvents().length > 0) {
         console.warn("Found not cleaned up events")
       }
 
@@ -40,7 +42,7 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
       pinchMoveDataRef.current = undefined
     }
 
-    if (eventsRef.current.length >= 2) {
+    if (getActiveEvents().length >= 2) {
       return
     }
 
@@ -52,17 +54,19 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
     if (events.length === 1 && callbacks.onDragStart) {
       const data = callbacks.onDragStart(e)
       dragStartDataRef.current = {data}
-    } else if (events.length === 2 && events[0] && events[1] && callbacks.onPinchStart) {
-      const data = callbacks.onPinchStart([events[0], events[1]], 1)
-      pinchStartDataRef.current = {data}
+    } else {
+      const events = getActiveEvents()
+      if (events.length === 2 && callbacks.onPinchStart) {
+        const data = callbacks.onPinchStart([events[0], events[1]], 1)
+        pinchStartDataRef.current = {data}
+      }
     }
   }
 
   const onPointerMove = (e: React.PointerEvent<T>) => {
-    const events = eventsRef.current
-    const index = events.findIndex(ev => ev?.pointerId === e.pointerId)
+    const index = eventsRef.current.findIndex(ev => ev?.pointerId === e.pointerId)
     if (index !== -1) {
-      events[index] = e
+      eventsRef.current[index] = e
 
       setPointerCapture(e.currentTarget)
 
@@ -74,10 +78,12 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
         dragMoveDataRef.current = {data}
       }
 
-      if (events.length === 2 && events[0] && events[1] && callbacks.onPinchMove) {
+      const events = getActiveEvents()
+      if (events.length === 2 && callbacks.onPinchMove) {
         if (!pinchStartDataRef.current) {
           throw new Error("pinchStartDataRef is not set")
         }
+        const index = events.findIndex(ev => ev.pointerId === e.pointerId)
         const data = callbacks.onPinchMove([events[0], events[1]], index, pinchStartDataRef.current.data, pinchMoveDataRef.current?.data)
         pinchMoveDataRef.current = {data}
       }
@@ -85,15 +91,16 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
   }
 
   const onPointerUp = (e: React.PointerEvent<T>) => {
-    const events = eventsRef.current
-    const index = events.findIndex(ev => ev?.pointerId === e.pointerId)
+    const index = eventsRef.current.findIndex(ev => ev?.pointerId === e.pointerId)
     if (index !== -1) {
-      events[index] = e
+      eventsRef.current[index] = e
 
-      if (events.length === 2 && events[0] && events[1] && callbacks.onPinchEnd) {
+      const events = getActiveEvents()
+      if (events.length === 2 && callbacks.onPinchEnd) {
         if (!pinchStartDataRef.current) {
           throw new Error("pinchStartDataRef is not set")
         }
+        const index = events.findIndex(ev => ev.pointerId === e.pointerId)
         callbacks.onPinchEnd([events[0], events[1]], index, pinchStartDataRef.current.data, pinchMoveDataRef.current?.data)
       }
 
@@ -106,7 +113,7 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(callbacks: {
 
       e.currentTarget.releasePointerCapture(e.pointerId)
 
-      events[index] = null
+      eventsRef.current[index] = null
     }
   }
 
