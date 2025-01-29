@@ -35,12 +35,12 @@ export function Main() {
     },
     onPinchStart: ([e1, e2]) => {
       setDragging(false)
-      return Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
+      return Math.sqrt(Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2))
     },
     onPinchMove: ([e1, e2], _, pinchStartData, prevPinchMoveData: number | undefined) => {
-      const distanceSq = Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2)
+      const distance = Math.sqrt(Math.pow(e1.pageX - e2.pageX, 2) + Math.pow(e1.pageY - e2.pageY, 2))
       const center = [(e1.pageX + e2.pageX) / 2, (e1.pageY + e2.pageY) / 2]
-      const diff = distanceSq - (prevPinchMoveData ?? pinchStartData ?? 0)
+      const diff = distance - (prevPinchMoveData ?? pinchStartData ?? 0)
 
       const newZoom = state.zoom + diff / ff
       updateWindowSystemState({type: "setZoom", zoom: newZoom})
@@ -55,7 +55,7 @@ export function Main() {
         ]
       })
 
-      return distanceSq
+      return distance
     },
   })
 
