@@ -13,7 +13,7 @@ import {
   applyMask,
 } from "../lib/canvas"
 import { useGesture } from "../lib/gesture"
-import { useWindowSystemContext } from "./WindowSystem"
+import { useBoardContext } from "./Board"
 
 type Props = {
   drawing: Drawing
@@ -25,11 +25,11 @@ export function Canvas(props: Props) {
 
   const { drawContext, startSelectArea, expandSelectArea } = useDrawContext()
 
-  const { state } = useWindowSystemContext()
+  const { boardNavigation } = useBoardContext()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const pixelSize = props.drawing.pixelSize * state.zoom
+  const pixelSize = props.drawing.pixelSize * boardNavigation.zoom
 
   const data = useMemo(() => {
     if (props.mask === undefined) {

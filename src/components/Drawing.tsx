@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useWindowContext } from "./Window"
+import { usePanelContext } from "./Panel"
 import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
 import { ResizableArea } from "./ResizableArea"
@@ -10,7 +10,7 @@ type Props = {
 }
 
 export function Drawing(props: Props) {
-  const { setWindowName, setWindowPositionOffset } = useWindowContext()
+  const { setPanelName, setPanelPositionOffset } = usePanelContext()
   const { updateProject } = useProjectContext()
 
   const [mask, setMask] = useState<DrawingDataRect | null>(null)
@@ -19,8 +19,8 @@ export function Drawing(props: Props) {
   const columnCount = mask ? mask.end.columnIndex - mask.start.columnIndex + 1 : props.drawing.columnCount
 
   useEffect(() => {
-    setWindowName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
-  }, [setWindowName, props.drawing.name, rowCount, columnCount])
+    setPanelName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
+  }, [setPanelName, props.drawing.name, rowCount, columnCount])
 
   const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
     const newMask = {
@@ -37,14 +37,14 @@ export function Drawing(props: Props) {
     if (fix) {
       updateProject({type: "resizeDrawing", drawingId: props.drawing.id, rect: newMask})
       setMask(null)
-      setWindowPositionOffset([0, 0])
+      setPanelPositionOffset([0, 0])
     } else if (mask === null ||
       newMask.start.rowIndex !== mask.start.rowIndex ||
       newMask.start.columnIndex !== mask.start.columnIndex ||
       newMask.end.rowIndex !== mask.end.rowIndex ||
       newMask.end.columnIndex !== mask.end.columnIndex) {
       setMask(newMask)
-      setWindowPositionOffset([newMask.start.columnIndex * props.drawing.pixelSize, newMask.start.rowIndex * props.drawing.pixelSize])
+      setPanelPositionOffset([newMask.start.columnIndex * props.drawing.pixelSize, newMask.start.rowIndex * props.drawing.pixelSize])
     }
   }
 

@@ -1,9 +1,7 @@
 import { ProjectContextProvider } from './ProjectContext'
 import { Sidebar } from './Sidebar'
-import { Main } from './Main'
-import { WindowSystemContextProvider } from './WindowSystem'
 import { DrawContextProvider } from './DrawContext'
-import { ToolBox } from './ToolBox'
+import { Board } from './Board'
 
 document.documentElement.style.overscrollBehavior = "none"
 document.documentElement.style.touchAction = "none"
@@ -11,26 +9,23 @@ document.documentElement.style.touchAction = "none"
 export function App() {
   return (
     <>
-      <WindowSystemContextProvider>
-        <DrawContextProvider>
-          <ProjectContextProvider>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `auto 1fr auto`,
-                gridTemplateRows: "minmax(0, 1fr)",
-                height: "100%",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <Sidebar />
-              <Main />
-              <ToolBox />
-            </div>
-          </ProjectContextProvider>
-        </DrawContextProvider>
-      </WindowSystemContextProvider>
+      <DrawContextProvider>
+        <ProjectContextProvider>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `auto 1fr`,
+              gridTemplateRows: "minmax(0, 1fr)",
+              height: "100%",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <Sidebar />
+            <Board />
+          </div>
+        </ProjectContextProvider>
+      </DrawContextProvider>
     </>
   )
 }
