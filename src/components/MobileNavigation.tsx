@@ -27,10 +27,10 @@ export const MobileNavigation = () => {
   }
 
   const buttons = [
-    <IconButton icon="menu" onClick={onUndoButtonClick} />,
-    <IconButton icon="menu" onClick={onRedoButtonClick} />,
-    <IconButton icon="menu" onClick={onZoomOutButtonClick} />,
-    <IconButton icon="menu" onClick={onZoomInButtonClick} />,
+    <IconButton icon="undo" onClick={onUndoButtonClick} />,
+    <IconButton icon="redo" onClick={onRedoButtonClick} />,
+    <IconButton icon="zoomout" onClick={onZoomOutButtonClick} />,
+    <IconButton icon="zoomin" onClick={onZoomInButtonClick} />,
   ]
 
   return (
