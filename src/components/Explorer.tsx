@@ -202,7 +202,7 @@ export function Explorer() {
           ref={explorerItemContainerRef}
           style={{
             // See explorerItemContainerOverflow declaration
-            ...(explorerItemContainerOverflow ? {overflow: "scroll", overscrollBehavior: "none"} : {}),
+            ...(explorerItemContainerOverflow ? {overflowY: "scroll", overscrollBehavior: "none"} : {}),
           }}
         >
           {drawings && drawings.map(drawing =>

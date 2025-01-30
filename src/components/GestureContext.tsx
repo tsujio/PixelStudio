@@ -98,27 +98,23 @@ export const useGesture = <T extends HTMLElement, DS, DM, PS, PM>(config: {
 
     if (eventsRef.current.length === 1) {
       // Start drag
-      if (config.onDragStart) {
-        const data = config.onDragStart(e)
-        dragStartDataRef.current = {data}
-      }
+      const data = config.onDragStart ? config.onDragStart(e) : (undefined as any)
+      dragStartDataRef.current = {data}
     } else {
       const events = getActiveEvents()
       if (events.length === 2) {
         // Terminate drag before starting pinch
         if (config.onDragEnd) {
           if (!dragStartDataRef.current) {
-            // dragStartData is empty if acquires lock by forceAcquireLockOnPinchStart
+            // dragStartData can be empty if acquires lock by forceAcquireLockOnPinchStart
           } else {
             config.onDragEnd(e, dragStartDataRef.current.data, dragMoveDataRef.current?.data)
           }
         }
 
         // Start pinch
-        if (config.onPinchStart) {
-          const data = config.onPinchStart([events[0], events[1]], 1)
-          pinchStartDataRef.current = {data}
-        }
+        const data = config.onPinchStart ? config.onPinchStart([events[0], events[1]], 1) : (undefined as any)
+        pinchStartDataRef.current = {data}
       }
     }
   }

@@ -43,10 +43,13 @@ export function Sidebar() {
     <div
       style={{
         width: pinned ? width : 0,
+        height: "100%",
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
         gridTemplateRows: "minmax(0, 1fr)",
-        position: "relative",
+        position: "absolute",
+        top: 0,
+        left: 0,
         zIndex: 9999,
         background: "white",
       }}
@@ -77,7 +80,7 @@ export function Sidebar() {
           />
         </div>
         <Explorer />
-        <div style={{textAlign: "center", whiteSpace: "nowrap"}}>
+        <div style={{textAlign: "center", whiteSpace: "nowrap", padding: "8px", fontSize: "14px"}}>
           <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
           <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>
         </div>

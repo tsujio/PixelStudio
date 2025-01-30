@@ -5,6 +5,7 @@ import { Drawing } from "./Drawing"
 import { useGesture } from './GestureContext'
 import { DrawingPanel } from '../lib/panel'
 import { ToolBox } from './ToolBox'
+import { MobileNavigation } from './MobileNavigation'
 
 type BoardNavigation = {
   perspective: [number, number]
@@ -144,6 +145,8 @@ export const Board = () => {
         {...gestureHandlers}
         style={{
           position: "relative",
+          height: "100%",
+          overflow: "hidden",
           backgroundSize: `${42 * boardNavigation.zoom}px ${42 * boardNavigation.zoom}px`,
           backgroundImage: `radial-gradient(circle, gray ${1 * boardNavigation.zoom}px, transparent ${1 * boardNavigation.zoom}px)`,
           backgroundPositionX:  -boardNavigation.perspective[0] * boardNavigation.zoom + "px",
@@ -167,6 +170,7 @@ export const Board = () => {
         )}
       </div>
       <ToolBox />
+      <MobileNavigation />
     </BoardContext.Provider>
   )
 }

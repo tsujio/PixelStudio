@@ -37,7 +37,7 @@ export function ToolBox() {
   return (
     <div
       style={{
-        width: pinned ? "330px" : 0,
+        width: pinned ? undefined : 0,
         height: "fit-content",
         position: "absolute",
         top: 0,
@@ -45,14 +45,14 @@ export function ToolBox() {
         boxShadow: "0 0 8px 0 gray",
         zIndex: 9999,
         background: "white",
-        boxSizing: "border-box",
       }}
     >
       <div
         style={{
-          width: pinned ? undefined : 0,
+          width: pinned ? "330px" : 0,
           overflowX: pinned ? "inherit" : "hidden",
-          padding: "16px",
+          padding: pinned ? "16px" : 0,
+          boxSizing: "border-box",
         }}
       >
         <div
