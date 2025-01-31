@@ -6,6 +6,7 @@ import { DrawingPanel } from '../lib/panel'
 
 type ProjectContextValue = {
   project: Project
+  projectHistory: ProjectHistory
   updateProject: (action: Action) => void
 }
 
@@ -295,8 +296,8 @@ type Props = {
 }
 
 export const ProjectContextProvider = (props: Props) => {
-  const [{current, history}, updateProject] = useReducer(reducer, initialProject)
-  const project = history[current].project
+  const [projectHistory, updateProject] = useReducer(reducer, initialProject)
+  const project = projectHistory.history[projectHistory.current].project
 
   useEffect(() => {
     const dump = JSON.stringify(project)
@@ -325,8 +326,9 @@ export const ProjectContextProvider = (props: Props) => {
 
   const contextValue = useMemo(() => ({
     project,
+    projectHistory,
     updateProject,
-  }), [project])
+  }), [project, projectHistory])
 
   return (
     <ProjectContext.Provider value={contextValue}>

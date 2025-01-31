@@ -42,7 +42,7 @@ const reducer = (boardNavigation: BoardNavigation, action: Action): BoardNavigat
           {
             perspectiveMoveTo: {
               destination: action.perspective,
-              duration: action.duration ?? 0,
+              duration: action.duration,
             }
           } :
           {
@@ -67,14 +67,16 @@ const reducer = (boardNavigation: BoardNavigation, action: Action): BoardNavigat
         b1[0] / z1 + p1[0] - b1[0] / z2,
         b1[1] / z1 + p1[1] - b1[1] / z2,
       ] as [number, number]
-      return {
-        ...boardNavigation,
-        zoom: action.zoom,
-        perspectiveMoveTo: {
-          destination: perspective,
-          duration: 0,
+      return reducer(
+        {
+          ...boardNavigation,
+          zoom: action.zoom,
+        },
+        {
+          type: "setPerspective",
+          perspective,
         }
-      }
+      )
     }
   }
 }

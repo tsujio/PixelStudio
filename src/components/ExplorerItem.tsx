@@ -17,7 +17,7 @@ type Props = {
 
 export function ExplorerItem(props: Props) {
   const { project, updateProject } = useProjectContext()
-  const { updateBoardNavigation } = useBoardContext()
+  const { boardNavigation, updateBoardNavigation } = useBoardContext()
 
   const [ hover, hoverHandlers ] = useHover()
 
@@ -25,7 +25,7 @@ export function ExplorerItem(props: Props) {
     const panel = project.panels.find(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id)
     const pos: [number, number] = panel ? [panel.x, panel.y] : [0, 0]
     updateProject({type: "openPanel", drawingId: props.drawing.id, x: pos[0], y: pos[1]})
-    const perspective: [number, number] = [pos[0] - props.sidebarWidth, pos[1]]
+    const perspective: [number, number] = [pos[0] - (props.sidebarWidth + 20) / boardNavigation.zoom, pos[1] - 20 / boardNavigation.zoom]
     updateBoardNavigation({type: "setPerspective", perspective, duration: 300})
   }
 
