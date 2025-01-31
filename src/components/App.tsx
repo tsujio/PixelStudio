@@ -3,6 +3,8 @@ import { Sidebar } from './Sidebar'
 import { DrawContextProvider } from './DrawContext'
 import { Board } from './Board'
 import { GestureContextProvider } from './GestureContext'
+import { WindowContextProvider } from './WindowContext'
+import { BoardContextProvider } from './BoardContext'
 
 document.documentElement.style.overscrollBehavior = "none"
 document.documentElement.style.touchAction = "none"
@@ -18,14 +20,18 @@ if (!("randomUUID" in crypto)) {
 export function App() {
   return (
     <>
-      <GestureContextProvider>
-        <DrawContextProvider>
-          <ProjectContextProvider>
-            <Sidebar />
-            <Board />
-          </ProjectContextProvider>
-        </DrawContextProvider>
-      </GestureContextProvider>
+      <WindowContextProvider>
+        <GestureContextProvider>
+          <BoardContextProvider>
+            <DrawContextProvider>
+              <ProjectContextProvider>
+                <Sidebar />
+                <Board />
+              </ProjectContextProvider>
+            </DrawContextProvider>
+          </BoardContextProvider>
+        </GestureContextProvider>
+      </WindowContextProvider>
     </>
   )
 }

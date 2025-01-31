@@ -7,6 +7,7 @@ import { Palette } from "./Palette"
 import { Icon } from "./Icon"
 import { IconButton } from "./IconButton"
 import { useState } from "react"
+import { useWindowContext } from "./WindowContext"
 
 const tools = [
   {type: "pen", icon: "pen"},
@@ -17,14 +18,13 @@ const tools = [
 
 export function ToolBox() {
   const { drawContext, changeTool } = useDrawContext()
+  const { windowSize } = useWindowContext()
 
   const onToolChange = (tool: DrawTool) => () => {
     changeTool(tool)
   }
 
-  const [pinned, setPinned] = useState(() => {
-    return window.innerWidth > 700
-  })
+  const [pinned, setPinned] = useState(windowSize.type !== "mobile")
 
   const onPinClick = () => {
     setPinned(false)

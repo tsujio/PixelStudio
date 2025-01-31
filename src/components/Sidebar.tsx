@@ -3,8 +3,11 @@ import { Explorer } from "./Explorer"
 import { useGesture } from "./GestureContext"
 import logoImg from "../assets/logo.png"
 import { IconButton } from "./IconButton"
+import { useWindowContext } from "./WindowContext"
 
 export function Sidebar() {
+  const { windowSize } = useWindowContext()
+
   const contentRef = useRef(null)
 
   const [width, setWidth] = useState(250)
@@ -12,15 +15,13 @@ export function Sidebar() {
   const gestureHandlers = useGesture({
     onDragMove: e => {
       const width = e.pageX
-      if (width > 0 && width < window.innerWidth) {
+      if (width > 0 && width < windowSize.width) {
         setWidth(width)
       }
     }
   })
 
-  const [pinned, setPinned] = useState(() => {
-    return window.innerWidth > 1000
-  })
+  const [pinned, setPinned] = useState(windowSize.type === "desktop")
 
   useEffect(() => {
     if (contentRef.current && pinned) {
@@ -39,10 +40,12 @@ export function Sidebar() {
     setPinned(true)
   }
 
+  const sidebarWidth = pinned ? width : 0
+
   return (
     <div
       style={{
-        width: pinned ? width : 0,
+        width: sidebarWidth,
         height: "100%",
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
@@ -57,7 +60,7 @@ export function Sidebar() {
       <div
         ref={contentRef}
         style={{
-          width: pinned ? undefined : 0,
+          width: sidebarWidth,
           overflowX: pinned ? "inherit" : "hidden",
           display: "grid",
           gridTemplateRows: "auto minmax(0, 1fr) auto",
@@ -79,7 +82,7 @@ export function Sidebar() {
             }}
           />
         </div>
-        <Explorer />
+        <Explorer sidebarWidth={sidebarWidth} />
         <div style={{textAlign: "center", whiteSpace: "nowrap", padding: "8px", fontSize: "14px"}}>
           <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
           <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>

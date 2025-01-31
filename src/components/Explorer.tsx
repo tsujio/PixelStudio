@@ -7,7 +7,11 @@ import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 
-export function Explorer() {
+type Props = {
+  sidebarWidth: number
+}
+
+export function Explorer(props: Props) {
   const { project, updateProject } = useProjectContext()
 
   const drawings = Object.values(project.drawings)
@@ -206,7 +210,7 @@ export function Explorer() {
           }}
         >
           {drawings && drawings.map(drawing =>
-            <ExplorerItem key={drawing.id} drawing={drawing} />
+            <ExplorerItem key={drawing.id} drawing={drawing} sidebarWidth={props.sidebarWidth} />
           )}
         </div>
       </div>

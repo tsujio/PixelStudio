@@ -13,7 +13,7 @@ import {
   applyMask,
 } from "../lib/canvas"
 import { useGesture } from "./GestureContext"
-import { useBoardContext } from "./Board"
+import { useBoardContext } from "./BoardContext"
 
 type Props = {
   drawing: Drawing

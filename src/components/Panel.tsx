@@ -2,7 +2,7 @@ import React, { useRef, useState, createContext, useContext, useMemo } from 'rea
 import { useGesture } from './GestureContext'
 import { useProjectContext } from './ProjectContext'
 import { Panel as PanelClass } from '../lib/panel'
-import { useBoardContext } from './Board'
+import { useBoardContext } from './BoardContext'
 
 type PanelContextValue = {
   panelId: string

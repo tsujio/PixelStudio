@@ -4,7 +4,7 @@ import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
 import { ResizableArea } from "./ResizableArea"
 import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing"
-import { useBoardContext } from "./Board"
+import { useBoardContext } from "./BoardContext"
 
 type Props = {
   drawing: DrawingClass

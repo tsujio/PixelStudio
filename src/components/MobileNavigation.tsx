@@ -1,10 +1,12 @@
-import { useBoardContext } from "./Board"
-import { IconButton } from "./IconButton"
+import { useBoardContext } from "./BoardContext"
+import { Icon } from "./Icon"
 import { useProjectContext } from "./ProjectContext"
+import { useWindowContext } from "./WindowContext"
 
 export const MobileNavigation = () => {
   const { updateProject } = useProjectContext()
   const { boardNavigation, updateBoardNavigation } = useBoardContext()
+  const { windowSize } = useWindowContext()
 
   const onUndoButtonClick = () => {
     updateProject({type: "undo"})
@@ -15,23 +17,23 @@ export const MobileNavigation = () => {
   }
 
   const onZoomOutButtonClick = () => {
-    updateBoardNavigation({type: "setZoom", zoom: boardNavigation.zoom - 0.1, basePoint: [window.innerWidth / 2, window.innerHeight / 2]})
+    updateBoardNavigation({type: "setZoom", zoom: boardNavigation.zoom - 0.1, basePoint: [windowSize.width / 2, windowSize.height / 2]})
   }
 
   const onZoomInButtonClick = () => {
-    updateBoardNavigation({type: "setZoom", zoom: boardNavigation.zoom + 0.1, basePoint: [window.innerWidth / 2, window.innerHeight / 2]})
+    updateBoardNavigation({type: "setZoom", zoom: boardNavigation.zoom + 0.1, basePoint: [windowSize.width / 2, windowSize.height / 2]})
   }
 
-  if (window.innerWidth > 700) {
+  if (windowSize.type !== "mobile") {
     return null
   }
 
   const buttons = [
-    <IconButton icon="undo" onClick={onUndoButtonClick} />,
-    <IconButton icon="redo" onClick={onRedoButtonClick} />,
-    <IconButton icon="zoomout" onClick={onZoomOutButtonClick} />,
-    <IconButton icon="zoomin" onClick={onZoomInButtonClick} />,
-  ]
+    [<Icon icon="undo" />, onUndoButtonClick],
+    [<Icon icon="redo" />, onRedoButtonClick],
+    [<Icon icon="zoomout" />, onZoomOutButtonClick],
+    [<Icon icon="zoomin" />, onZoomInButtonClick],
+  ] as const
 
   return (
     <div
@@ -40,7 +42,8 @@ export const MobileNavigation = () => {
         zIndex: 9998,
         display: "grid",
         gridTemplateColumns: `repeat(${buttons.length}, 1fr)`,
-        height: "fit-content",
+        placeItems: "center",
+        height: "56px",
         width: "100%",
         background: "whitesmoke",
         bottom: 0,
@@ -48,17 +51,19 @@ export const MobileNavigation = () => {
         borderTop: "2px solid lightgray",
       }}
     >
-      {buttons.map((b, i) =>
+      {buttons.map(([icon, handler], i) =>
         <div
           key={i}
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "12px",
+            display: "grid",
+            placeItems: "center",
+            width: "min(100%, 96px)",
+            height: "100%",
+            cursor: "pointer",
           }}
+          onClick={handler}
         >
-          {b}
+          {icon}
         </div>
       )}
     </div>

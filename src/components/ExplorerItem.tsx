@@ -8,18 +8,25 @@ import { Drawing } from "../lib/drawing"
 import { drawPixels } from "../lib/canvas"
 import { useHover } from "../lib/hover"
 import { DrawingPanel } from "../lib/panel"
+import { useBoardContext } from "./BoardContext"
 
 type Props = {
   drawing: Drawing
+  sidebarWidth: number
 }
 
 export function ExplorerItem(props: Props) {
   const { project, updateProject } = useProjectContext()
+  const { updateBoardNavigation } = useBoardContext()
 
   const [ hover, hoverHandlers ] = useHover()
 
   const onDrawingNameClick = () => {
-    updateProject({type: "openPanel", drawingId: props.drawing.id, x: 300, y: 100})
+    const panel = project.panels.find(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id)
+    const pos: [number, number] = panel ? [panel.x, panel.y] : [0, 0]
+    updateProject({type: "openPanel", drawingId: props.drawing.id, x: pos[0], y: pos[1]})
+    const perspective: [number, number] = [pos[0] - props.sidebarWidth, pos[1]]
+    updateBoardNavigation({type: "setPerspective", perspective, duration: 300})
   }
 
   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null)
