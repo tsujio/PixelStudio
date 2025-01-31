@@ -6,38 +6,36 @@ import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions"
 import { Palette } from "./Palette"
 import { Icon } from "./Icon"
 import { IconButton } from "./IconButton"
-import { useState } from "react"
-import { useWindowContext } from "./WindowContext"
 
 const tools = [
   {type: "pen", icon: "pen"},
   {type: "eraser", icon: "eraser"},
   {type: "select", icon: "select"},
-  {type: "canvas", icon: "close"},
+  {type: "canvas", icon: "canvas"},
 ] as const
 
-export function ToolBox() {
+type Props = {
+  open: boolean
+  onClose: () => void
+}
+
+export const width = 330
+
+export function ToolBox(props: Props) {
   const { drawContext, changeTool } = useDrawContext()
-  const { windowSize } = useWindowContext()
 
   const onToolChange = (tool: DrawTool) => () => {
     changeTool(tool)
   }
 
-  const [pinned, setPinned] = useState(windowSize.type !== "mobile")
-
   const onPinClick = () => {
-    setPinned(false)
-  }
-
-  const onOpenToolBoxClick = () => {
-    setPinned(true)
+    props.onClose()
   }
 
   return (
     <div
       style={{
-        width: pinned ? undefined : 0,
+        width: props.open ? undefined : 0,
         height: "fit-content",
         position: "absolute",
         top: 0,
@@ -49,10 +47,11 @@ export function ToolBox() {
     >
       <div
         style={{
-          width: pinned ? "330px" : 0,
-          overflowX: pinned ? "inherit" : "hidden",
-          padding: pinned ? "16px" : 0,
+          width: props.open ? `${width}px` : 0,
+          overflowX: props.open ? "inherit" : "hidden",
+          padding: props.open ? "16px" : 0,
           boxSizing: "border-box",
+          position: "relative",
         }}
       >
         <div
@@ -88,35 +87,20 @@ export function ToolBox() {
         <div style={{marginTop: "8px"}}>
           <Palette />
         </div>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+          }}
+        >
+          <IconButton
+            icon="pin"
+            size="small"
+            onClick={onPinClick}
+          />
+        </div>
       </div>
-      {pinned &&
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-        }}
-      >
-        <IconButton
-          icon="pin"
-          size="small"
-          onClick={onPinClick}
-        />
-      </div>}
-      {!pinned &&
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          left: -50,
-        }}
-      >
-        <IconButton
-          icon="pen"
-          size="small"
-          onClick={onOpenToolBoxClick}
-        />
-      </div>}
     </div>
   )
 }

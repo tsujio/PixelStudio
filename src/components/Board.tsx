@@ -7,10 +7,13 @@ import { DrawingPanel } from '../lib/panel'
 import { ToolBox } from './ToolBox'
 import { MobileNavigation } from './MobileNavigation'
 import { useBoardContext } from './BoardContext'
+import { useWindowContext } from './WindowContext'
+import { BoardControl } from './BoardControl'
 
 export const Board = () => {
   const { project } = useProjectContext()
   const { boardNavigation, updateBoardNavigation } = useBoardContext()
+  const { windowSize } = useWindowContext()
 
   const [dragging, setDragging] = useState(false)
   const gestureHandlers = useGesture({
@@ -79,6 +82,8 @@ export const Board = () => {
     }
   }, [boardNavigation.zoom])
 
+  const [toolBoxOpen, setToolBoxOpen] = useState(windowSize.type !== "mobile")
+
   return (
     <>
       <div
@@ -109,7 +114,8 @@ export const Board = () => {
           </Panel>
         )}
       </div>
-      <ToolBox />
+      <BoardControl toolBoxOpen={toolBoxOpen} setToolBoxOpen={setToolBoxOpen} />
+      <ToolBox open={toolBoxOpen} onClose={() => setToolBoxOpen(false)} />
       <MobileNavigation />
     </>
   )

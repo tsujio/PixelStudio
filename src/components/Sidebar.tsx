@@ -10,7 +10,7 @@ export function Sidebar() {
 
   const contentRef = useRef(null)
 
-  const [width, setWidth] = useState(250)
+  const [width, setWidth] = useState(210)
 
   const gestureHandlers = useGesture({
     onDragMove: e => {
@@ -60,7 +60,6 @@ export function Sidebar() {
       <div
         ref={contentRef}
         style={{
-          width: sidebarWidth,
           overflowX: pinned ? "inherit" : "hidden",
           display: "grid",
           gridTemplateRows: "auto minmax(0, 1fr) auto",
