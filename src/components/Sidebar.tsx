@@ -4,43 +4,60 @@ import { useGesture } from "./GestureContext"
 import logoImg from "../assets/logo.png"
 import { IconButton } from "./IconButton"
 import { useWindowContext } from "./WindowContext"
+import { useBoardContext } from "./BoardContext"
 
-export function Sidebar() {
+type Props = {
+  width: number
+  onWidthChange: (width: number) => void
+}
+
+export function Sidebar(props: Props) {
   const { windowSize } = useWindowContext()
+  const { boardNavigation, updateBoardNavigation } = useBoardContext()
 
   const contentRef = useRef(null)
-
-  const [width, setWidth] = useState(210)
 
   const gestureHandlers = useGesture({
     onDragMove: e => {
       const width = e.pageX
       if (width > 0 && width < windowSize.width) {
-        setWidth(width)
+        props.onWidthChange(width)
       }
     }
   })
 
-  const [pinned, setPinned] = useState(windowSize.type === "desktop")
+  const [open, setOpen] = useState(windowSize.type === "desktop")
 
   useEffect(() => {
-    if (contentRef.current && pinned) {
+    if (contentRef.current && open) {
       const contentWidth = parseInt(window.getComputedStyle(contentRef.current).width)
-      if (width < contentWidth) {
-        setWidth(contentWidth)
+      if (props.width < contentWidth) {
+        props.onWidthChange(contentWidth)
       }
     }
-  }, [width, pinned])
+  }, [props.width, open])
 
-  const onPinClick = () => {
-    setPinned(false)
+  const onCloseButtonClick = () => {
+    setOpen(false)
+
+    if (windowSize.type === "mobile") {
+      const perspective: [number, number] = [...boardNavigation.perspective]
+      perspective[0] += props.width / boardNavigation.zoom
+      updateBoardNavigation({type: "setPerspective", perspective})
+    }
   }
 
   const onHamburgerClick = () => {
-    setPinned(true)
+    setOpen(true)
+
+    if (windowSize.type === "mobile") {
+      const perspective: [number, number] = [...boardNavigation.perspective]
+      perspective[0] -= props.width / boardNavigation.zoom
+      updateBoardNavigation({type: "setPerspective", perspective})
+    }
   }
 
-  const sidebarWidth = pinned ? width : 0
+  const sidebarWidth = open ? props.width : 0
 
   return (
     <div
@@ -60,26 +77,35 @@ export function Sidebar() {
       <div
         ref={contentRef}
         style={{
-          overflowX: pinned ? "inherit" : "hidden",
+          overflowX: open ? "inherit" : "hidden",
           display: "grid",
           gridTemplateRows: "auto minmax(0, 1fr) auto",
         }}
       >
-        <div
-          style={{
-            padding: "12px",
-          }}
-        >
-          <img
-            src={logoImg}
+        <div style={{display: "grid", gridTemplateColumns: "1fr 1fr"}}>
+          <div
             style={{
-              backgroundSize: "8px 8px",
-              backgroundImage: "repeating-linear-gradient(gray 0px 1px, transparent 1px 100%), repeating-linear-gradient(90deg, gray 0 1px, transparent 1px 100%)",
-              border: "1px solid gray",
-              borderTop: "none",
-              borderLeft: "none",
+              padding: "12px",
             }}
-          />
+          >
+            <img
+              src={logoImg}
+              style={{
+                backgroundSize: "8px 8px",
+                backgroundImage: "repeating-linear-gradient(gray 0px 1px, transparent 1px 100%), repeating-linear-gradient(90deg, gray 0 1px, transparent 1px 100%)",
+                border: "1px solid gray",
+                borderTop: "none",
+                borderLeft: "none",
+              }}
+            />
+          </div>
+          <div>
+            <IconButton
+              icon="left"
+              size="small"
+              onClick={onCloseButtonClick}
+            />
+          </div>
         </div>
         <Explorer sidebarWidth={sidebarWidth} />
         <div style={{textAlign: "center", whiteSpace: "nowrap", padding: "8px", fontSize: "14px"}}>
@@ -97,21 +123,7 @@ export function Sidebar() {
         }}
         {...gestureHandlers}
       />
-      {pinned &&
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-        }}
-      >
-        <IconButton
-          icon="pin"
-          size="small"
-          onClick={onPinClick}
-        />
-      </div>}
-      {!pinned &&
+      {!open &&
       <div
         style={{
           position: "absolute",

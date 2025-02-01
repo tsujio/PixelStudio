@@ -23,10 +23,13 @@ export function ExplorerItem(props: Props) {
 
   const onDrawingNameClick = () => {
     const panel = project.panels.find(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id)
-    const pos: [number, number] = panel ? [panel.x, panel.y] : [0, 0]
-    updateProject({type: "openPanel", drawingId: props.drawing.id, x: pos[0], y: pos[1]})
-    const perspective: [number, number] = [pos[0] - (props.sidebarWidth + 20) / boardNavigation.zoom, pos[1] - 20 / boardNavigation.zoom]
-    updateBoardNavigation({type: "setPerspective", perspective, duration: 300})
+    const [xOffset, yOffset] = [-(props.sidebarWidth + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
+    if (panel) {
+      updateBoardNavigation({type: "setPerspective", perspective: [panel.x + xOffset, panel.y + yOffset], duration: 300})
+      updateProject({type: "activatePanel", panelId: panel.id})
+    } else {
+      updateProject({type: "openPanel", drawingId: props.drawing.id, x: boardNavigation.perspective[0] - xOffset, y: boardNavigation.perspective[1] - yOffset})
+    }
   }
 
   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null)
@@ -138,7 +141,9 @@ export function ExplorerItem(props: Props) {
       <div>
         <IconButton
           icon="menu"
-          display={hover || menuButtonElement || isWindowActive ? "inline-block" : "none"}
+          style={{
+            display: hover || menuButtonElement || isWindowActive ? "inline-block" : "none"
+          }}
           onClick={onMenuClick}
         />
         <Menu

@@ -10,10 +10,28 @@ import { useBoardContext } from './BoardContext'
 import { useWindowContext } from './WindowContext'
 import { BoardControl } from './BoardControl'
 
-export const Board = () => {
+type Props = {
+  sidebarWidth: number
+}
+
+export const Board = (props: Props) => {
   const { project } = useProjectContext()
   const { boardNavigation, updateBoardNavigation } = useBoardContext()
   const { windowSize } = useWindowContext()
+
+  const [lastProjectId, setLastProjectId] = useState<string | undefined>()
+  useEffect(() => {
+    // Set perspective to first panel position when new project loaded
+    if (lastProjectId !== project.id) {
+      setLastProjectId(project.id)
+      if (project.panels.length > 0) {
+        const panel = project.panels[0]
+        const [xOffset, yOffset] = [-(props.sidebarWidth + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
+        const perspective: [number, number] = [panel.x + xOffset, panel.y + yOffset]
+        updateBoardNavigation({type: "setPerspective", perspective})
+      }
+    }
+  }, [lastProjectId, project, props.sidebarWidth, boardNavigation, updateBoardNavigation])
 
   const [dragging, setDragging] = useState(false)
   const gestureHandlers = useGesture({
@@ -114,7 +132,7 @@ export const Board = () => {
           </Panel>
         )}
       </div>
-      <BoardControl toolBoxOpen={toolBoxOpen} setToolBoxOpen={setToolBoxOpen} />
+      <BoardControl toolBoxOpen={toolBoxOpen} openToolBox={() => setToolBoxOpen(true)} />
       <ToolBox open={toolBoxOpen} onClose={() => setToolBoxOpen(false)} />
       <MobileNavigation />
     </>

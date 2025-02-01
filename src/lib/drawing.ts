@@ -21,6 +21,8 @@ export class Drawing {
     columnCount = columnCount ?? 64
     pixelSize = pixelSize ?? 10
 
+    columnCount = Math.min(columnCount, Math.round(window.innerWidth / pixelSize) - 6)
+
     if (rowCount < 1 || columnCount < 1) {
       throw new Error("rowCount and columnCount should be positive")
     }

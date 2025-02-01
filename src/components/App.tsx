@@ -5,6 +5,7 @@ import { Board } from './Board'
 import { GestureContextProvider } from './GestureContext'
 import { WindowContextProvider } from './WindowContext'
 import { BoardContextProvider } from './BoardContext'
+import { useState } from 'react'
 
 document.documentElement.style.overscrollBehavior = "none"
 document.documentElement.style.touchAction = "none"
@@ -18,6 +19,8 @@ if (!("randomUUID" in crypto)) {
 }
 
 export function App() {
+  const [sidebarWidth, setSidebarWidth] = useState(0)
+
   return (
     <>
       <WindowContextProvider>
@@ -25,8 +28,8 @@ export function App() {
           <BoardContextProvider>
             <DrawContextProvider>
               <ProjectContextProvider>
-                <Sidebar />
-                <Board />
+                <Sidebar width={sidebarWidth} onWidthChange={setSidebarWidth} />
+                <Board sidebarWidth={sidebarWidth} />
               </ProjectContextProvider>
             </DrawContextProvider>
           </BoardContextProvider>

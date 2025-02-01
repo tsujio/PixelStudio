@@ -4,8 +4,8 @@ import { Icon } from "./Icon"
 
 type Props = {
   icon: IconType
-  display?: string
   size?: "small" | "medium" | "large"
+  style?: React.CSSProperties
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
@@ -19,12 +19,13 @@ export function IconButton(props: Props) {
     }
   }
 
+  const style = Object.fromEntries(Object.entries(props.style ?? {}).filter(e => e[1] !== undefined))
+
   return (
     <button
       {...hoverHandlers}
       onClick={onClick}
       style={{
-        display: props.display,
         background: hover ? "whitesmoke" : "white",
         border: "none",
         borderRadius: "50%",
@@ -32,6 +33,7 @@ export function IconButton(props: Props) {
         userSelect: "none",
         verticalAlign: "middle",
         padding: "12px",
+        ...style,
       }}
     >
       <Icon icon={props.icon} size={props.size} />

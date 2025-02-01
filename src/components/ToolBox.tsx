@@ -6,6 +6,7 @@ import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions"
 import { Palette } from "./Palette"
 import { Icon } from "./Icon"
 import { IconButton } from "./IconButton"
+import { useEffect, useRef, useState } from "react"
 
 const tools = [
   {type: "pen", icon: "pen"},
@@ -28,12 +29,38 @@ export function ToolBox(props: Props) {
     changeTool(tool)
   }
 
-  const onPinClick = () => {
-    props.onClose()
+  const [pinned, setPinned] = useState(props.open)
+
+  if (!props.open && pinned) {
+    setPinned(false)
   }
+
+  const onPinClick = () => {
+    setPinned(pinned => !pinned)
+  }
+
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (props.open) {
+      const handler = (e: PointerEvent) => {
+        if (!pinned && ref.current) {
+          const rect = ref.current.getBoundingClientRect()
+          if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
+            props.onClose()
+          }
+        }
+      }
+      document.addEventListener("pointerdown", handler)
+      return () => {
+        document.removeEventListener("pointerdown", handler)
+      }
+    }
+  }, [props.open, pinned])
 
   return (
     <div
+      ref={ref}
       style={{
         width: props.open ? undefined : 0,
         height: "fit-content",
@@ -97,6 +124,9 @@ export function ToolBox(props: Props) {
           <IconButton
             icon="pin"
             size="small"
+            style={{
+              background: pinned ? "gainsboro" : undefined
+            }}
             onClick={onPinClick}
           />
         </div>

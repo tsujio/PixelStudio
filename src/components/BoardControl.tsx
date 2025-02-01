@@ -5,7 +5,7 @@ import { useWindowContext } from "./WindowContext"
 
 type Props = {
   toolBoxOpen: boolean
-  setToolBoxOpen: (toolBoxOpen: boolean) => void
+  openToolBox: () => void
 }
 
 export const BoardControl = (props: Props) => {
@@ -23,7 +23,7 @@ export const BoardControl = (props: Props) => {
   }
 
   const onOpenToolBoxButtonClick = () => {
-    props.setToolBoxOpen(true)
+    props.openToolBox()
   }
 
   return (

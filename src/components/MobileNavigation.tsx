@@ -19,11 +19,11 @@ export const MobileNavigation = () => {
   }
 
   const onPenButtonClick = () => {
-    changeTool("pen")
-  }
-
-  const onEraserButtonClick = () => {
-    changeTool("eraser")
+    if (drawContext.tool !== "pen") {
+      changeTool("pen")
+    } else {
+      changeTool("eraser")
+    }
   }
 
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
@@ -38,19 +38,26 @@ export const MobileNavigation = () => {
     setColorPickerOpen(false)
   }
 
-  const onColorPickerBlur = () => {
-    // HACK: Clicking color picker button to close it does not work because this handler triggered before onClick handler.
-    //       So use setTimeout to delay handler process.
-    setTimeout(() => {
-      setColorPickerOpen(false)
-    }, 50)
-  }
-
   const colorPickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (colorPickerRef.current && colorPickerOpen) {
-      colorPickerRef.current.focus()
+    if (colorPickerOpen) {
+      const handler = (e: PointerEvent) => {
+        if (colorPickerRef.current) {
+          const rect = colorPickerRef.current.getBoundingClientRect()
+          if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
+            // HACK: Clicking color picker button to close picker does not work because this handler triggered before onClick handler.
+            //       So use setTimeout to delay handler process.
+            setTimeout(() => {
+              setColorPickerOpen(false)
+            }, 100)
+          }
+        }
+      }
+      document.addEventListener("pointerdown", handler)
+      return () => {
+        document.removeEventListener("pointerdown", handler)
+      }
     }
   }, [colorPickerOpen])
 
@@ -68,20 +75,25 @@ export const MobileNavigation = () => {
       handler: onRedoButtonClick,
     },
     {
-      icon: <Icon icon="pen" />,
+      icon: <>
+        <Icon
+          icon={drawContext.tool === "eraser" ? "eraser" : "pen"}
+          style={{
+            opacity: !["pen", "eraser"].includes(drawContext.tool) ? 0.3 : undefined,
+          }}
+        />
+        <Icon
+          icon={drawContext.tool === "eraser" ? "pen" : "eraser"}
+          size="small"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 8,
+            opacity: 0.3,
+          }}
+        />
+      </>,
       handler: onPenButtonClick,
-      style: drawContext.tool === "pen" ? {
-        border: "4px solid steelblue",
-        borderRadius: "4px",
-      } : undefined,
-    },
-    {
-      icon: <Icon icon="eraser" />,
-      handler: onEraserButtonClick,
-      style: drawContext.tool === "eraser" ? {
-        border: "4px solid steelblue",
-        borderRadius: "4px",
-      } : undefined,
     },
     {
       icon: <div style={{
@@ -96,8 +108,22 @@ export const MobileNavigation = () => {
     },
   ]
 
-  const colorPickerRows = 12
-  const colorPickerColumns = 5
+  const colors = [...Array(12)].map((_, i, rows) =>
+    [...Array(5)].map((_, j, columns) => {
+      const [rowCount, columnCount] = [rows.length, columns.length]
+      let h: number, s: number, v: number
+      if (i === 0) {
+        h = 0
+        s = 0
+        v = Math.round(100 / (columnCount - 1) * (columnCount - (j + 1)))
+      } else {
+        h = Math.round(360 / (rowCount - 1) * (i - 1))
+        s = Math.round(Math.min(100 / Math.ceil(columnCount / 2) * (j + 1), 100))
+        v = Math.round(Math.min(100 / Math.ceil(columnCount / 2) * (columnCount - j), 100))
+      }
+      return new HSVColor([h, s, v])
+    })
+  )
 
   return (
     <div
@@ -115,7 +141,7 @@ export const MobileNavigation = () => {
         borderTop: "2px solid lightgray",
       }}
     >
-      {buttons.map(({icon, handler, style}, i) =>
+      {buttons.map(({icon, handler}, i) =>
         <div
           key={i}
           style={{
@@ -125,7 +151,7 @@ export const MobileNavigation = () => {
             height: "100%",
             cursor: "pointer",
             boxSizing: "border-box",
-            ...style
+            position: "relative",
           }}
           onClick={handler}
         >
@@ -135,7 +161,6 @@ export const MobileNavigation = () => {
       {colorPickerOpen &&
       <div
         ref={colorPickerRef}
-        tabIndex={-1}
         style={{
           position: "absolute",
           top: -600,
@@ -144,37 +169,24 @@ export const MobileNavigation = () => {
           width: "350px",
           height: "600px",
           display: "grid",
-          gridTemplateColumns: `repeat(${colorPickerColumns}, 1fr)`,
-          gridTemplateRows: `repeat(${colorPickerRows}, 1fr)`,
+          gridTemplateColumns: `repeat(${colors[0].length}, 1fr)`,
+          gridTemplateRows: `repeat(${colors.length}, 1fr)`,
         }}
-        onBlur={onColorPickerBlur}
       >
-        {[...Array(colorPickerRows)].map((_, i) =>
-          [...Array(colorPickerColumns)].map((_, j) => {
-            let h: number, s: number, v: number
-            if (i === 0) {
-              h = 0
-              s = 0
-              v = Math.round(100 / (colorPickerColumns - 1) * (colorPickerColumns - (j + 1)))
-            } else {
-              h = Math.round(360 / (colorPickerRows - 1) * (i - 1))
-              s = Math.round(Math.min(100 / Math.ceil(colorPickerColumns / 2) * (j + 1), 100))
-              v = Math.round(Math.min(100 / Math.ceil(colorPickerColumns / 2) * (colorPickerColumns - j), 100))
-            }
-            const color = new HSVColor([h, s, v])
-            return <div
-              key={`${i}-${j}`}
-              style={{
-                background: color.css,
-                ...(drawContext.pen.color.equalTo(color) && {
-                  border: `2px solid ${(s < 50 && v > 70) || (30 <= h && h <= 190 && v > 70)? "black" : "white"}`,
-                  borderRadius: "2px",
-                }),
-              }}
-              onClick={onColorPickerClick(color)}
-            />
-          })
-        ).flat()}
+        {colors.flat().map(color => {
+          const [h, s, v] = color.hsv
+          return <div
+            key={color.css}
+            style={{
+              background: color.css,
+              ...(drawContext.pen.color.equalTo(color) && {
+                border: `2px solid ${(s < 50 && v > 70) || (30 <= h && h <= 190 && v > 70)? "black" : "white"}`,
+                borderRadius: "2px",
+              }),
+            }}
+            onClick={onColorPickerClick(color)}
+          />
+        })}
       </div>}
     </div>
   )

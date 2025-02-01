@@ -118,6 +118,7 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
       const pjt = new Project()
       const drawing = Drawing.create(pjt.getUniqueDrawingName())
       pjt.addDrawing(drawing)
+      pjt.openDrawingPanel(drawing.id, 0, 0)
       return {current: 0, history: [{project: pjt, action}]}
     }
     case "load": {
