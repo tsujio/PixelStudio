@@ -96,7 +96,7 @@ export const MobileNavigation = () => {
     },
   ]
 
-  const colorPickerRows = 10
+  const colorPickerRows = 12
   const colorPickerColumns = 5
 
   return (
