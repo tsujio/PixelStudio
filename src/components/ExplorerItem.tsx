@@ -26,7 +26,7 @@ export function ExplorerItem(props: Props) {
     const [xOffset, yOffset] = [-((props.sidebarWidth ?? 0) + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
     if (panel) {
       updateBoardNavigation({type: "setPerspective", perspective: [panel.x + xOffset, panel.y + yOffset], duration: 300})
-      updateProject({type: "activatePanel", panelId: panel.id})
+      updateProject({type: "setPanelZ", panelId: panel.id, offset: Infinity})
     } else {
       updateProject({type: "openPanel", drawingId: props.drawing.id, x: boardNavigation.perspective[0] - xOffset, y: boardNavigation.perspective[1] - yOffset})
     }

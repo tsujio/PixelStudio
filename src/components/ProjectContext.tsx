@@ -73,8 +73,9 @@ type Action =
     panelId: string
   } |
   {
-    type: "activatePanel"
+    type: "setPanelZ"
     panelId: string
+    offset: number
   } |
   {
     type: "movePanel"
@@ -220,14 +221,9 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
       const pjt = project.clone()
       const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)
       if (panel !== undefined) {
-        // Just activate if the specified drawing id already open
-        if (pjt.getActivePanel()?.id === panel.id) {
-          return projectHistory
-        }
-        pjt.activatePanel(panel.id)
-      } else {
-        pjt.openDrawingPanel(action.drawingId, action.x, action.y)
+        return projectHistory
       }
+      pjt.openDrawingPanel(action.drawingId, action.x, action.y)
       return pushHistory(pjt)
     }
     case "closePanel": {
@@ -235,12 +231,14 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
       pjt.closePanel(action.panelId)
       return pushHistory(pjt)
     }
-    case "activatePanel": {
+    case "setPanelZ": {
       const pjt = project.clone()
-      if (pjt.getActivePanel()?.id === action.panelId) {
+      const oldIndex = pjt.panels.findIndex(p => p.id === action.panelId)
+      pjt.setPanelZ(action.panelId, action.offset)
+      const newIndex = pjt.panels.findIndex(p => p.id === action.panelId)
+      if (oldIndex === newIndex) {
         return projectHistory
       }
-      pjt.activatePanel(action.panelId)
       return pushHistory(pjt)
     }
     case "movePanel": {

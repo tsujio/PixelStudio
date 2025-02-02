@@ -56,7 +56,7 @@ export function Panel(props: Props) {
   })
 
   const onPointerDown = () => {
-    updateProject({type: "activatePanel", panelId: props.panel.id})
+    updateProject({type: "setPanelZ", panelId: props.panel.id, offset: Infinity})
   }
 
   const [panelName, setPanelName] = useState<string>("")
@@ -89,20 +89,16 @@ export function Panel(props: Props) {
         style={{
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",
-          alignItems: "center",
-          height: `${48 * zoom}px`,
-          padding: `0 ${12 * zoom}px`,
+          alignItems: "end",
+          height: `${44 * zoom}px`,
+          padding: `0 ${12 * zoom}px ${4 * zoom}px`,
           boxSizing: "border-box",
           userSelect: "none",
         }}
       >
         <span style={{fontSize: `${Math.max(zoom * 100, 25)}%`}}>{panelName}</span>
       </div>
-      <div
-        style={{
-          padding: `0 ${12 * zoom}px ${12 * zoom}px`,
-        }}
-      >
+      <div>
         <PanelContext.Provider value={panelContextValue}>
           {props.children}
         </PanelContext.Provider>

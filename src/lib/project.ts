@@ -127,14 +127,15 @@ export class Project {
     this.#panels[index] = panel
   }
 
-  activatePanel(panelId: string) {
+  setPanelZ(panelId: string, offset: number) {
     const index = this.#panels.findIndex(p => p.id === panelId)
     if (index === -1) {
       throw new Error(`Invalid panel id: ${panelId}`)
     }
     const panel = this.#panels[index]
-    this.#panels.splice(index, 1)
-    this.#panels.push(panel)
+    const front = this.#panels.filter((_, i) => i <= index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
+    const back = this.#panels.filter((_, i) => i > index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
+    this.#panels = front.concat([panel]).concat(back)
   }
 
   getActivePanel() {

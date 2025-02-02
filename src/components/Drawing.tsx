@@ -51,7 +51,7 @@ export function Drawing(props: Props) {
   }
 
   return (
-    <ResizableArea onResize={onResize} draggableAreaSpan={2 * boardNavigation.zoom}>
+    <ResizableArea onResize={onResize} draggableAreaSpan={12 * boardNavigation.zoom}>
       <Canvas
         drawing={props.drawing}
         mask={mask ?? undefined}
