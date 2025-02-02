@@ -29,13 +29,13 @@ export function Sidebar(props: Props) {
   const [open, setOpen] = useState(windowSize.type === "desktop")
 
   useEffect(() => {
-    if (contentRef.current && open) {
+    if (contentRef.current) {
       const contentWidth = parseInt(window.getComputedStyle(contentRef.current).width)
       if (props.width < contentWidth) {
         props.onWidthChange(contentWidth)
       }
     }
-  }, [props.width, open])
+  }, [props.width])
 
   const onCloseButtonClick = () => {
     setOpen(false)
@@ -57,19 +57,17 @@ export function Sidebar(props: Props) {
     }
   }
 
-  const sidebarWidth = open ? props.width : 0
-
   return (
     <div
       style={{
-        width: sidebarWidth,
+        width: props.width,
         height: "100%",
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
         gridTemplateRows: "minmax(0, 1fr)",
         position: "absolute",
         top: 0,
-        left: 0,
+        left: open ? 0 : props.width > 0 ? -(props.width + 8) : -999,
         zIndex: 9999,
         background: "white",
       }}
@@ -77,7 +75,6 @@ export function Sidebar(props: Props) {
       <div
         ref={contentRef}
         style={{
-          overflowX: open ? "inherit" : "hidden",
           display: "grid",
           gridTemplateRows: "auto minmax(0, 1fr) auto",
         }}
@@ -107,7 +104,7 @@ export function Sidebar(props: Props) {
             />
           </div>
         </div>
-        <Explorer sidebarWidth={sidebarWidth} />
+        <Explorer sidebarWidth={props.width} />
         <div style={{textAlign: "center", whiteSpace: "nowrap", padding: "8px", fontSize: "14px"}}>
           <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
           <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>

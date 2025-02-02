@@ -22,7 +22,7 @@ export const Board = (props: Props) => {
   const [lastProjectId, setLastProjectId] = useState<string | undefined>()
   useEffect(() => {
     // Set perspective to first panel position when new project loaded
-    if (lastProjectId !== project.id) {
+    if (lastProjectId !== project.id && props.sidebarWidth > 0) {
       setLastProjectId(project.id)
       if (project.panels.length > 0) {
         const panel = project.panels[0]
