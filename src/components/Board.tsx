@@ -24,8 +24,8 @@ export const Board = (props: Props) => {
     // Set perspective to first panel position when new project loaded
     if (lastProjectId !== project.id && props.sidebarWidth !== undefined) {
       setLastProjectId(project.id)
-      if (project.panels.length > 0) {
-        const panel = project.panels[project.panels.length - 1]
+      const panel = project.getActivePanel()
+      if (panel) {
         const [xOffset, yOffset] = [-(props.sidebarWidth + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
         const perspective: [number, number] = [panel.x + xOffset, panel.y + yOffset]
         updateBoardNavigation({type: "setPerspective", perspective})

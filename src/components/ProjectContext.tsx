@@ -26,6 +26,7 @@ type Action =
   } |
   {
     type: "addDrawing"
+    drawing: Drawing
   } |
   {
     type: "renameDrawing"
@@ -136,8 +137,7 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     }
     case "addDrawing": {
       const pjt = project.clone()
-      const drawing = Drawing.create(pjt.getUniqueDrawingName())
-      pjt.addDrawing(drawing)
+      pjt.addDrawing(action.drawing)
       return pushHistory(pjt)
     }
     case "renameDrawing": {

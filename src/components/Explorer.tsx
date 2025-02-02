@@ -6,6 +6,7 @@ import { Menu } from "./Menu"
 import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
+import { Drawing } from "../lib/drawing"
 
 type Props = {
   sidebarWidth: number | undefined
@@ -85,8 +86,12 @@ export function Explorer(props: Props) {
     URL.revokeObjectURL(url)
   }
 
+  const [drawingIdToActivate, setDrawingIdToActivate] = useState<string | undefined>()
+
   const onAddDrawingButtonClick = () => {
-    updateProject({type: "addDrawing"})
+    const drawing = Drawing.create(project.getUniqueDrawingName())
+    updateProject({type: "addDrawing", drawing})
+    setDrawingIdToActivate(drawing.id)
   }
 
   useEffect(() => {
@@ -210,7 +215,12 @@ export function Explorer(props: Props) {
           }}
         >
           {drawings && drawings.map(drawing =>
-            <ExplorerItem key={drawing.id} drawing={drawing} sidebarWidth={props.sidebarWidth} />
+            <ExplorerItem
+              key={drawing.id}
+              drawing={drawing}
+              sidebarWidth={props.sidebarWidth}
+              active={drawingIdToActivate === drawing.id}
+            />
           )}
         </div>
       </div>

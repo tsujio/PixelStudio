@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { IconButton } from "./IconButton"
 import { Menu } from "./Menu"
 import { MenuItem } from "./MenuItem"
@@ -13,6 +13,7 @@ import { useBoardContext } from "./BoardContext"
 type Props = {
   drawing: Drawing
   sidebarWidth: number | undefined
+  active: boolean
 }
 
 export function ExplorerItem(props: Props) {
@@ -101,16 +102,27 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
-  const isWindowActive = project.panels.length > 0 && project.panels.findIndex(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id) === project.panels.length - 1
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (ref.current && props.active) {
+      ref.current.scrollIntoView()
+      onDrawingNameClick()
+    }
+  }, [props.active])
+
+  const activePanel = project.getActivePanel()
+  const isPanelActive = activePanel instanceof DrawingPanel && activePanel.drawingId === props.drawing.id
 
   return (
     <div
+      ref={ref}
       onClick={onDrawingNameClick}
       style={{
         padding: "12px",
         display: "grid",
         gridTemplateColumns: "1fr auto",
-        background: hover || menuButtonElement || isWindowActive ? "whitesmoke" : "white",
+        background: hover || menuButtonElement || isPanelActive ? "whitesmoke" : "white",
         cursor: "pointer",
       }}
       {...hoverHandlers}
@@ -142,7 +154,7 @@ export function ExplorerItem(props: Props) {
         <IconButton
           icon="menu"
           style={{
-            display: hover || menuButtonElement || isWindowActive ? "inline-block" : "none"
+            display: hover || menuButtonElement || isPanelActive ? "inline-block" : "none"
           }}
           onClick={onMenuClick}
         />
