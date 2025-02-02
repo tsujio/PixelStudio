@@ -8,7 +8,7 @@ import { TextField } from "./TextField"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 
 type Props = {
-  sidebarWidth: number
+  sidebarWidth: number | undefined
 }
 
 export function Explorer(props: Props) {

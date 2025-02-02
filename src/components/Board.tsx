@@ -11,7 +11,7 @@ import { useWindowContext } from './WindowContext'
 import { BoardControl } from './BoardControl'
 
 type Props = {
-  sidebarWidth: number
+  sidebarWidth: number | undefined
 }
 
 export const Board = (props: Props) => {
@@ -22,10 +22,10 @@ export const Board = (props: Props) => {
   const [lastProjectId, setLastProjectId] = useState<string | undefined>()
   useEffect(() => {
     // Set perspective to first panel position when new project loaded
-    if (lastProjectId !== project.id && props.sidebarWidth > 0) {
+    if (lastProjectId !== project.id && props.sidebarWidth !== undefined) {
       setLastProjectId(project.id)
       if (project.panels.length > 0) {
-        const panel = project.panels[0]
+        const panel = project.panels[project.panels.length - 1]
         const [xOffset, yOffset] = [-(props.sidebarWidth + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
         const perspective: [number, number] = [panel.x + xOffset, panel.y + yOffset]
         updateBoardNavigation({type: "setPerspective", perspective})

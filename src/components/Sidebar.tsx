@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { Explorer } from "./Explorer"
 import { useGesture } from "./GestureContext"
 import logoImg from "../assets/logo.png"
@@ -6,9 +6,14 @@ import { IconButton } from "./IconButton"
 import { useWindowContext } from "./WindowContext"
 import { useBoardContext } from "./BoardContext"
 
+export type SidebarState = {
+  open: boolean
+  width: number | undefined
+}
+
 type Props = {
-  width: number
-  onWidthChange: (width: number) => void
+  state: SidebarState
+  onStateChange: (state: SidebarState) => void
 }
 
 export function Sidebar(props: Props) {
@@ -21,38 +26,36 @@ export function Sidebar(props: Props) {
     onDragMove: e => {
       const width = e.pageX
       if (width > 0 && width < windowSize.width) {
-        props.onWidthChange(width)
+        props.onStateChange({...props.state, width: width})
       }
     }
   })
 
-  const [open, setOpen] = useState(windowSize.type === "desktop")
-
   useEffect(() => {
     if (contentRef.current) {
       const contentWidth = parseInt(window.getComputedStyle(contentRef.current).width)
-      if (props.width < contentWidth) {
-        props.onWidthChange(contentWidth)
+      if (props.state.width === undefined || props.state.width < contentWidth) {
+        props.onStateChange({...props.state, width: contentWidth})
       }
     }
-  }, [props.width])
+  }, [props.state, props.onStateChange])
 
   const onCloseButtonClick = () => {
-    setOpen(false)
+    props.onStateChange({...props.state, open: false})
 
     if (windowSize.type === "mobile") {
       const perspective: [number, number] = [...boardNavigation.perspective]
-      perspective[0] += props.width / boardNavigation.zoom
+      perspective[0] += (props.state.width ?? 0) / boardNavigation.zoom
       updateBoardNavigation({type: "setPerspective", perspective})
     }
   }
 
   const onHamburgerClick = () => {
-    setOpen(true)
+    props.onStateChange({...props.state, open: true})
 
     if (windowSize.type === "mobile") {
       const perspective: [number, number] = [...boardNavigation.perspective]
-      perspective[0] -= props.width / boardNavigation.zoom
+      perspective[0] -= (props.state.width ?? 0) / boardNavigation.zoom
       updateBoardNavigation({type: "setPerspective", perspective})
     }
   }
@@ -60,14 +63,14 @@ export function Sidebar(props: Props) {
   return (
     <div
       style={{
-        width: props.width,
+        width: props.state.width ?? 0,
         height: "100%",
         boxShadow: "0px 0px 8px 0px gray",
         display: "grid",
         gridTemplateRows: "minmax(0, 1fr)",
         position: "absolute",
         top: 0,
-        left: open ? 0 : props.width > 0 ? -(props.width + 8) : -999,
+        left: props.state.width === undefined ? -999 : props.state.open ? 0 : -(props.state.width + 8),
         zIndex: 9999,
         background: "white",
       }}
@@ -104,7 +107,7 @@ export function Sidebar(props: Props) {
             />
           </div>
         </div>
-        <Explorer sidebarWidth={props.width} />
+        <Explorer sidebarWidth={props.state.open ? props.state.width : 0} />
         <div style={{textAlign: "center", whiteSpace: "nowrap", padding: "8px", fontSize: "14px"}}>
           <span style={{display: "inline-block"}}><a style={{textDecoration: "none", color: "dodgerblue"}} href="https://github.com/tsujio/PixelStudio">Source code</a></span>
           <span style={{display: "inline-block", marginLeft: "16px"}}>&copy; <a style={{textDecoration: "none", color: "dodgerblue"}} href="https://www.tsujio.org">Tsujio Lab</a></span>
@@ -120,7 +123,7 @@ export function Sidebar(props: Props) {
         }}
         {...gestureHandlers}
       />
-      {!open &&
+      {!props.state.open &&
       <div
         style={{
           position: "absolute",

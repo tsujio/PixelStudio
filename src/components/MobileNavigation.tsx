@@ -39,18 +39,22 @@ export const MobileNavigation = () => {
   }
 
   const colorPickerRef = useRef<HTMLDivElement>(null)
+  const colorPickerButtonRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (colorPickerOpen) {
       const handler = (e: PointerEvent) => {
+        if (colorPickerButtonRef.current) {
+          const rect = colorPickerButtonRef.current.getBoundingClientRect()
+          if (rect.left <= e.pageX && e.pageX <= rect.right && rect.top <= e.pageY && e.pageY <= rect.bottom) {
+            // Ignore if the point is on the color picker button (will be closed by onclick handler)
+            return
+          }
+        }
         if (colorPickerRef.current) {
           const rect = colorPickerRef.current.getBoundingClientRect()
           if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
-            // HACK: Clicking color picker button to close picker does not work because this handler triggered before onClick handler.
-            //       So use setTimeout to delay handler process.
-            setTimeout(() => {
-              setColorPickerOpen(false)
-            }, 100)
+            setColorPickerOpen(false)
           }
         }
       }
@@ -105,6 +109,7 @@ export const MobileNavigation = () => {
         borderRadius: "2px",
       }} />,
       handler: onColorButtonClick,
+      ref: colorPickerButtonRef,
     },
   ]
 
@@ -141,9 +146,10 @@ export const MobileNavigation = () => {
         borderTop: "2px solid lightgray",
       }}
     >
-      {buttons.map(({icon, handler}, i) =>
+      {buttons.map(({icon, handler, ref}, i) =>
         <div
           key={i}
+          ref={ref}
           style={{
             display: "grid",
             placeItems: "center",

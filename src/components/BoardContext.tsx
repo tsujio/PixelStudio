@@ -86,7 +86,7 @@ type Props = {
 }
 
 const initialContextValue: BoardNavigation = {
-  perspective: [0, 0],
+  perspective: [-9999, -9999],
   zoom: 1.0,
 }
 

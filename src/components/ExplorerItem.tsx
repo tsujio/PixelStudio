@@ -12,7 +12,7 @@ import { useBoardContext } from "./BoardContext"
 
 type Props = {
   drawing: Drawing
-  sidebarWidth: number
+  sidebarWidth: number | undefined
 }
 
 export function ExplorerItem(props: Props) {
@@ -23,7 +23,7 @@ export function ExplorerItem(props: Props) {
 
   const onDrawingNameClick = () => {
     const panel = project.panels.find(p => p instanceof DrawingPanel && p.drawingId === props.drawing.id)
-    const [xOffset, yOffset] = [-(props.sidebarWidth + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
+    const [xOffset, yOffset] = [-((props.sidebarWidth ?? 0) + 20) / boardNavigation.zoom, -60 / boardNavigation.zoom]
     if (panel) {
       updateBoardNavigation({type: "setPerspective", perspective: [panel.x + xOffset, panel.y + yOffset], duration: 300})
       updateProject({type: "activatePanel", panelId: panel.id})
