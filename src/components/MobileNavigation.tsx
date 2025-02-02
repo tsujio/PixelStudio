@@ -6,7 +6,7 @@ import { useWindowContext } from "./WindowContext"
 import { HSVColor } from "../lib/color"
 
 export const MobileNavigation = () => {
-  const { updateProject } = useProjectContext()
+  const { updateProject, projectHistory } = useProjectContext()
   const { windowSize } = useWindowContext()
   const { drawContext, changeTool, changePenColor } = useDrawContext()
 
@@ -69,33 +69,38 @@ export const MobileNavigation = () => {
     return null
   }
 
+  const canUndo = projectHistory.current > 0
+  const canRedo = projectHistory.current < projectHistory.history.length - 1
+
   const buttons = [
     {
-      icon: <Icon icon="undo" />,
-      handler: onUndoButtonClick,
+      icon: <Icon icon="undo" style={{opacity: !canUndo ? 0.3 : undefined}} />,
+      handler: canUndo ? onUndoButtonClick : undefined,
     },
     {
-      icon: <Icon icon="redo" />,
-      handler: onRedoButtonClick,
+      icon: <Icon icon="redo" style={{opacity: !canRedo ? 0.3 : undefined}} />,
+      handler: canRedo ? onRedoButtonClick : undefined,
     },
     {
       icon: <>
-        <Icon
-          icon={drawContext.tool === "eraser" ? "eraser" : "pen"}
-          style={{
-            opacity: !["pen", "eraser"].includes(drawContext.tool) ? 0.3 : undefined,
-          }}
-        />
-        <Icon
-          icon={drawContext.tool === "eraser" ? "pen" : "eraser"}
-          size="small"
-          style={{
-            position: "absolute",
-            top: 12,
-            right: 8,
-            opacity: 0.3,
-          }}
-        />
+        {(["pen", "eraser"] as const).map(tool => {
+          const active = tool === "eraser" && drawContext.tool === tool || tool === "pen" && drawContext.tool !== "eraser"
+          return <Icon
+            key={tool}
+            icon={tool}
+            size={active ? "medium" : "small"}
+            style={{
+              transitionProperty: "width, opacity",
+              transitionDuration: "0.1s",
+              opacity: drawContext.tool !== tool ? 0.3 : 1.0,
+              ...(!active && {
+                position: "absolute",
+                top: 12,
+                right: 8,
+              })
+            }}
+          />
+        })}
       </>,
       handler: onPenButtonClick,
     },
@@ -155,7 +160,7 @@ export const MobileNavigation = () => {
             placeItems: "center",
             width: "min(100%, 96px)",
             height: "100%",
-            cursor: "pointer",
+            cursor: handler ? "pointer" : undefined,
             boxSizing: "border-box",
             position: "relative",
           }}
@@ -164,16 +169,17 @@ export const MobileNavigation = () => {
           {icon}
         </div>
       )}
-      {colorPickerOpen &&
       <div
         ref={colorPickerRef}
         style={{
           position: "absolute",
-          top: -600,
+          top: colorPickerOpen ? -600 : 0,
           right: 0,
           background: "white",
-          width: "350px",
-          height: "600px",
+          width: colorPickerOpen ? "350px" : 0,
+          height: colorPickerOpen ? "600px" : 0,
+          transitionProperty: "width, height, top",
+          transitionDuration: "50ms",
           display: "grid",
           gridTemplateColumns: `repeat(${colors[0].length}, 1fr)`,
           gridTemplateRows: `repeat(${colors.length}, 1fr)`,
@@ -193,7 +199,7 @@ export const MobileNavigation = () => {
             onClick={onColorPickerClick(color)}
           />
         })}
-      </div>}
+      </div>
     </div>
   )
 }

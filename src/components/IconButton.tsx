@@ -5,6 +5,7 @@ import { Icon } from "./Icon"
 type Props = {
   icon: IconType
   size?: "small" | "medium" | "large"
+  disabled?: boolean
   style?: React.CSSProperties
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
@@ -14,7 +15,7 @@ export function IconButton(props: Props) {
 
   const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
-    if (props.onClick) {
+    if (props.onClick && !props.disabled) {
       props.onClick(e)
     }
   }
@@ -26,7 +27,7 @@ export function IconButton(props: Props) {
       {...hoverHandlers}
       onClick={onClick}
       style={{
-        background: hover ? "whitesmoke" : "white",
+        background: props.disabled ? "gray" : hover ? "whitesmoke" : "white",
         border: "none",
         borderRadius: "50%",
         cursor: "pointer",
