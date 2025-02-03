@@ -7,6 +7,7 @@ import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 import { Drawing } from "../lib/drawing"
+import { Icon } from "./Icon"
 
 type Props = {
   sidebarWidth: number | undefined
@@ -14,6 +15,8 @@ type Props = {
 
 export function Explorer(props: Props) {
   const { project, projectHistory, updateProject } = useProjectContext()
+
+  const isProjectClean = projectHistory.history[projectHistory.current].clean
 
   const drawings = Object.values(project.drawings)
   drawings.sort((a, b) => a.name.localeCompare(b.name))
@@ -31,8 +34,7 @@ export function Explorer(props: Props) {
   const [fileHandle, setFileHandle] = useState<FileSystemFileHandle | null>(null)
 
   const onNewProjectButtonClick = () => {
-    const clean = projectHistory.history[projectHistory.current].clean
-    if (clean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
+    if (isProjectClean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
       updateProject({type: "newProject"})
       setFileHandle(null)
     }
@@ -41,8 +43,7 @@ export function Explorer(props: Props) {
 
   const onOpenProjectButtonClick = async () => {
     const {fileHandle, contents} = await openFile()
-    const clean = projectHistory.history[projectHistory.current].clean
-    if (clean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
+    if (isProjectClean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
       const json = JSON.parse(contents)
       updateProject({type: "load", json})
       setFileHandle(fileHandle)
@@ -71,6 +72,7 @@ export function Explorer(props: Props) {
     if (fileHandle) {
       await writeToFile(fileHandle, JSON.stringify(project))
       updateProject({type: "markAsClean"})
+      setShowSavedIcon(true)
     }
   }
 
@@ -79,6 +81,7 @@ export function Explorer(props: Props) {
     const fileHandle = await createFile(json, project.nameToDownload)
     setFileHandle(fileHandle)
     updateProject({type: "markAsClean"})
+    setShowSavedIcon(true)
   }
 
   const onDownloadProjectButtonClick = () => {
@@ -94,6 +97,7 @@ export function Explorer(props: Props) {
     URL.revokeObjectURL(url)
 
     updateProject({type: "markAsClean"})
+    setShowSavedIcon(true)
   }
 
   const [drawingIdToOpen, setDrawingIdToOpen] = useState<string | undefined>()
@@ -102,6 +106,11 @@ export function Explorer(props: Props) {
     const drawing = Drawing.create(project.getUniqueDrawingName())
     updateProject({type: "addDrawing", drawing})
     setDrawingIdToOpen(drawing.id)
+  }
+
+  const [showSavedIcon, setShowSavedIcon] = useState(false)
+  if (showSavedIcon && !isProjectClean) {
+    setShowSavedIcon(false)
   }
 
   useEffect(() => {
@@ -153,7 +162,7 @@ export function Explorer(props: Props) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr auto",
+          gridTemplateColumns: "1fr auto auto",
           padding: "16px 12px",
         }}
       >
@@ -178,6 +187,18 @@ export function Explorer(props: Props) {
             onBlur={onNewProjectNameInputBlur}
             focusOnMount={true}
             blurOnEnter={true}
+          />}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {showSavedIcon &&
+          <Icon
+            icon="check"
+            size="small"
           />}
         </div>
         <div

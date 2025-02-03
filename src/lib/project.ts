@@ -63,6 +63,9 @@ export class Project {
   }
 
   deleteDrawing(drawingId: string) {
+    if (!(drawingId in this.#drawings)) {
+      throw new Error(`Invalid drawing id: ${drawingId}`)
+    }
     delete this.#drawings[drawingId]
   }
 

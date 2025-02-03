@@ -1,5 +1,6 @@
 import addImg from "../assets/add.png"
 import canvasImg from "../assets/canvas.png"
+import checkImg from "../assets/check.png"
 import closeImg from "../assets/close.png"
 import colorImg from "../assets/color.png"
 import deleteImg from "../assets/delete.png"
@@ -24,12 +25,13 @@ import upImg from "../assets/up.png"
 import zoominImg from "../assets/zoomin.png"
 import zoomoutImg from "../assets/zoomout.png"
 
-export type IconType = "add" | "canvas" | "close" | "color" | "delete" | "down" | "download" | "eraser" | "hamburger" | "left" | "menu" | "new" | "open" | "pen" | "pin" | "redo" | "rename" | "right" | "save" | "saveas" | "select" | "undo" | "up" | "zoomin" | "zoomout"
+export type IconType = "add" | "canvas" | "check" | "close" | "color" | "delete" | "down" | "download" | "eraser" | "hamburger" | "left" | "menu" | "new" | "open" | "pen" | "pin" | "redo" | "rename" | "right" | "save" | "saveas" | "select" | "undo" | "up" | "zoomin" | "zoomout"
 
 export const getIcon = (icon: IconType): string => {
   switch (icon) {
     case "add":  return addImg
     case "canvas": return canvasImg
+    case "check": return checkImg
     case "close": return closeImg
     case "color": return colorImg
     case "delete": return deleteImg

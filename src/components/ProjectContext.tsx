@@ -289,6 +289,9 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     }
     case "markAsClean": {
       const hist = [...history]
+      if (hist[current].clean) {
+        return projectHistory
+      }
       hist[current] = {...hist[current], clean: true}
       return {
         ...projectHistory,
