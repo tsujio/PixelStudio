@@ -13,7 +13,7 @@ import { useBoardContext } from "./BoardContext"
 type Props = {
   drawing: Drawing
   sidebarWidth: number | undefined
-  active: boolean
+  openDrawing: boolean
 }
 
 export function ExplorerItem(props: Props) {
@@ -32,6 +32,12 @@ export function ExplorerItem(props: Props) {
       updateProject({type: "openPanel", drawingId: props.drawing.id, x: boardNavigation.perspective[0] - xOffset, y: boardNavigation.perspective[1] - yOffset})
     }
   }
+
+  useEffect(() => {
+    if (props.openDrawing) {
+      onDrawingNameClick()
+    }
+  }, [props.openDrawing])
 
   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null)
 
@@ -104,17 +110,16 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
+  const activePanel = project.getActivePanel()
+  const isPanelActive = activePanel instanceof DrawingPanel && activePanel.drawingId === props.drawing.id
+
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (ref.current && props.active) {
+    if (ref.current && isPanelActive) {
       ref.current.scrollIntoView()
-      onDrawingNameClick()
     }
-  }, [props.active])
-
-  const activePanel = project.getActivePanel()
-  const isPanelActive = activePanel instanceof DrawingPanel && activePanel.drawingId === props.drawing.id
+  }, [isPanelActive])
 
   return (
     <div

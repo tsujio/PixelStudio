@@ -96,12 +96,12 @@ export function Explorer(props: Props) {
     updateProject({type: "markAsClean"})
   }
 
-  const [drawingIdToActivate, setDrawingIdToActivate] = useState<string | undefined>()
+  const [drawingIdToOpen, setDrawingIdToOpen] = useState<string | undefined>()
 
   const onAddDrawingButtonClick = () => {
     const drawing = Drawing.create(project.getUniqueDrawingName())
     updateProject({type: "addDrawing", drawing})
-    setDrawingIdToActivate(drawing.id)
+    setDrawingIdToOpen(drawing.id)
   }
 
   useEffect(() => {
@@ -229,7 +229,7 @@ export function Explorer(props: Props) {
               key={drawing.id}
               drawing={drawing}
               sidebarWidth={props.sidebarWidth}
-              active={drawingIdToActivate === drawing.id}
+              openDrawing={drawingIdToOpen === drawing.id}
             />
           )}
         </div>
