@@ -36,7 +36,7 @@ export function ExplorerItem(props: Props) {
   const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null)
 
   const onMenuClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setMenuButtonElement(e.nativeEvent.target as HTMLElement)
+    setMenuButtonElement(e.currentTarget)
   }
 
   const onMenuClose = () => {
@@ -156,7 +156,7 @@ export function ExplorerItem(props: Props) {
         <IconButton
           icon="menu"
           style={{
-            display: hover || menuButtonElement || isPanelActive ? "inline-block" : "none"
+            display: menuButtonElement || isPanelActive ? "inline-block" : "none"
           }}
           onClick={onMenuClick}
         />

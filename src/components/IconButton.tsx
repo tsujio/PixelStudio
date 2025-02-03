@@ -7,16 +7,17 @@ type Props = {
   size?: "small" | "medium" | "large"
   disabled?: boolean
   style?: React.CSSProperties
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
+  onClick?: (e: React.PointerEvent<HTMLButtonElement>) => void
 }
 
 export function IconButton(props: Props) {
   const [hover, hoverHandlers] = useHover()
 
-  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation()
-    if (props.onClick && !props.disabled) {
-      props.onClick(e)
+  const onClick = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.pointerType !== "mouse" || e.button === 0) {
+      if (props.onClick && !props.disabled) {
+        props.onClick(e)
+      }
     }
   }
 
@@ -25,7 +26,7 @@ export function IconButton(props: Props) {
   return (
     <button
       {...hoverHandlers}
-      onClick={onClick}
+      onPointerDown={onClick}
       style={{
         background: props.disabled ? "gray" : hover ? "whitesmoke" : "white",
         border: "none",

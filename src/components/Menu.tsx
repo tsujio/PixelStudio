@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useWindowContext } from './WindowContext'
 
 type Props = {
   open: boolean
@@ -9,23 +10,38 @@ type Props = {
 }
 
 export function Menu(props: Props) {
+  const { windowSize } = useWindowContext()
+
   const ref = useRef<HTMLDivElement | null>(null)
 
   const [position, setPosition] = useState<[number, number] | null>(null)
 
   useEffect(() => {
     if (props.open && props.anchor && ref.current) {
-      ref.current.focus({preventScroll: true})
-
       const anchorRect = props.anchor.getBoundingClientRect()
       const menuRect = ref.current.getBoundingClientRect()
-      if (anchorRect.bottom + menuRect.height < window.innerHeight) {
+      if (anchorRect.bottom + menuRect.height < windowSize.height) {
         setPosition([anchorRect.bottom, anchorRect.left])
       } else {
         setPosition([anchorRect.bottom - menuRect.height, anchorRect.right])
       }
     }
-  }, [props.open, props.anchor])
+  }, [props.open, props.anchor, windowSize])
+
+  useEffect(() => {
+    const handler = (e: PointerEvent) => {
+      if (ref.current && position) {
+        const rect = ref.current.getBoundingClientRect()
+        if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
+          props.onClose()
+        }
+      }
+    }
+    document.addEventListener("pointerdown", handler)
+    return () => {
+      document.removeEventListener("pointerdown", handler)
+    }
+  }, [position])
 
   if (!props.open && position) {
     setPosition(null)
@@ -38,7 +54,6 @@ export function Menu(props: Props) {
   return (
     <div
       ref={ref}
-      tabIndex={-1}
       style={{
         display: props.open ? "block" : "none",
         opacity: props.open && position ? 1 : 0,
@@ -50,7 +65,6 @@ export function Menu(props: Props) {
         padding: "8px 0",
         zIndex: props.zIndex ?? 9999,
       }}
-      onBlur={props.onClose}
     >
       {props.children}
     </div>
