@@ -1,16 +1,18 @@
 import { useGesture } from "./GestureContext"
 
+export type ResizeEvent = {
+  diff: {
+    top: number
+    left: number
+    bottom: number
+    right: number
+  }
+  fix: boolean
+}
+
 type Props = {
   onResizeStart?: () => void,
-  onResize: (
-    diff: {
-      top: number,
-      left: number,
-      bottom: number,
-      right: number,
-    },
-    fix: boolean,
-  ) => void
+  onResize: (e: ResizeEvent) => void
   draggableAreaSpan: number,
   children: React.ReactNode
 }
@@ -27,11 +29,14 @@ export function ResizableArea(props: Props) {
         return (e: React.PointerEvent, fix: boolean) => {
           const [diffX, diffY] = [e.pageX - x, e.pageY - y]
           props.onResize({
-            top: area.includes("top") ? diffY : 0,
-            left: area.includes("left") ? diffX : 0,
-            bottom: area.includes("bottom") ? diffY : 0,
-            right: area.includes("right") ? diffX : 0,
-          }, fix)
+            diff: {
+              top: area.includes("top") ? diffY : 0,
+              left: area.includes("left") ? diffX : 0,
+              bottom: area.includes("bottom") ? diffY : 0,
+              right: area.includes("right") ? diffX : 0,
+            },
+            fix,
+          })
         }
       },
       onDragMove: (e, dragStartData) => {

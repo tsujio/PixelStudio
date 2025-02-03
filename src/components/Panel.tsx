@@ -3,11 +3,13 @@ import { useGesture } from './GestureContext'
 import { useProjectContext } from './ProjectContext'
 import { Panel as PanelClass } from '../lib/panel'
 import { useBoardContext } from './BoardContext'
+import { ResizableArea, ResizeEvent } from './ResizableArea'
 
 type PanelContextValue = {
   panelId: string
   setPanelName: (name: string) => void
   setPanelPositionOffset: (position: [number, number]) => void
+  resize: ResizeEvent | undefined
 }
 
 const PanelContext = createContext<PanelContextValue | null>(null)
@@ -59,13 +61,21 @@ export function Panel(props: Props) {
     updateProject({type: "setPanelZ", panelId: props.panel.id, offset: Infinity})
   }
 
+  const [resize, setResize] = useState<ResizeEvent | undefined>()
+  const onResize = (e: ResizeEvent) => {
+    if (!resize || resize.diff.top !== e.diff.top || resize.diff.left !== e.diff.left || resize.diff.bottom !== e.diff.bottom || resize.diff.right !== e.diff.right || resize.fix !== e.fix) {
+      setResize(e)
+    }
+  }
+
   const [panelName, setPanelName] = useState<string>("")
 
   const panelContextValue = useMemo(() => ({
     panelId: props.panel.id,
     setPanelName,
     setPanelPositionOffset,
-  }), [props.panel.id])
+    resize,
+  }), [props.panel.id, resize])
 
   const zoom = boardNavigation.zoom
 
@@ -78,31 +88,33 @@ export function Panel(props: Props) {
         top: props.top + panelPositionOffset[1],
         left: props.left + panelPositionOffset[0],
         zIndex: props.zIndex,
-        display: "inline-block",
+        display: "block",
         borderRadius: `${8 * zoom}px`,
         boxShadow: "2px 4px 16px 4px lightgray",
         background: "white",
       }}
     >
-      <div
-        {...draggableAreaGestureHandlers}
-        style={{
-          cursor: dragging ? "grabbing" : "grab",
-          display: "flex",
-          alignItems: "end",
-          height: `${44 * zoom}px`,
-          padding: `0 ${12 * zoom}px ${4 * zoom}px`,
-          boxSizing: "border-box",
-          userSelect: "none",
-        }}
-      >
-        <span style={{fontSize: `${Math.max(zoom * 100, 25)}%`}}>{panelName}</span>
-      </div>
-      <div>
-        <PanelContext.Provider value={panelContextValue}>
-          {props.children}
-        </PanelContext.Provider>
-      </div>
+      <ResizableArea onResize={onResize} draggableAreaSpan={12 * zoom}>
+        <div
+          {...draggableAreaGestureHandlers}
+          style={{
+            cursor: dragging ? "grabbing" : "grab",
+            display: "flex",
+            alignItems: "center",
+            height: `${44 * zoom}px`,
+            paddingLeft: `${4 * zoom}px`,
+            boxSizing: "border-box",
+            userSelect: "none",
+          }}
+        >
+          <span style={{fontSize: `${Math.max(zoom * 100, 25)}%`}}>{panelName}</span>
+        </div>
+        <div>
+          <PanelContext.Provider value={panelContextValue}>
+            {props.children}
+          </PanelContext.Provider>
+        </div>
+      </ResizableArea>
     </div>
   )
 }

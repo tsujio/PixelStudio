@@ -2,17 +2,14 @@ import { useEffect, useState } from "react"
 import { usePanelContext } from "./Panel"
 import { useProjectContext } from "./ProjectContext"
 import { Canvas } from "./Canvas"
-import { ResizableArea } from "./ResizableArea"
 import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing"
-import { useBoardContext } from "./BoardContext"
 
 type Props = {
   drawing: DrawingClass
 }
 
 export function Drawing(props: Props) {
-  const { boardNavigation } = useBoardContext()
-  const { setPanelName, setPanelPositionOffset } = usePanelContext()
+  const { setPanelName, setPanelPositionOffset, resize } = usePanelContext()
   const { updateProject } = useProjectContext()
 
   const [mask, setMask] = useState<DrawingDataRect | null>(null)
@@ -24,7 +21,13 @@ export function Drawing(props: Props) {
     setPanelName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
   }, [setPanelName, props.drawing.name, rowCount, columnCount])
 
-  const onResize = (diff: {top: number, left: number, bottom: number, right: number}, fix: boolean) => {
+  useEffect(() => {
+    if (!resize) {
+      return
+    }
+
+    const { diff, fix } = resize
+
     const newMask = {
       start: {
         rowIndex: Math.min(0 + Math.trunc(diff.top / props.drawing.pixelSize), props.drawing.rowCount - 1),
@@ -48,14 +51,12 @@ export function Drawing(props: Props) {
       setMask(newMask)
       setPanelPositionOffset([newMask.start.columnIndex * props.drawing.pixelSize, newMask.start.rowIndex * props.drawing.pixelSize])
     }
-  }
+  }, [resize])
 
   return (
-    <ResizableArea onResize={onResize} draggableAreaSpan={12 * boardNavigation.zoom}>
-      <Canvas
-        drawing={props.drawing}
-        mask={mask ?? undefined}
-      />
-    </ResizableArea>
+    <Canvas
+      drawing={props.drawing}
+      mask={mask ?? undefined}
+    />
   )
 }
