@@ -98,7 +98,9 @@ export function ExplorerItem(props: Props) {
   }
 
   const onDeleteButtonClick = () => {
-    updateProject({type: "deleteDrawing", drawingId: props.drawing.id})
+    if (window.confirm(`Are you sure you want to delete '${props.drawing.name}'?`)) {
+      updateProject({type: "deleteDrawing", drawingId: props.drawing.id})
+    }
     setMenuButtonElement(null)
   }
 

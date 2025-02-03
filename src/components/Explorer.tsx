@@ -13,7 +13,7 @@ type Props = {
 }
 
 export function Explorer(props: Props) {
-  const { project, updateProject } = useProjectContext()
+  const { project, projectHistory, updateProject } = useProjectContext()
 
   const drawings = Object.values(project.drawings)
   drawings.sort((a, b) => a.name.localeCompare(b.name))
@@ -31,16 +31,22 @@ export function Explorer(props: Props) {
   const [fileHandle, setFileHandle] = useState<FileSystemFileHandle | null>(null)
 
   const onNewProjectButtonClick = () => {
-    updateProject({type: "newProject"})
-    setFileHandle(null)
+    const clean = projectHistory.history[projectHistory.current].clean
+    if (clean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
+      updateProject({type: "newProject"})
+      setFileHandle(null)
+    }
     setProjectMenuButtonElement(null)
   }
 
   const onOpenProjectButtonClick = async () => {
     const {fileHandle, contents} = await openFile()
-    const json = JSON.parse(contents)
-    updateProject({type: "load", json})
-    setFileHandle(fileHandle)
+    const clean = projectHistory.history[projectHistory.current].clean
+    if (clean || window.confirm(`You have unsaved changes that will be lost.\nAre you sure you want to open the new project?`)) {
+      const json = JSON.parse(contents)
+      updateProject({type: "load", json})
+      setFileHandle(fileHandle)
+    }
   }
 
   const [newProjectName, setNewProjectName] = useState<string | null>(null)
@@ -63,7 +69,8 @@ export function Explorer(props: Props) {
 
   const onSaveProjectButtonClick = async () => {
     if (fileHandle) {
-      writeToFile(fileHandle, JSON.stringify(project))
+      await writeToFile(fileHandle, JSON.stringify(project))
+      updateProject({type: "markAsClean"})
     }
   }
 
@@ -71,6 +78,7 @@ export function Explorer(props: Props) {
     const json = JSON.stringify(project)
     const fileHandle = await createFile(json, project.nameToDownload)
     setFileHandle(fileHandle)
+    updateProject({type: "markAsClean"})
   }
 
   const onDownloadProjectButtonClick = () => {
@@ -84,6 +92,8 @@ export function Explorer(props: Props) {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+
+    updateProject({type: "markAsClean"})
   }
 
   const [drawingIdToActivate, setDrawingIdToActivate] = useState<string | undefined>()

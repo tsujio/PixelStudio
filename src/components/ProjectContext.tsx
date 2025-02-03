@@ -90,6 +90,9 @@ type Action =
   } |
   {
     type: "redo"
+  } |
+  {
+    type: "markAsClean"
   }
 
 type ProjectHistory = {
@@ -97,6 +100,7 @@ type ProjectHistory = {
   history: {
     project: Project
     action: Action
+    clean: boolean
   }[]
 }
 
@@ -105,14 +109,22 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
 
   const pushHistory = (project: Project, replace?: boolean) => {
     if (replace) {
-      return {current, history: [...history.slice(0, current), {project, action}]}
+      return {
+        current,
+        history: [...history.slice(0, current), {project, action, clean: false}],
+      }
     } else {
       return {
         current: current + 1,
-        history: [...history.slice(0, current + 1), {project, action}],
+        history: [...history.slice(0, current + 1), {project, action, clean: false}],
       }
     }
   }
+
+  const newHistory = (project: Project) => ({
+    current: 0,
+    history: [{project, action, clean: true}],
+  })
 
   const project = history[current].project
   switch (action.type) {
@@ -121,11 +133,11 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
       const drawing = Drawing.create(pjt.getUniqueDrawingName())
       pjt.addDrawing(drawing)
       pjt.openDrawingPanel(drawing.id, 0, 0)
-      return {current: 0, history: [{project: pjt, action}]}
+      return newHistory(pjt)
     }
     case "load": {
       const pjt = Project.fromJSON(action.json)
-      return {current: 0, history: [{project: pjt, action}]}
+      return newHistory(pjt)
     }
     case "rename": {
       const pjt = project.clone()
@@ -152,6 +164,10 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     }
     case "deleteDrawing": {
       const pjt = project.clone()
+      const panel = pjt.getDrawingPanel(action.drawingId)
+      if (panel) {
+        pjt.closePanel(panel.id)
+      }
       pjt.deleteDrawing(action.drawingId)
       return pushHistory(pjt)
     }
@@ -259,23 +275,34 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     }
     case "undo": {
       if (current > 0) {
-        return {current: current - 1, history}
+        return {...projectHistory, current: current - 1}
       } else {
         return projectHistory
       }
     }
     case "redo": {
       if (current < history.length - 1) {
-        return {current: current + 1, history}
+        return {...projectHistory, current: current + 1}
       } else {
         return projectHistory
+      }
+    }
+    case "markAsClean": {
+      const hist = [...history]
+      hist[current] = {...hist[current], clean: true}
+      return {
+        ...projectHistory,
+        history: hist,
       }
     }
   }
 }
 
 const initialProject = (() => {
-  const dummy: ProjectHistory = {current: 0, history: [{project: new Project(), action: {type: "newProject"}}]}
+  const dummy: ProjectHistory = {
+    current: 0,
+    history: [{project: new Project(), action: {type: "newProject"}, clean: true}],
+  }
 
   const dump = localStorage.getItem("project")
   if (dump !== null) {

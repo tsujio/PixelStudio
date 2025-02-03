@@ -119,6 +119,14 @@ export class Project {
     return panel
   }
 
+  getActivePanel() {
+    return this.#panels.length > 0 ? this.#panels[this.#panels.length - 1] : undefined
+  }
+
+  getDrawingPanel(drawingId: string) {
+    return this.#panels.find(p => p instanceof DrawingPanel && p.drawingId === drawingId)
+  }
+
   replacePanel(panel: Panel) {
     const index = this.#panels.findIndex(p => p.id === panel.id)
     if (index === -1) {
@@ -136,10 +144,6 @@ export class Project {
     const front = this.#panels.filter((_, i) => i <= index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
     const back = this.#panels.filter((_, i) => i > index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
     this.#panels = front.concat([panel]).concat(back)
-  }
-
-  getActivePanel() {
-    return this.#panels.length > 0 ? this.#panels[this.#panels.length - 1] : undefined
   }
 
   clone() {
