@@ -68,6 +68,11 @@ export function ExplorerItem(props: Props) {
     drawPixels(ctx, canvas, props.drawing.data, props.drawing.pixelSize)
 
     const blob = await canvas.convertToBlob({type: "image/png"})
+
+    // const svg = generateSVG(props.drawing.data)
+    // const str = new XMLSerializer().serializeToString(svg)
+    // const blob = new Blob([str], {type: "image/svg+xml"})
+
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url

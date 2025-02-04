@@ -20,6 +20,7 @@ export function Icon(props: Props) {
       style={{
         width: size === "small" ? "16px" : size === "medium" ? "22px" : "32px",
         verticalAlign: "middle",
+        filter: "brightness(0) saturate(100%) invert(42%) sepia(0%) saturate(33%) hue-rotate(210deg) brightness(86%) contrast(98%)",
         ...style
       }}
     />
