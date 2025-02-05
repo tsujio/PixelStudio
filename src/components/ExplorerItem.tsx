@@ -5,7 +5,7 @@ import { MenuItem } from "./MenuItem"
 import { TextField } from "./TextField"
 import { useProjectContext } from "./ProjectContext"
 import { Drawing } from "../lib/drawing"
-import { drawPixels } from "../lib/canvas"
+import { drawPixels, generateSVG } from "../lib/canvas"
 import { useHover } from "../lib/hover"
 import { DrawingPanel } from "../lib/panel"
 import { useBoardContext } from "./BoardContext"
@@ -57,26 +57,33 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
-  const onExportButtonClick = async () => {
-    const height = props.drawing.pixelSize * props.drawing.rowCount
-    const width = props.drawing.pixelSize * props.drawing.columnCount
-    const canvas = new OffscreenCanvas(width, height)
-    const ctx = canvas.getContext("2d")
-    if (ctx === null) {
-      throw new Error("Failed to get context from offscreen canvas")
+  const exportDrawing = (format: "png" | "svg") => async () => {
+    let blob: Blob
+    switch (format) {
+      case "png": {
+        const height = props.drawing.pixelSize * props.drawing.rowCount
+        const width = props.drawing.pixelSize * props.drawing.columnCount
+        const canvas = new OffscreenCanvas(width, height)
+        const ctx = canvas.getContext("2d")
+        if (ctx === null) {
+          throw new Error("Failed to get context from offscreen canvas")
+        }
+        drawPixels(ctx, canvas, props.drawing.data, props.drawing.pixelSize)
+        blob = await canvas.convertToBlob({type: "image/png"})
+        break
+      }
+      case "svg": {
+        const svg = generateSVG(props.drawing.data)
+        const str = new XMLSerializer().serializeToString(svg)
+        blob = new Blob([str], {type: "image/svg+xml"})
+        break
+      }
     }
-    drawPixels(ctx, canvas, props.drawing.data, props.drawing.pixelSize)
-
-    const blob = await canvas.convertToBlob({type: "image/png"})
-
-    // const svg = generateSVG(props.drawing.data)
-    // const str = new XMLSerializer().serializeToString(svg)
-    // const blob = new Blob([str], {type: "image/svg+xml"})
 
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = props.drawing.name + ".png"
+    a.download = props.drawing.name + "." + format
     document.body.appendChild(a)
     a.click()
     URL.revokeObjectURL(url)
@@ -84,6 +91,8 @@ export function ExplorerItem(props: Props) {
 
     setMenuButtonElement(null)
   }
+
+  const onExportButtonClick = exportDrawing("png")
 
   const [newName, setNewName] = useState<string | null>(null)
 

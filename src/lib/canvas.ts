@@ -1,5 +1,6 @@
 import React from "react"
 import { DrawingData, DrawingDataPosition, DrawingDataRect } from "./drawing"
+import { Color } from "./color"
 
 export const getEventPosition = (e: React.PointerEvent | PointerEvent, canvas: HTMLCanvasElement): [number, number] => {
   const rect = canvas.getBoundingClientRect()
@@ -104,78 +105,75 @@ export const drawSelectArea = (ctx: CanvasRenderingContext2D, _: HTMLCanvasEleme
   ctx.strokeRect(pixelSize * left, pixelSize * top, pixelSize * width, pixelSize * height)
 }
 
-// const optimizeRects = (data: DrawingData) => {
-//   const ret: {x: number, y: number, width: number, height: number, color: Color}[] = []
+const optimizeRects = (data: DrawingData) => {
+  const ret: {x: number, y: number, width: number, height: number, color: Color}[] = []
 
-//   const toKey = (i: number, j: number) => `${i}-${j}`
-//   const toIndices = (key: string) => [parseInt(key.split("-")[0]), parseInt(key.split("-")[1])] as [number, number]
+  const toKey = (i: number, j: number) => `${i}-${j}`
+  const toIndices = (key: string) => [parseInt(key.split("-")[0]), parseInt(key.split("-")[1])] as [number, number]
 
-//   const map = Object.fromEntries(data.map((row, i) => row.map((color, j) => [toKey(i, j), color] as const)).flat().filter(([_, color]) => color !== null) as [string, Color][])
+  const map = Object.fromEntries(data.map((row, i) => row.map((color, j) => [toKey(i, j), color] as const)).flat().filter(([_, color]) => color !== null) as [string, Color][])
 
-//   while (Object.keys(map).length > 0) {
-//     const i = Math.min(...Object.keys(map).map(k => toIndices(k)[0]))
-//     const j = Math.min(...Object.keys(map).filter(k => toIndices(k)[0] === i).map(k => toIndices(k)[1]))
+  while (Object.keys(map).length > 0) {
+    const i = Math.min(...Object.keys(map).map(k => toIndices(k)[0]))
+    const j = Math.min(...Object.keys(map).filter(k => toIndices(k)[0] === i).map(k => toIndices(k)[1]))
 
-//     const jOffsets: number[] = []
-//     for (let io = 0; i + io < data.length; io++) {
-//       let jo = 0
-//       while (j + jo < data[i + io].length &&
-//         map[toKey(i, j)].equalTo(map[toKey(i + io, j + jo)]) &&
-//         (jOffsets.length === 0 || jo <= jOffsets[jOffsets.length - 1])) {
-//         jo++
-//       }
-//       if (jo > 0) {
-//         jOffsets.push(jo - 1)
-//       } else {
-//         break
-//       }
-//     }
+    const jOffsets: number[] = []
+    for (let io = 0; i + io < data.length; io++) {
+      let jo = 0
+      while (j + jo < data[i + io].length &&
+        map[toKey(i, j)].equalTo(map[toKey(i + io, j + jo)]) &&
+        (jOffsets.length === 0 || jo <= jOffsets[jOffsets.length - 1])) {
+        jo++
+      }
+      if (jo > 0) {
+        jOffsets.push(jo - 1)
+      } else {
+        break
+      }
+    }
 
-//     const areas = jOffsets.map((jo, io) => (io + 1) * (jo + 1))
-//     const maxAreaIndex = areas.findIndex(area => area === Math.max(...areas))
-//     ret.push({
-//       x: j,
-//       y: i,
-//       width: jOffsets[maxAreaIndex] + 1,
-//       height: maxAreaIndex + 1,
-//       color: map[toKey(i, j)],
-//     })
+    const areas = jOffsets.map((jo, io) => (io + 1) * (jo + 1))
+    const maxAreaIndex = areas.findIndex(area => area === Math.max(...areas))
+    ret.push({
+      x: j,
+      y: i,
+      width: jOffsets[maxAreaIndex] + 1,
+      height: maxAreaIndex + 1,
+      color: map[toKey(i, j)],
+    })
 
-//     for (let io = 0; io <= maxAreaIndex; io++) {
-//       for (let jo = 0; jo <= jOffsets[maxAreaIndex]; jo++) {
-//         delete map[toKey(i + io, j + jo)]
-//       }
-//     }
-//   }
-
-//   return ret
-// }
-
-export const generateSVG = (data: DrawingData) => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-  svg.setAttribute("viewBox", `0 0 ${data[0].length} ${data.length}`)
-  // optimizeRects(data).forEach(({x, y, width, height, color}) => {
-  //   const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-  //       rect.setAttribute("x", x.toString())
-  //       rect.setAttribute("y", y.toString())
-  //       rect.setAttribute("width", width.toString())
-  //       rect.setAttribute("height", height.toString())
-  //       rect.setAttribute("fill", color.css)
-  //       svg.appendChild(rect)
-  // })
-  // return svg
-  for (let i = 0; i < data.length; i++) {
-    for (let j = 0; j < data[i].length; j++) {
-      if (data[i][j] !== null) {
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
-        rect.setAttribute("x", j.toString())
-        rect.setAttribute("y", i.toString())
-        rect.setAttribute("width", "1")
-        rect.setAttribute("height", "1")
-        rect.setAttribute("fill", data[i][j]!.css)
-        svg.appendChild(rect)
+    for (let io = 0; io <= maxAreaIndex; io++) {
+      for (let jo = 0; jo <= jOffsets[maxAreaIndex]; jo++) {
+        delete map[toKey(i + io, j + jo)]
       }
     }
   }
+
+  return ret
+}
+
+export const generateSVG = (data: DrawingData, optimize?: boolean) => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  svg.setAttribute("viewBox", `0 0 ${data[0].length} ${data.length}`)
+
+  const rects = optimize ? optimizeRects(data) : data.map((row, i) => row.map((color, j) => ({
+    x: j,
+    y: i,
+    width: 1,
+    height: 1,
+    color,
+  }))).flat()
+
+  rects.forEach(({x, y, width, height, color}) => {
+    if (color) {
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+      rect.setAttribute("x", x.toString())
+      rect.setAttribute("y", y.toString())
+      rect.setAttribute("width", width.toString())
+      rect.setAttribute("height", height.toString())
+      rect.setAttribute("fill", color.css)
+      svg.appendChild(rect)
+    }
+  })
   return svg
 }
