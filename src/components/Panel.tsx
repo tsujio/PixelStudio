@@ -1,4 +1,4 @@
-import React, { useRef, useState, createContext, useContext, useMemo } from 'react'
+import React, { useRef, useState, createContext, useContext, useMemo, useEffect } from 'react'
 import { useGesture } from './GestureContext'
 import { useProjectContext } from './ProjectContext'
 import { Panel as PanelClass } from '../lib/panel'
@@ -26,7 +26,9 @@ type Props = {
   panel: PanelClass
   top: number
   left: number
-  zIndex?: number
+  zIndex: number
+  onMountChange: (panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => void,
+  panelRefs: {panel: PanelClass, ref: React.RefObject<HTMLElement>}[]
   children: React.ReactNode
 }
 
@@ -35,6 +37,15 @@ export function Panel(props: Props) {
   const { boardNavigation } = useBoardContext()
 
   const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (props.onMountChange) {
+      props.onMountChange(props.panel, panelRef)
+      return () => {
+        props.onMountChange(props.panel, null)
+      }
+    }
+  }, [props.panel, props.onMountChange])
 
   const [dragging, setDragging] = useState<boolean>(false)
 
@@ -58,7 +69,18 @@ export function Panel(props: Props) {
   })
 
   const onPointerDown = () => {
-    updateProject({type: "setPanelZ", panelId: props.panel.id, offset: Infinity})
+    if (panelRef.current) {
+      const rect = panelRef.current.getBoundingClientRect()
+      if (props.panelRefs.some(p => {
+        if (p.panel.id === props.panel.id || !p.ref.current || p.ref.current.style.zIndex < panelRef.current!.style.zIndex) {
+          return false
+        }
+        const rct = p.ref.current.getBoundingClientRect()
+        return rect.top < rct.bottom && rect.bottom > rct.top && rect.left < rct.right && rect.right > rct.left
+      })) {
+        updateProject({type: "setPanelZ", panelId: props.panel.id, offset: Infinity})
+      }
+    }
   }
 
   const [resize, setResize] = useState<ResizeEvent | undefined>()

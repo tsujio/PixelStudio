@@ -27,6 +27,10 @@ type Action =
   {
     type: "addDrawing"
     drawing: Drawing
+    position: {
+      x: number
+      y: number
+    }
   } |
   {
     type: "renameDrawing"
@@ -150,6 +154,7 @@ const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory
     case "addDrawing": {
       const pjt = project.clone()
       pjt.addDrawing(action.drawing)
+      pjt.openDrawingPanel(action.drawing.id, action.position.x, action.position.y)
       return pushHistory(pjt)
     }
     case "renameDrawing": {

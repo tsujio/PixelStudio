@@ -3,7 +3,7 @@ import { useProjectContext } from './ProjectContext'
 import { Panel } from "./Panel"
 import { Drawing } from "./Drawing"
 import { useGesture } from './GestureContext'
-import { DrawingPanel } from '../lib/panel'
+import { Panel as PanelClass, DrawingPanel } from '../lib/panel'
 import { ToolBox } from './ToolBox'
 import { MobileNavigation } from './MobileNavigation'
 import { useBoardContext } from './BoardContext'
@@ -102,6 +102,19 @@ export const Board = (props: Props) => {
 
   const [toolBoxOpen, setToolBoxOpen] = useState(windowSize.type !== "mobile")
 
+  const [panelRefs, setPanelRefs] = useState<{panel: PanelClass, ref: React.RefObject<HTMLElement>}[]>([])
+  const onPanelMountChange = (panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => {
+    setPanelRefs(panelRefs => {
+      if (ref && panelRefs.every(p => p.panel.id !== panel.id)) {
+        return [...panelRefs, {panel, ref}]
+      } else if (!ref) {
+        return panelRefs.filter(p => p.panel.id !== panel.id)
+      } else {
+        return panelRefs
+      }
+    })
+  }
+
   return (
     <>
       <div
@@ -124,6 +137,8 @@ export const Board = (props: Props) => {
             top={(panel.y - boardNavigation.perspective[1]) * boardNavigation.zoom}
             left={(panel.x - boardNavigation.perspective[0]) * boardNavigation.zoom}
             zIndex={i + 1}
+            onMountChange={onPanelMountChange}
+            panelRefs={panelRefs}
           >
             {panel instanceof DrawingPanel &&
             <Drawing

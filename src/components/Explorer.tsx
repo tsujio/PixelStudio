@@ -8,6 +8,7 @@ import { TextField } from "./TextField"
 import { createFile, openFile, supportFileSystemAPI, writeToFile } from "../lib/filesystem"
 import { Drawing } from "../lib/drawing"
 import { Icon } from "./Icon"
+import { useBoardContext } from "./BoardContext"
 
 type Props = {
   sidebarWidth: number | undefined
@@ -15,6 +16,7 @@ type Props = {
 
 export function Explorer(props: Props) {
   const { project, projectHistory, updateProject } = useProjectContext()
+  const { boardNavigation } = useBoardContext()
 
   const isProjectClean = projectHistory.history[projectHistory.current].clean
 
@@ -100,12 +102,15 @@ export function Explorer(props: Props) {
     setShowSavedIcon(true)
   }
 
-  const [drawingIdToOpen, setDrawingIdToOpen] = useState<string | undefined>()
+  const openPanelPosition: [number, number] = [
+    boardNavigation.perspective[0] + ((props.sidebarWidth ?? 0) + 20) / boardNavigation.zoom,
+    boardNavigation.perspective[1] + 60 / boardNavigation.zoom,
+  ]
 
   const onAddDrawingButtonClick = () => {
     const drawing = Drawing.create(project.getUniqueDrawingName())
-    updateProject({type: "addDrawing", drawing})
-    setDrawingIdToOpen(drawing.id)
+    const [x, y] = openPanelPosition
+    updateProject({type: "addDrawing", drawing, position: {x, y}})
   }
 
   const [showSavedIcon, setShowSavedIcon] = useState(false)
@@ -250,7 +255,7 @@ export function Explorer(props: Props) {
               key={drawing.id}
               drawing={drawing}
               sidebarWidth={props.sidebarWidth}
-              openDrawing={drawingIdToOpen === drawing.id}
+              openPanelPosition={openPanelPosition}
             />
           )}
         </div>
