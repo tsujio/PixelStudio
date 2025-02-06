@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useProjectContext } from './ProjectContext'
 import { Panel } from "./Panel"
 import { Drawing } from "./Drawing"
@@ -103,7 +103,7 @@ export const Board = (props: Props) => {
   const [toolBoxOpen, setToolBoxOpen] = useState(windowSize.type !== "mobile")
 
   const [panelRefs, setPanelRefs] = useState<{panel: PanelClass, ref: React.RefObject<HTMLElement>}[]>([])
-  const onPanelMountChange = (panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => {
+  const onPanelMountChange = useCallback((panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => {
     setPanelRefs(panelRefs => {
       if (ref && panelRefs.every(p => p.panel.id !== panel.id)) {
         return [...panelRefs, {panel, ref}]
@@ -113,7 +113,7 @@ export const Board = (props: Props) => {
         return panelRefs
       }
     })
-  }
+  }, [])
 
   return (
     <>

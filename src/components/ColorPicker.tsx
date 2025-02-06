@@ -12,13 +12,14 @@ export function ColorPicker(props: Props) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "1fr auto",
+        columnGap: "8px",
       }}
     >
       <div>
         <HSVColorPicker color={props.color} onColorPick={props.onColorPick} />
       </div>
-      <div style={{marginLeft: "8px"}}>
+      <div>
         <ColorValuePicker color={props.color} onColorPick={props.onColorPick} />
       </div>
     </div>

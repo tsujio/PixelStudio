@@ -1,3 +1,4 @@
+import React from "react"
 import { Color, RGBColor, HSVColor } from "../lib/color"
 
 type Props = {
@@ -32,8 +33,10 @@ export function ColorValuePicker(props: Props) {
     <div
       style={{
         display: "grid",
-        gridTemplateRows: "repeat(7, 1fr)",
-        rowGap: "8px",
+        gridTemplateRows: "repeat(7, auto)",
+        gridTemplateColumns: "1fr auto",
+        alignContent: "space-between",
+        columnGap: "4px",
         height: "100%",
       }}
     >
@@ -46,17 +49,20 @@ export function ColorValuePicker(props: Props) {
         {idSuffix: "hsv-s", label: "S", type: "number", value: hsvColor.hsv[1], onChange: onHSVValueChange(1)},
         {idSuffix: "hsv-v", label: "V", type: "number", value: hsvColor.hsv[2], onChange: onHSVValueChange(2)},
       ].map(({idSuffix, label, type, value, onChange}) =>
-        <label
-          key={idSuffix}
-          htmlFor={"ColorValuePicker-" + idSuffix}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(20px, auto) 1fr",
-            columnGap: "8px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span>{label}</span>
+        <React.Fragment key={idSuffix}>
+          <label
+            htmlFor={"ColorValuePicker-" + idSuffix}
+            style={{
+              width: "100%",
+              height: "fit-content",
+              textAlign: "center",
+              alignSelf: "center",
+              justifySelf: "center",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {label}
+          </label>
           <input
             id={"ColorValuePicker-" + idSuffix}
             type={type}
@@ -64,11 +70,14 @@ export function ColorValuePicker(props: Props) {
             onChange={onChange}
             style={{
               boxSizing: "border-box",
-              width: "100%",
+              width: type === "number" ? "3rem" : "4rem",
+              height: "fit-content",
               textAlign: "right",
+              alignSelf: "center",
+              justifySelf: "right",
             }}
           />
-        </label>
+        </React.Fragment>
       )}
     </div>
   )
