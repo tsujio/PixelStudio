@@ -86,7 +86,7 @@ export const Board = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    const onKeyDown = async (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "Semicolon") {
         e.preventDefault();
         updateBoardNavigation({
@@ -109,7 +109,7 @@ export const Board = (props: Props) => {
     return () => {
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [boardNavigation.zoom]);
+  }, [boardNavigation.zoom, updateBoardNavigation]);
 
   const [toolBoxOpen, setToolBoxOpen] = useState(windowSize.type !== "mobile");
 

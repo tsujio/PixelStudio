@@ -12,7 +12,9 @@ const tools = [
   { type: "pen", icon: "pen" },
   { type: "eraser", icon: "eraser" },
   { type: "select", icon: "select" },
+  { type: "color", icon: "color" },
   { type: "canvas", icon: "canvas" },
+  { type: "history", icon: "history" },
 ] as const;
 
 type Props = {
@@ -62,31 +64,36 @@ export function ToolBox(props: Props) {
     <div
       ref={ref}
       style={{
-        width: props.open ? undefined : 0,
+        width: props.open ? `${width}px` : 0,
         height: "fit-content",
         position: "absolute",
         top: 0,
         right: 0,
+        overflow: "hidden",
         boxShadow: "0 0 8px 0 gray",
         zIndex: 9999,
         background: "white",
       }}
     >
-      <div
+      <IconButton
+        icon="pin"
+        size="small"
         style={{
-          width: props.open ? `${width}px` : 0,
-          overflowX: props.open ? "inherit" : "hidden",
-          padding: props.open ? "16px" : 0,
-          boxSizing: "border-box",
-          position: "relative",
+          position: "absolute",
+          top: 0,
+          right: 0,
+          background: pinned ? "gainsboro" : undefined,
         }}
-      >
+        onClick={onPinClick}
+      />
+      <div style={{ padding: "12px 12px" }}>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(6, 1fr)",
             gap: "8px",
-            marginBottom: "8px",
+            paddingRight: "36px",
+            marginBottom: "18px",
           }}
         >
           {tools.map((tool) => (
@@ -113,22 +120,6 @@ export function ToolBox(props: Props) {
         {drawContext.tool === "canvas" && <ToolBoxCanvasOptions />}
         <div style={{ marginTop: "8px" }}>
           <Palette />
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-          }}
-        >
-          <IconButton
-            icon="pin"
-            size="small"
-            style={{
-              background: pinned ? "gainsboro" : undefined,
-            }}
-            onClick={onPinClick}
-          />
         </div>
       </div>
     </div>

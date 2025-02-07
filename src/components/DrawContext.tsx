@@ -3,7 +3,7 @@ import { Color, RGBColor } from "../lib/color";
 import { DrawingData, DrawingDataPosition, DrawingDataRect } from "../lib/drawing";
 import { Project } from "../lib/project";
 
-export type DrawTool = "pen" | "eraser" | "select" | "canvas";
+export type DrawTool = "pen" | "eraser" | "select" | "color" | "canvas" | "history";
 
 type DrawContext = {
   tool: DrawTool;

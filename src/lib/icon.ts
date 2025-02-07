@@ -8,6 +8,7 @@ import downImg from "../assets/down.png";
 import downloadImg from "../assets/download.png";
 import eraserImg from "../assets/eraser.png";
 import hamburgerImg from "../assets/hamburger.png";
+import historyImg from "../assets/history.png";
 import leftImg from "../assets/left.png";
 import menuImg from "../assets/menu.png";
 import newImg from "../assets/new.png";
@@ -36,6 +37,7 @@ export type IconType =
   | "download"
   | "eraser"
   | "hamburger"
+  | "history"
   | "left"
   | "menu"
   | "new"
@@ -75,6 +77,8 @@ export const getIcon = (icon: IconType): string => {
       return eraserImg;
     case "hamburger":
       return hamburgerImg;
+    case "history":
+      return historyImg;
     case "left":
       return leftImg;
     case "menu":
