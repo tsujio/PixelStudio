@@ -256,6 +256,7 @@ export function Explorer(props: Props) {
               drawing={drawing}
               sidebarWidth={props.sidebarWidth}
               openPanelPosition={openPanelPosition}
+              containerRef={explorerItemContainerRef}
             />
           )}
         </div>

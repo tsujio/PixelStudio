@@ -14,6 +14,7 @@ type Props = {
   drawing: Drawing
   sidebarWidth: number | undefined
   openPanelPosition: [number, number]
+  containerRef: React.RefObject<HTMLElement>
 }
 
 export function ExplorerItem(props: Props) {
@@ -118,16 +119,33 @@ export function ExplorerItem(props: Props) {
     setMenuButtonElement(null)
   }
 
+  const inViewRef = useRef(false)
+  useEffect(() => {
+    if (ref.current && props.containerRef.current) {
+      const observer = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (entry.target === ref.current) {
+            inViewRef.current = entry.isIntersecting
+          }
+        }
+      }, {root: props.containerRef.current, threshold: 1.0})
+      observer.observe(ref.current)
+      return () => {
+        observer.disconnect()
+      }
+    }
+  }, [props.containerRef])
+
   const activePanel = project.getActivePanel()
   const isPanelActive = activePanel instanceof DrawingPanel && activePanel.drawingId === props.drawing.id
 
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (ref.current && isPanelActive) {
+    if (ref.current && isPanelActive && !inViewRef.current) {
       ref.current.scrollIntoView()
     }
-  }, [isPanelActive])
+  }, [isPanelActive, inViewRef])
 
   return (
     <div
