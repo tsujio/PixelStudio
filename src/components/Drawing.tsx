@@ -1,32 +1,32 @@
-import { useEffect, useState } from "react"
-import { usePanelContext } from "./Panel"
-import { useProjectContext } from "./ProjectContext"
-import { Canvas } from "./Canvas"
-import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing"
+import { useEffect, useState } from "react";
+import { usePanelContext } from "./Panel";
+import { useProjectContext } from "./ProjectContext";
+import { Canvas } from "./Canvas";
+import { Drawing as DrawingClass, DrawingDataRect } from "../lib/drawing";
 
 type Props = {
-  drawing: DrawingClass
-}
+  drawing: DrawingClass;
+};
 
 export function Drawing(props: Props) {
-  const { setPanelName, setPanelPositionOffset, resize } = usePanelContext()
-  const { updateProject } = useProjectContext()
+  const { setPanelName, setPanelPositionOffset, resize } = usePanelContext();
+  const { updateProject } = useProjectContext();
 
-  const [mask, setMask] = useState<DrawingDataRect | null>(null)
+  const [mask, setMask] = useState<DrawingDataRect | null>(null);
 
-  const rowCount = mask ? mask.end.rowIndex - mask.start.rowIndex + 1 : props.drawing.rowCount
-  const columnCount = mask ? mask.end.columnIndex - mask.start.columnIndex + 1 : props.drawing.columnCount
+  const rowCount = mask ? mask.end.rowIndex - mask.start.rowIndex + 1 : props.drawing.rowCount;
+  const columnCount = mask ? mask.end.columnIndex - mask.start.columnIndex + 1 : props.drawing.columnCount;
 
   useEffect(() => {
-    setPanelName(`${props.drawing.name} (${rowCount} x ${columnCount})`)
-  }, [setPanelName, props.drawing.name, rowCount, columnCount])
+    setPanelName(`${props.drawing.name} (${rowCount} x ${columnCount})`);
+  }, [setPanelName, props.drawing.name, rowCount, columnCount]);
 
   useEffect(() => {
     if (!resize) {
-      return
+      return;
     }
 
-    const { diff, fix } = resize
+    const { diff, fix } = resize;
 
     const newMask = {
       start: {
@@ -36,27 +36,27 @@ export function Drawing(props: Props) {
       end: {
         rowIndex: Math.max(props.drawing.rowCount - 1 + Math.trunc(diff.bottom / props.drawing.pixelSize), 0),
         columnIndex: Math.max(props.drawing.columnCount - 1 + Math.trunc(diff.right / props.drawing.pixelSize), 0),
-      }
-    }
+      },
+    };
 
     if (fix) {
-      updateProject({type: "resizeDrawing", drawingId: props.drawing.id, rect: newMask})
-      setMask(null)
-      setPanelPositionOffset([0, 0])
-    } else if (mask === null ||
+      updateProject({ type: "resizeDrawing", drawingId: props.drawing.id, rect: newMask });
+      setMask(null);
+      setPanelPositionOffset([0, 0]);
+    } else if (
+      mask === null ||
       newMask.start.rowIndex !== mask.start.rowIndex ||
       newMask.start.columnIndex !== mask.start.columnIndex ||
       newMask.end.rowIndex !== mask.end.rowIndex ||
-      newMask.end.columnIndex !== mask.end.columnIndex) {
-      setMask(newMask)
-      setPanelPositionOffset([newMask.start.columnIndex * props.drawing.pixelSize, newMask.start.rowIndex * props.drawing.pixelSize])
+      newMask.end.columnIndex !== mask.end.columnIndex
+    ) {
+      setMask(newMask);
+      setPanelPositionOffset([
+        newMask.start.columnIndex * props.drawing.pixelSize,
+        newMask.start.rowIndex * props.drawing.pixelSize,
+      ]);
     }
-  }, [resize])
+  }, [resize]);
 
-  return (
-    <Canvas
-      drawing={props.drawing}
-      mask={mask ?? undefined}
-    />
-  )
+  return <Canvas drawing={props.drawing} mask={mask ?? undefined} />;
 }

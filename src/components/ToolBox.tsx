@@ -1,62 +1,62 @@
-import { useDrawContext, DrawTool } from "./DrawContext"
-import { ToolBoxPenOptions } from "./ToolBoxPenOptions"
-import { ToolBoxEraserOptions } from "./ToolBoxEraserOptions"
-import { ToolBoxSelectOptions } from "./ToolBoxSelectOptions"
-import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions"
-import { Palette } from "./Palette"
-import { Icon } from "./Icon"
-import { IconButton } from "./IconButton"
-import { useEffect, useRef, useState } from "react"
+import { useDrawContext, DrawTool } from "./DrawContext";
+import { ToolBoxPenOptions } from "./ToolBoxPenOptions";
+import { ToolBoxEraserOptions } from "./ToolBoxEraserOptions";
+import { ToolBoxSelectOptions } from "./ToolBoxSelectOptions";
+import { ToolBoxCanvasOptions } from "./ToolBoxCanvasOptions";
+import { Palette } from "./Palette";
+import { Icon } from "./Icon";
+import { IconButton } from "./IconButton";
+import { useEffect, useRef, useState } from "react";
 
 const tools = [
-  {type: "pen", icon: "pen"},
-  {type: "eraser", icon: "eraser"},
-  {type: "select", icon: "select"},
-  {type: "canvas", icon: "canvas"},
-] as const
+  { type: "pen", icon: "pen" },
+  { type: "eraser", icon: "eraser" },
+  { type: "select", icon: "select" },
+  { type: "canvas", icon: "canvas" },
+] as const;
 
 type Props = {
-  open: boolean
-  onClose: () => void
-}
+  open: boolean;
+  onClose: () => void;
+};
 
-export const width = 330
+export const width = 330;
 
 export function ToolBox(props: Props) {
-  const { drawContext, changeTool } = useDrawContext()
+  const { drawContext, changeTool } = useDrawContext();
 
   const onToolChange = (tool: DrawTool) => () => {
-    changeTool(tool)
-  }
+    changeTool(tool);
+  };
 
-  const [pinned, setPinned] = useState(props.open)
+  const [pinned, setPinned] = useState(props.open);
 
   if (!props.open && pinned) {
-    setPinned(false)
+    setPinned(false);
   }
 
   const onPinClick = () => {
-    setPinned(pinned => !pinned)
-  }
+    setPinned((pinned) => !pinned);
+  };
 
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (props.open) {
       const handler = (e: PointerEvent) => {
         if (!pinned && ref.current) {
-          const rect = ref.current.getBoundingClientRect()
+          const rect = ref.current.getBoundingClientRect();
           if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
-            props.onClose()
+            props.onClose();
           }
         }
-      }
-      document.addEventListener("pointerdown", handler)
+      };
+      document.addEventListener("pointerdown", handler);
       return () => {
-        document.removeEventListener("pointerdown", handler)
-      }
+        document.removeEventListener("pointerdown", handler);
+      };
     }
-  }, [props.open, pinned])
+  }, [props.open, pinned]);
 
   return (
     <div
@@ -89,7 +89,7 @@ export function ToolBox(props: Props) {
             marginBottom: "8px",
           }}
         >
-          {tools.map(tool =>
+          {tools.map((tool) => (
             <div
               key={tool.type}
               onClick={onToolChange(tool.type)}
@@ -105,13 +105,13 @@ export function ToolBox(props: Props) {
             >
               <Icon icon={tool.icon} />
             </div>
-          )}
+          ))}
         </div>
         {drawContext.tool === "pen" && <ToolBoxPenOptions />}
         {drawContext.tool === "eraser" && <ToolBoxEraserOptions />}
         {drawContext.tool === "select" && <ToolBoxSelectOptions />}
         {drawContext.tool === "canvas" && <ToolBoxCanvasOptions />}
-        <div style={{marginTop: "8px"}}>
+        <div style={{ marginTop: "8px" }}>
           <Palette />
         </div>
         <div
@@ -125,12 +125,12 @@ export function ToolBox(props: Props) {
             icon="pin"
             size="small"
             style={{
-              background: pinned ? "gainsboro" : undefined
+              background: pinned ? "gainsboro" : undefined,
             }}
             onClick={onPinClick}
           />
         </div>
       </div>
     </div>
-  )
+  );
 }

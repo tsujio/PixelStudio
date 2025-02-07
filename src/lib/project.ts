@@ -1,161 +1,165 @@
-import { Color } from "./color"
-import { Drawing } from "./drawing"
-import { DrawingPanel, Panel } from "./panel"
+import { Color } from "./color";
+import { Drawing } from "./drawing";
+import { DrawingPanel, Panel } from "./panel";
 
 export class Project {
-  #id: string
-  #name: string
-  #drawings: {[id:string]: Drawing}
-  #palette: (Color | null)[]
-  #panels: Panel[]
+  #id: string;
+  #name: string;
+  #drawings: { [id: string]: Drawing };
+  #palette: (Color | null)[];
+  #panels: Panel[];
 
   constructor(id?: string, name?: string, drawings?: Drawing[], palette?: (Color | null)[], panels?: Panel[]) {
-    this.#id = id ?? crypto.randomUUID()
-    this.#name = name ?? "New project"
-    this.#drawings = drawings ? Object.fromEntries(drawings.map(d => [d.id, d])) : {}
-    this.#palette = [...palette ?? []]
-    this.#panels = [...panels ?? []]
+    this.#id = id ?? crypto.randomUUID();
+    this.#name = name ?? "New project";
+    this.#drawings = drawings ? Object.fromEntries(drawings.map((d) => [d.id, d])) : {};
+    this.#palette = [...(palette ?? [])];
+    this.#panels = [...(panels ?? [])];
   }
 
   get id() {
-    return this.#id
+    return this.#id;
   }
 
   get name() {
-    return this.#name
+    return this.#name;
   }
 
   get nameToDownload() {
-    return this.#name + ".json"
+    return this.#name + ".json";
   }
 
   rename(newName: string) {
-    this.#name = newName
+    this.#name = newName;
   }
 
   get drawings() {
-    return {...this.#drawings}
+    return { ...this.#drawings };
   }
 
   getUniqueDrawingName(baseName?: string) {
-    baseName = baseName ?? "New drawing"
-    let name = baseName
-    let i = 2
+    baseName = baseName ?? "New drawing";
+    let name = baseName;
+    let i = 2;
     while (true) {
-      if (Object.values(this.#drawings).every(d => d.name !== name)) {
-        return name
+      if (Object.values(this.#drawings).every((d) => d.name !== name)) {
+        return name;
       }
-      name = `${baseName} (${i})`
-      i++
+      name = `${baseName} (${i})`;
+      i++;
     }
   }
 
   addDrawing(drawing: Drawing) {
-    this.#drawings[drawing.id] = drawing
+    this.#drawings[drawing.id] = drawing;
   }
 
   getDrawing(drawingId: string): Drawing {
-    const drawing = this.#drawings[drawingId]
+    const drawing = this.#drawings[drawingId];
     if (!drawing) {
-      throw new Error(`Invalid drawing id: ${drawingId}`)
+      throw new Error(`Invalid drawing id: ${drawingId}`);
     }
-    return drawing
+    return drawing;
   }
 
   deleteDrawing(drawingId: string) {
     if (!(drawingId in this.#drawings)) {
-      throw new Error(`Invalid drawing id: ${drawingId}`)
+      throw new Error(`Invalid drawing id: ${drawingId}`);
     }
-    delete this.#drawings[drawingId]
+    delete this.#drawings[drawingId];
   }
 
   get palette() {
-    return [...this.#palette]
+    return [...this.#palette];
   }
 
   setPalette(index: number, color: Color | null) {
-    let modified = false
+    let modified = false;
     while (this.#palette.length <= index) {
-      this.#palette.push(null)
-      modified = true
+      this.#palette.push(null);
+      modified = true;
     }
 
-    modified = this.#palette[index] !== color
-    this.#palette[index] = color
+    modified = this.#palette[index] !== color;
+    this.#palette[index] = color;
 
     while (this.#palette.length > 0 && this.#palette[this.#palette.length - 1] === null) {
-      this.#palette = this.#palette.slice(0, this.#palette.length - 1)
-      modified = true
+      this.#palette = this.#palette.slice(0, this.#palette.length - 1);
+      modified = true;
     }
 
-    return modified
+    return modified;
   }
 
   get panels() {
-    return [...this.#panels]
+    return [...this.#panels];
   }
 
   openDrawingPanel(drawingId: string, x: number, y: number) {
-    if (this.#panels.some(p => p instanceof DrawingPanel && p.drawingId === drawingId)) {
-      throw new Error(`Drawing panel with drawingId=${drawingId} is already open`)
+    if (this.#panels.some((p) => p instanceof DrawingPanel && p.drawingId === drawingId)) {
+      throw new Error(`Drawing panel with drawingId=${drawingId} is already open`);
     }
 
-    const panel = new DrawingPanel(crypto.randomUUID(), x, y, drawingId)
-    this.#panels.push(panel)
+    const panel = new DrawingPanel(crypto.randomUUID(), x, y, drawingId);
+    this.#panels.push(panel);
 
-    return panel
+    return panel;
   }
 
   closePanel(panelId: string) {
-    const index = this.#panels.findIndex(p => p.id === panelId)
+    const index = this.#panels.findIndex((p) => p.id === panelId);
     if (index === -1) {
-      throw new Error(`Invalid panel id: ${panelId}`)
+      throw new Error(`Invalid panel id: ${panelId}`);
     }
-    this.#panels.splice(index, 1)
+    this.#panels.splice(index, 1);
   }
 
   getPanel(panelId: string) {
-    const panel = this.#panels.find(p => p.id === panelId)
+    const panel = this.#panels.find((p) => p.id === panelId);
     if (panel === undefined) {
-      throw new Error(`Invalid panel id: ${panelId}`)
+      throw new Error(`Invalid panel id: ${panelId}`);
     }
-    return panel
+    return panel;
   }
 
   getActivePanel() {
-    return this.#panels.length > 0 ? this.#panels[this.#panels.length - 1] : undefined
+    return this.#panels.length > 0 ? this.#panels[this.#panels.length - 1] : undefined;
   }
 
   getDrawingPanel(drawingId: string) {
-    return this.#panels.find(p => p instanceof DrawingPanel && p.drawingId === drawingId)
+    return this.#panels.find((p) => p instanceof DrawingPanel && p.drawingId === drawingId);
   }
 
   replacePanel(panel: Panel) {
-    const index = this.#panels.findIndex(p => p.id === panel.id)
+    const index = this.#panels.findIndex((p) => p.id === panel.id);
     if (index === -1) {
-      throw new Error(`Invalid panel id: ${panel.id}`)
+      throw new Error(`Invalid panel id: ${panel.id}`);
     }
-    this.#panels[index] = panel
+    this.#panels[index] = panel;
   }
 
   setPanelZ(panelId: string, offset: number) {
-    const index = this.#panels.findIndex(p => p.id === panelId)
+    const index = this.#panels.findIndex((p) => p.id === panelId);
     if (index === -1) {
-      throw new Error(`Invalid panel id: ${panelId}`)
+      throw new Error(`Invalid panel id: ${panelId}`);
     }
-    const panel = this.#panels[index]
-    const front = this.#panels.filter((_, i) => i <= index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
-    const back = this.#panels.filter((_, i) => i > index + offset + (offset < 0 ? -1 : 0)).filter(p => p.id !== panel.id)
-    this.#panels = front.concat([panel]).concat(back)
+    const panel = this.#panels[index];
+    const front = this.#panels
+      .filter((_, i) => i <= index + offset + (offset < 0 ? -1 : 0))
+      .filter((p) => p.id !== panel.id);
+    const back = this.#panels
+      .filter((_, i) => i > index + offset + (offset < 0 ? -1 : 0))
+      .filter((p) => p.id !== panel.id);
+    this.#panels = front.concat([panel]).concat(back);
   }
 
   clone() {
-    return new Project(this.#id, this.#name, Object.values(this.#drawings), [...this.#palette], [...this.#panels])
+    return new Project(this.#id, this.#name, Object.values(this.#drawings), [...this.#palette], [...this.#panels]);
   }
 
   toJSON() {
-    const drawings = Object.values(this.#drawings)
-    drawings.sort((a, b) => a.id.localeCompare(b.id))
+    const drawings = Object.values(this.#drawings);
+    drawings.sort((a, b) => a.id.localeCompare(b.id));
 
     return {
       id: this.#id,
@@ -163,38 +167,38 @@ export class Project {
       drawings: drawings,
       palette: this.#palette,
       panels: this.#panels,
-    }
+    };
   }
 
   static fromJSON(json: unknown) {
     if (typeof json !== "object" || json === null) {
-      throw new Error(`Invalid project data: expected=object, got=${json !== null ? typeof json : json}`)
+      throw new Error(`Invalid project data: expected=object, got=${json !== null ? typeof json : json}`);
     }
     if (!("id" in json)) {
-      throw new Error("Missing required property 'id'")
+      throw new Error("Missing required property 'id'");
     }
     if (typeof json.id !== "string") {
-      throw new Error(`Invalid project id: expected=string, got=${typeof json.id}`)
+      throw new Error(`Invalid project id: expected=string, got=${typeof json.id}`);
     }
     if (!("name" in json)) {
-      throw new Error("Missing required property 'name'")
+      throw new Error("Missing required property 'name'");
     }
     if (typeof json.name !== "string") {
-      throw new Error(`Invalid project name: expected=string, got=${typeof json.name}`)
+      throw new Error(`Invalid project name: expected=string, got=${typeof json.name}`);
     }
     if (!("drawings" in json) || !Array.isArray(json.drawings)) {
-      throw new Error(`Invalid project drawings: not an array`)
+      throw new Error(`Invalid project drawings: not an array`);
     }
     if (!("palette" in json) || !Array.isArray(json.palette)) {
-      throw new Error(`Invalid project palette: not an array`)
+      throw new Error(`Invalid project palette: not an array`);
     }
     if (!("panels" in json) || !Array.isArray(json.panels)) {
-      throw new Error(`Invalid project panels: not an array`)
+      throw new Error(`Invalid project panels: not an array`);
     }
 
-    const drawings = (json.drawings as unknown[]).map(d => Drawing.fromJSON(d))
-    const palette = (json.palette as unknown[]).map(c => c !== null ? Color.fromJSON(c) : null)
-    const panels = (json.panels as unknown[]).map(p => Panel.fromJSON(p))
-    return new Project(json.id, json.name, drawings, palette, panels)
+    const drawings = (json.drawings as unknown[]).map((d) => Drawing.fromJSON(d));
+    const palette = (json.palette as unknown[]).map((c) => (c !== null ? Color.fromJSON(c) : null));
+    const panels = (json.panels as unknown[]).map((p) => Panel.fromJSON(p));
+    return new Project(json.id, json.name, drawings, palette, panels);
   }
 }

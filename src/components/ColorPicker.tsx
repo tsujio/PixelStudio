@@ -1,11 +1,11 @@
-import { HSVColorPicker } from "./HSVColorPicker"
-import { ColorValuePicker } from "./ColorValuePicker"
-import { Color } from "../lib/color"
+import { HSVColorPicker } from "./HSVColorPicker";
+import { ColorValuePicker } from "./ColorValuePicker";
+import { Color } from "../lib/color";
 
 type Props = {
-  color: Color
-  onColorPick: (color: Color) => void
-}
+  color: Color;
+  onColorPick: (color: Color) => void;
+};
 
 export function ColorPicker(props: Props) {
   return (
@@ -23,5 +23,5 @@ export function ColorPicker(props: Props) {
         <ColorValuePicker color={props.color} onColorPick={props.onColorPick} />
       </div>
     </div>
-  )
+  );
 }

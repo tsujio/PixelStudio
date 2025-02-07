@@ -1,105 +1,126 @@
-import React, { useRef, useState, createContext, useContext, useMemo, useEffect } from 'react'
-import { useGesture } from './GestureContext'
-import { useProjectContext } from './ProjectContext'
-import { Panel as PanelClass } from '../lib/panel'
-import { useBoardContext } from './BoardContext'
-import { ResizableArea, ResizeEvent } from './ResizableArea'
+import React, { useRef, useState, createContext, useContext, useMemo, useEffect } from "react";
+import { useGesture } from "./GestureContext";
+import { useProjectContext } from "./ProjectContext";
+import { Panel as PanelClass } from "../lib/panel";
+import { useBoardContext } from "./BoardContext";
+import { ResizableArea, ResizeEvent } from "./ResizableArea";
 
 type PanelContextValue = {
-  panelId: string
-  setPanelName: (name: string) => void
-  setPanelPositionOffset: (position: [number, number]) => void
-  resize: ResizeEvent | undefined
-}
+  panelId: string;
+  setPanelName: (name: string) => void;
+  setPanelPositionOffset: (position: [number, number]) => void;
+  resize: ResizeEvent | undefined;
+};
 
-const PanelContext = createContext<PanelContextValue | null>(null)
+const PanelContext = createContext<PanelContextValue | null>(null);
 
 export function usePanelContext() {
-  const value = useContext(PanelContext)
+  const value = useContext(PanelContext);
   if (value === null) {
-    throw new Error("Not in a panel context")
+    throw new Error("Not in a panel context");
   }
-  return value
+  return value;
 }
 
 type Props = {
-  panel: PanelClass
-  top: number
-  left: number
-  zIndex: number
-  onMountChange: (panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => void,
-  panelRefs: {panel: PanelClass, ref: React.RefObject<HTMLElement>}[]
-  children: React.ReactNode
-}
+  panel: PanelClass;
+  top: number;
+  left: number;
+  zIndex: number;
+  onMountChange: (panel: PanelClass, ref: React.RefObject<HTMLElement> | null) => void;
+  panelRefs: { panel: PanelClass; ref: React.RefObject<HTMLElement> }[];
+  children: React.ReactNode;
+};
 
 export function Panel(props: Props) {
-  const { updateProject } = useProjectContext()
-  const { boardNavigation } = useBoardContext()
+  const { updateProject } = useProjectContext();
+  const { boardNavigation } = useBoardContext();
 
-  const panelRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (props.onMountChange) {
-      props.onMountChange(props.panel, panelRef)
+      props.onMountChange(props.panel, panelRef);
       return () => {
-        props.onMountChange(props.panel, null)
-      }
+        props.onMountChange(props.panel, null);
+      };
     }
-  }, [props.panel, props.onMountChange])
+  }, [props.panel, props.onMountChange]);
 
-  const [dragging, setDragging] = useState<boolean>(false)
+  const [dragging, setDragging] = useState<boolean>(false);
 
-  const [panelPositionOffset, setPanelPositionOffset] = useState<[number, number]>([0, 0])
+  const [panelPositionOffset, setPanelPositionOffset] = useState<[number, number]>([0, 0]);
 
   const draggableAreaGestureHandlers = useGesture({
-    onDragStart: e => {
-      setDragging(true)
-      return [e.pageX, e.pageY] as [number, number]
+    onDragStart: (e) => {
+      setDragging(true);
+      return [e.pageX, e.pageY] as [number, number];
     },
     onDragMove: (e, dragStartData) => {
-      const [diffX, diffY] = [e.pageX - dragStartData[0], e.pageY - dragStartData[1]]
-      setPanelPositionOffset([diffX, diffY])
+      const [diffX, diffY] = [e.pageX - dragStartData[0], e.pageY - dragStartData[1]];
+      setPanelPositionOffset([diffX, diffY]);
     },
     onDragEnd: (e, dragStartData) => {
-      const [diffX, diffY] = [e.pageX - dragStartData[0], e.pageY - dragStartData[1]]
-      updateProject({type: "movePanel", panelId: props.panel.id, x: props.panel.x + diffX / boardNavigation.zoom, y: props.panel.y + diffY / boardNavigation.zoom})
-      setPanelPositionOffset([0, 0])
-      setDragging(false)
+      const [diffX, diffY] = [e.pageX - dragStartData[0], e.pageY - dragStartData[1]];
+      updateProject({
+        type: "movePanel",
+        panelId: props.panel.id,
+        x: props.panel.x + diffX / boardNavigation.zoom,
+        y: props.panel.y + diffY / boardNavigation.zoom,
+      });
+      setPanelPositionOffset([0, 0]);
+      setDragging(false);
     },
-  })
+  });
 
   const onPointerDown = () => {
     if (panelRef.current) {
-      const rect = panelRef.current.getBoundingClientRect()
-      if (props.panelRefs.some(p => {
-        if (p.panel.id === props.panel.id || !p.ref.current || p.ref.current.style.zIndex < panelRef.current!.style.zIndex) {
-          return false
-        }
-        const rct = p.ref.current.getBoundingClientRect()
-        return rect.top < rct.bottom && rect.bottom > rct.top && rect.left < rct.right && rect.right > rct.left
-      })) {
-        updateProject({type: "setPanelZ", panelId: props.panel.id, offset: Infinity})
+      const rect = panelRef.current.getBoundingClientRect();
+      if (
+        props.panelRefs.some((p) => {
+          if (
+            p.panel.id === props.panel.id ||
+            !p.ref.current ||
+            p.ref.current.style.zIndex < panelRef.current!.style.zIndex
+          ) {
+            return false;
+          }
+          const rct = p.ref.current.getBoundingClientRect();
+          return rect.top < rct.bottom && rect.bottom > rct.top && rect.left < rct.right && rect.right > rct.left;
+        })
+      ) {
+        updateProject({ type: "setPanelZ", panelId: props.panel.id, offset: Infinity });
       }
     }
-  }
+  };
 
-  const [resize, setResize] = useState<ResizeEvent | undefined>()
+  const [resize, setResize] = useState<ResizeEvent | undefined>();
   const onResize = (e: ResizeEvent) => {
-    if (!resize || resize.diff.top !== e.diff.top || resize.diff.left !== e.diff.left || resize.diff.bottom !== e.diff.bottom || resize.diff.right !== e.diff.right || resize.fix !== e.fix) {
-      setResize(e)
+    if (
+      !resize ||
+      resize.diff.top !== e.diff.top ||
+      resize.diff.left !== e.diff.left ||
+      resize.diff.bottom !== e.diff.bottom ||
+      resize.diff.right !== e.diff.right ||
+      resize.fix !== e.fix
+    ) {
+      setResize(e);
     }
-  }
+  };
 
-  const [panelName, setPanelName] = useState<string>("")
+  const [panelName, setPanelName] = useState<string>("");
 
-  const panelContextValue = useMemo(() => ({
-    panelId: props.panel.id,
-    setPanelName,
-    setPanelPositionOffset,
-    resize,
-  }), [props.panel.id, resize])
+  const panelContextValue = useMemo(
+    () => ({
+      panelId: props.panel.id,
+      setPanelName,
+      setPanelPositionOffset,
+      resize,
+    }),
+    [props.panel.id, resize],
+  );
 
-  const zoom = boardNavigation.zoom
+  const zoom = boardNavigation.zoom;
 
   return (
     <div
@@ -129,14 +150,12 @@ export function Panel(props: Props) {
             userSelect: "none",
           }}
         >
-          <span style={{fontSize: `${Math.max(zoom * 100, 25)}%`}}>{panelName}</span>
+          <span style={{ fontSize: `${Math.max(zoom * 100, 25)}%` }}>{panelName}</span>
         </div>
         <div>
-          <PanelContext.Provider value={panelContextValue}>
-            {props.children}
-          </PanelContext.Provider>
+          <PanelContext.Provider value={panelContextValue}>{props.children}</PanelContext.Provider>
         </div>
       </ResizableArea>
     </div>
-  )
+  );
 }

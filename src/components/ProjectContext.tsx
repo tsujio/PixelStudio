@@ -1,380 +1,384 @@
-import React, { createContext, useContext, useMemo, useEffect, useReducer } from 'react'
-import { Project } from '../lib/project'
-import { Color } from "../lib/color"
-import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "../lib/drawing"
-import { DrawingPanel } from '../lib/panel'
+import React, { createContext, useContext, useMemo, useEffect, useReducer } from "react";
+import { Project } from "../lib/project";
+import { Color } from "../lib/color";
+import { Drawing, DrawingDataPixel, DrawingDataPosition, DrawingDataRect } from "../lib/drawing";
+import { DrawingPanel } from "../lib/panel";
 
 type ProjectContextValue = {
-  project: Project
-  projectHistory: ProjectHistory
-  updateProject: (action: Action) => void
-}
+  project: Project;
+  projectHistory: ProjectHistory;
+  updateProject: (action: Action) => void;
+};
 
-const ProjectContext = createContext<ProjectContextValue | null>(null)
+const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 type Action =
-  {
-    type: "newProject"
-  } |
-  {
-    type: "load"
-    json: unknown
-  } |
-  {
-    type: "rename"
-    newName: string
-  } |
-  {
-    type: "addDrawing"
-    drawing: Drawing
-    position: {
-      x: number
-      y: number
+  | {
+      type: "newProject";
     }
-  } |
-  {
-    type: "renameDrawing"
-    drawingId: string
-    newName: string
-  } |
-  {
-    type: "deleteDrawing"
-    drawingId: string
-  } |
-  {
-    type: "copyDrawing"
-    drawingId: string
-  } |
-  {
-    type: "setPixel"
-    drawingId: string
-    position: DrawingDataPosition
-    color: DrawingDataPixel
-    chainId: string
-  } |
-  {
-    type: "resizeDrawing"
-    drawingId: string
-    rect: DrawingDataRect
-  } |
-  {
-    type: "setPixelSize"
-    drawingId: string
-    pixelSize: number
-  } |
-  {
-    type: "setPalette"
-    index: number
-    color: Color | null
-  } |
-  {
-    type: "openPanel"
-    drawingId: string
-    x: number
-    y: number
-  } |
-  {
-    type: "closePanel"
-    panelId: string
-  } |
-  {
-    type: "setPanelZ"
-    panelId: string
-    offset: number
-  } |
-  {
-    type: "movePanel"
-    panelId: string
-    x: number
-    y: number
-    chainId?: string
-  } |
-  {
-    type: "undo"
-  } |
-  {
-    type: "redo"
-  } |
-  {
-    type: "markAsClean"
-  }
+  | {
+      type: "load";
+      json: unknown;
+    }
+  | {
+      type: "rename";
+      newName: string;
+    }
+  | {
+      type: "addDrawing";
+      drawing: Drawing;
+      position: {
+        x: number;
+        y: number;
+      };
+    }
+  | {
+      type: "renameDrawing";
+      drawingId: string;
+      newName: string;
+    }
+  | {
+      type: "deleteDrawing";
+      drawingId: string;
+    }
+  | {
+      type: "copyDrawing";
+      drawingId: string;
+    }
+  | {
+      type: "setPixel";
+      drawingId: string;
+      position: DrawingDataPosition;
+      color: DrawingDataPixel;
+      chainId: string;
+    }
+  | {
+      type: "resizeDrawing";
+      drawingId: string;
+      rect: DrawingDataRect;
+    }
+  | {
+      type: "setPixelSize";
+      drawingId: string;
+      pixelSize: number;
+    }
+  | {
+      type: "setPalette";
+      index: number;
+      color: Color | null;
+    }
+  | {
+      type: "openPanel";
+      drawingId: string;
+      x: number;
+      y: number;
+    }
+  | {
+      type: "closePanel";
+      panelId: string;
+    }
+  | {
+      type: "setPanelZ";
+      panelId: string;
+      offset: number;
+    }
+  | {
+      type: "movePanel";
+      panelId: string;
+      x: number;
+      y: number;
+      chainId?: string;
+    }
+  | {
+      type: "undo";
+    }
+  | {
+      type: "redo";
+    }
+  | {
+      type: "markAsClean";
+    };
 
 type ProjectHistory = {
-  current: number
+  current: number;
   history: {
-    project: Project
-    action: Action
-    clean: boolean
-  }[]
-}
+    project: Project;
+    action: Action;
+    clean: boolean;
+  }[];
+};
 
 const reducer = (projectHistory: ProjectHistory, action: Action): ProjectHistory => {
-  const { current, history } = projectHistory
+  const { current, history } = projectHistory;
 
   const pushHistory = (project: Project, replace?: boolean) => {
     if (replace) {
       return {
         current,
-        history: [...history.slice(0, current), {project, action, clean: false}],
-      }
+        history: [...history.slice(0, current), { project, action, clean: false }],
+      };
     } else {
       return {
         current: current + 1,
-        history: [...history.slice(0, current + 1), {project, action, clean: false}],
-      }
+        history: [...history.slice(0, current + 1), { project, action, clean: false }],
+      };
     }
-  }
+  };
 
   const newHistory = (project: Project) => ({
     current: 0,
-    history: [{project, action, clean: true}],
-  })
+    history: [{ project, action, clean: true }],
+  });
 
-  const project = history[current].project
+  const project = history[current].project;
   switch (action.type) {
     case "newProject": {
-      const pjt = new Project()
-      const drawing = Drawing.create(pjt.getUniqueDrawingName())
-      pjt.addDrawing(drawing)
-      pjt.openDrawingPanel(drawing.id, 0, 0)
-      return newHistory(pjt)
+      const pjt = new Project();
+      const drawing = Drawing.create(pjt.getUniqueDrawingName());
+      pjt.addDrawing(drawing);
+      pjt.openDrawingPanel(drawing.id, 0, 0);
+      return newHistory(pjt);
     }
     case "load": {
-      const pjt = Project.fromJSON(action.json)
-      return newHistory(pjt)
+      const pjt = Project.fromJSON(action.json);
+      return newHistory(pjt);
     }
     case "rename": {
-      const pjt = project.clone()
+      const pjt = project.clone();
       if (pjt.name === action.newName) {
-        return projectHistory
+        return projectHistory;
       }
-      pjt.rename(action.newName)
-      return pushHistory(pjt)
+      pjt.rename(action.newName);
+      return pushHistory(pjt);
     }
     case "addDrawing": {
-      const pjt = project.clone()
-      pjt.addDrawing(action.drawing)
-      pjt.openDrawingPanel(action.drawing.id, action.position.x, action.position.y)
-      return pushHistory(pjt)
+      const pjt = project.clone();
+      pjt.addDrawing(action.drawing);
+      pjt.openDrawingPanel(action.drawing.id, action.position.x, action.position.y);
+      return pushHistory(pjt);
     }
     case "renameDrawing": {
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
+      const pjt = project.clone();
+      const drawing = pjt.getDrawing(action.drawingId).clone();
       if (drawing.name === action.newName) {
-        return projectHistory
+        return projectHistory;
       }
-      drawing.rename(pjt.getUniqueDrawingName(action.newName))
-      pjt.addDrawing(drawing)
-      return pushHistory(pjt)
+      drawing.rename(pjt.getUniqueDrawingName(action.newName));
+      pjt.addDrawing(drawing);
+      return pushHistory(pjt);
     }
     case "deleteDrawing": {
-      const pjt = project.clone()
-      const panel = pjt.getDrawingPanel(action.drawingId)
+      const pjt = project.clone();
+      const panel = pjt.getDrawingPanel(action.drawingId);
       if (panel) {
-        pjt.closePanel(panel.id)
+        pjt.closePanel(panel.id);
       }
-      pjt.deleteDrawing(action.drawingId)
-      return pushHistory(pjt)
+      pjt.deleteDrawing(action.drawingId);
+      return pushHistory(pjt);
     }
     case "copyDrawing": {
-      const pjt = project.clone()
-      const src = pjt.getDrawing(action.drawingId).clone()
-      const tmp = Drawing.create(pjt.getUniqueDrawingName(src.name))
-      const dest = new Drawing(tmp.id, tmp.name, src.data, src.pixelSize)
-      pjt.addDrawing(dest)
-      return pushHistory(pjt)
+      const pjt = project.clone();
+      const src = pjt.getDrawing(action.drawingId).clone();
+      const tmp = Drawing.create(pjt.getUniqueDrawingName(src.name));
+      const dest = new Drawing(tmp.id, tmp.name, src.data, src.pixelSize);
+      pjt.addDrawing(dest);
+      return pushHistory(pjt);
     }
     case "setPixel": {
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
-      const modified = drawing.setPixel(action.position, action.color)
+      const pjt = project.clone();
+      const drawing = pjt.getDrawing(action.drawingId).clone();
+      const modified = drawing.setPixel(action.position, action.color);
       if (!modified) {
-        return projectHistory
+        return projectHistory;
       }
-      pjt.addDrawing(drawing)
+      pjt.addDrawing(drawing);
 
-      const prevAction = history.length > 0 ? history[current].action : null
+      const prevAction = history.length > 0 ? history[current].action : null;
       if (prevAction !== null && prevAction.type === "setPixel" && prevAction.chainId === action.chainId) {
-        return pushHistory(pjt, true)
+        return pushHistory(pjt, true);
       } else {
-        return pushHistory(pjt)
+        return pushHistory(pjt);
       }
     }
     case "resizeDrawing": {
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
-      const modified = drawing.resize(action.rect)
+      const pjt = project.clone();
+      const drawing = pjt.getDrawing(action.drawingId).clone();
+      const modified = drawing.resize(action.rect);
       if (!modified) {
-        return projectHistory
+        return projectHistory;
       }
-      pjt.addDrawing(drawing)
+      pjt.addDrawing(drawing);
 
-      const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)?.clone()
+      const panel = pjt.panels.find((p) => p instanceof DrawingPanel && p.drawingId === action.drawingId)?.clone();
       if (panel) {
         panel.move(
           panel.x + action.rect.start.columnIndex * drawing.pixelSize,
           panel.y + action.rect.start.rowIndex * drawing.pixelSize,
-        )
-        pjt.replacePanel(panel)
+        );
+        pjt.replacePanel(panel);
       }
 
-      return pushHistory(pjt)
+      return pushHistory(pjt);
     }
     case "setPixelSize": {
-      const pjt = project.clone()
-      const drawing = pjt.getDrawing(action.drawingId).clone()
+      const pjt = project.clone();
+      const drawing = pjt.getDrawing(action.drawingId).clone();
       if (drawing.pixelSize === action.pixelSize) {
-        return projectHistory
+        return projectHistory;
       }
-      drawing.setPixelSize(action.pixelSize)
-      pjt.addDrawing(drawing)
-      return pushHistory(pjt)
+      drawing.setPixelSize(action.pixelSize);
+      pjt.addDrawing(drawing);
+      return pushHistory(pjt);
     }
     case "setPalette": {
-      const pjt = project.clone()
-      const modified = pjt.setPalette(action.index, action.color)
+      const pjt = project.clone();
+      const modified = pjt.setPalette(action.index, action.color);
       if (!modified) {
-        return projectHistory
+        return projectHistory;
       }
-      return pushHistory(pjt)
+      return pushHistory(pjt);
     }
     case "openPanel": {
-      const pjt = project.clone()
-      const panel = pjt.panels.find(p => p instanceof DrawingPanel && p.drawingId === action.drawingId)
+      const pjt = project.clone();
+      const panel = pjt.panels.find((p) => p instanceof DrawingPanel && p.drawingId === action.drawingId);
       if (panel !== undefined) {
-        return projectHistory
+        return projectHistory;
       }
-      pjt.openDrawingPanel(action.drawingId, action.x, action.y)
-      return pushHistory(pjt)
+      pjt.openDrawingPanel(action.drawingId, action.x, action.y);
+      return pushHistory(pjt);
     }
     case "closePanel": {
-      const pjt = project.clone()
-      pjt.closePanel(action.panelId)
-      return pushHistory(pjt)
+      const pjt = project.clone();
+      pjt.closePanel(action.panelId);
+      return pushHistory(pjt);
     }
     case "setPanelZ": {
-      const pjt = project.clone()
-      const oldIndex = pjt.panels.findIndex(p => p.id === action.panelId)
-      pjt.setPanelZ(action.panelId, action.offset)
-      const newIndex = pjt.panels.findIndex(p => p.id === action.panelId)
+      const pjt = project.clone();
+      const oldIndex = pjt.panels.findIndex((p) => p.id === action.panelId);
+      pjt.setPanelZ(action.panelId, action.offset);
+      const newIndex = pjt.panels.findIndex((p) => p.id === action.panelId);
       if (oldIndex === newIndex) {
-        return projectHistory
+        return projectHistory;
       }
-      return pushHistory(pjt)
+      return pushHistory(pjt);
     }
     case "movePanel": {
-      const pjt = project.clone()
-      const panel = pjt.getPanel(action.panelId).clone()
+      const pjt = project.clone();
+      const panel = pjt.getPanel(action.panelId).clone();
       if (panel.x === action.x && panel.y === action.y) {
-        return projectHistory
+        return projectHistory;
       }
-      panel.move(action.x, action.y)
-      pjt.replacePanel(panel)
+      panel.move(action.x, action.y);
+      pjt.replacePanel(panel);
 
-      const prevAction = history.length > 0 ? history[current].action : null
-      if (prevAction !== null && prevAction.type === "movePanel" && action.chainId !== undefined && prevAction.chainId === action.chainId) {
-        return pushHistory(pjt, true)
+      const prevAction = history.length > 0 ? history[current].action : null;
+      if (
+        prevAction !== null &&
+        prevAction.type === "movePanel" &&
+        action.chainId !== undefined &&
+        prevAction.chainId === action.chainId
+      ) {
+        return pushHistory(pjt, true);
       } else {
-        return pushHistory(pjt)
+        return pushHistory(pjt);
       }
     }
     case "undo": {
       if (current > 0) {
-        return {...projectHistory, current: current - 1}
+        return { ...projectHistory, current: current - 1 };
       } else {
-        return projectHistory
+        return projectHistory;
       }
     }
     case "redo": {
       if (current < history.length - 1) {
-        return {...projectHistory, current: current + 1}
+        return { ...projectHistory, current: current + 1 };
       } else {
-        return projectHistory
+        return projectHistory;
       }
     }
     case "markAsClean": {
-      const hist = [...history]
+      const hist = [...history];
       if (hist[current].clean) {
-        return projectHistory
+        return projectHistory;
       }
-      hist[current] = {...hist[current], clean: true}
+      hist[current] = { ...hist[current], clean: true };
       return {
         ...projectHistory,
         history: hist,
-      }
+      };
     }
   }
-}
+};
 
 const initialProject = (() => {
   const dummy: ProjectHistory = {
     current: 0,
-    history: [{project: new Project(), action: {type: "newProject"}, clean: true}],
-  }
+    history: [{ project: new Project(), action: { type: "newProject" }, clean: true }],
+  };
 
-  const dump = localStorage.getItem("project")
+  const dump = localStorage.getItem("project");
   if (dump !== null) {
     try {
-      const json = JSON.parse(dump)
-      return reducer(dummy, {type: "load", json})
+      const json = JSON.parse(dump);
+      return reducer(dummy, { type: "load", json });
     } catch (e) {
-      console.warn("Failed to load project from localStorage", e, dump)
+      console.warn("Failed to load project from localStorage", e, dump);
     }
   }
 
-  return reducer(dummy, {type: "newProject"})
-})()
+  return reducer(dummy, { type: "newProject" });
+})();
 
 type Props = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 export const ProjectContextProvider = (props: Props) => {
-  const [projectHistory, updateProject] = useReducer(reducer, initialProject)
-  const project = projectHistory.history[projectHistory.current].project
+  const [projectHistory, updateProject] = useReducer(reducer, initialProject);
+  const project = projectHistory.history[projectHistory.current].project;
 
   useEffect(() => {
-    const dump = JSON.stringify(project)
-    localStorage.setItem("project", dump)
-  }, [project])
+    const dump = JSON.stringify(project);
+    localStorage.setItem("project", dump);
+  }, [project]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.code === "KeyZ") {
         if (e.shiftKey) {
-          updateProject({type: "redo"})
+          updateProject({ type: "redo" });
         } else {
-          updateProject({type: "undo"})
+          updateProject({ type: "undo" });
         }
       }
 
       if (e.ctrlKey && e.code === "KeyY") {
-        updateProject({type: "redo"})
+        updateProject({ type: "redo" });
       }
-    }
-    document.addEventListener("keydown", onKeyDown)
+    };
+    document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.removeEventListener("keydown", onKeyDown)
-    }
-  }, [])
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
 
-  const contextValue = useMemo(() => ({
-    project,
-    projectHistory,
-    updateProject,
-  }), [project, projectHistory])
+  const contextValue = useMemo(
+    () => ({
+      project,
+      projectHistory,
+      updateProject,
+    }),
+    [project, projectHistory],
+  );
 
-  return (
-    <ProjectContext.Provider value={contextValue}>
-      {props.children}
-    </ProjectContext.Provider>
-  )
-}
+  return <ProjectContext.Provider value={contextValue}>{props.children}</ProjectContext.Provider>;
+};
 
 export const useProjectContext = () => {
-  const value = useContext(ProjectContext)
+  const value = useContext(ProjectContext);
   if (value === null) {
-    throw new Error("Not in a project context")
+    throw new Error("Not in a project context");
   }
-  return value
-}
+  return value;
+};

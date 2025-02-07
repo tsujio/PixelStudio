@@ -1,29 +1,29 @@
-import { useHover } from "../lib/hover"
-import { IconType } from "../lib/icon"
-import { Icon } from "./Icon"
+import { useHover } from "../lib/hover";
+import { IconType } from "../lib/icon";
+import { Icon } from "./Icon";
 
 type Props = {
-  icon?: IconType
-  disabled?: boolean
-  onClick?: () => void
-  children: React.ReactNode
-}
+  icon?: IconType;
+  disabled?: boolean;
+  onClick?: () => void;
+  children: React.ReactNode;
+};
 
 export function MenuItem(props: Props) {
-  const [hover, hoverHandlers] = useHover()
+  const [hover, hoverHandlers] = useHover();
 
   const onClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (props.disabled !== true && props.onClick) {
-      props.onClick()
+      props.onClick();
     }
-  }
+  };
 
-  const icon = props.icon ?
-    <span style={{marginRight: "12px"}}>
+  const icon = props.icon ? (
+    <span style={{ marginRight: "12px" }}>
       <Icon icon={props.icon} />
-    </span> :
-    null
+    </span>
+  ) : null;
 
   return (
     <div
@@ -36,6 +36,8 @@ export function MenuItem(props: Props) {
       }}
       onClick={onClick}
       {...hoverHandlers}
-    >{icon} {props.children}</div>
-  )
+    >
+      {icon} {props.children}
+    </div>
+  );
 }

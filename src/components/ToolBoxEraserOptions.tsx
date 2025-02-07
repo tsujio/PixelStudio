@@ -1,3 +1,3 @@
 export function ToolBoxEraserOptions() {
-  return <></>
+  return <></>;
 }

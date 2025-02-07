@@ -1,54 +1,54 @@
-import { useEffect, useRef, useState } from 'react'
-import { useWindowContext } from './WindowContext'
+import { useEffect, useRef, useState } from "react";
+import { useWindowContext } from "./WindowContext";
 
 type Props = {
-  open: boolean
-  anchor: HTMLElement | null
-  zIndex?: number
-  onClose: () => void
-  children: React.ReactNode
-}
+  open: boolean;
+  anchor: HTMLElement | null;
+  zIndex?: number;
+  onClose: () => void;
+  children: React.ReactNode;
+};
 
 export function Menu(props: Props) {
-  const { windowSize } = useWindowContext()
+  const { windowSize } = useWindowContext();
 
-  const ref = useRef<HTMLDivElement | null>(null)
+  const ref = useRef<HTMLDivElement | null>(null);
 
-  const [position, setPosition] = useState<[number, number] | null>(null)
+  const [position, setPosition] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (props.open && props.anchor && ref.current) {
-      const anchorRect = props.anchor.getBoundingClientRect()
-      const menuRect = ref.current.getBoundingClientRect()
+      const anchorRect = props.anchor.getBoundingClientRect();
+      const menuRect = ref.current.getBoundingClientRect();
       if (anchorRect.bottom + menuRect.height < windowSize.height) {
-        setPosition([anchorRect.bottom, anchorRect.left])
+        setPosition([anchorRect.bottom, anchorRect.left]);
       } else {
-        setPosition([anchorRect.bottom - menuRect.height, anchorRect.right])
+        setPosition([anchorRect.bottom - menuRect.height, anchorRect.right]);
       }
     }
-  }, [props.open, props.anchor, windowSize])
+  }, [props.open, props.anchor, windowSize]);
 
   useEffect(() => {
     const handler = (e: PointerEvent) => {
       if (ref.current && position) {
-        const rect = ref.current.getBoundingClientRect()
+        const rect = ref.current.getBoundingClientRect();
         if (e.pageX < rect.left || rect.right < e.pageX || e.pageY < rect.top || rect.bottom < e.pageY) {
-          props.onClose()
+          props.onClose();
         }
       }
-    }
-    document.addEventListener("pointerdown", handler)
+    };
+    document.addEventListener("pointerdown", handler);
     return () => {
-      document.removeEventListener("pointerdown", handler)
-    }
-  }, [position])
+      document.removeEventListener("pointerdown", handler);
+    };
+  }, [position]);
 
   if (!props.open && position) {
-    setPosition(null)
+    setPosition(null);
   }
 
   if (!props.anchor) {
-    return null
+    return null;
   }
 
   return (
@@ -68,5 +68,5 @@ export function Menu(props: Props) {
     >
       {props.children}
     </div>
-  )
+  );
 }
