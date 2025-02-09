@@ -109,7 +109,12 @@ export class HSVColor extends Color {
 
   constructor(hsv: [number, number, number]) {
     super();
-    this.#hsv = [...hsv];
+    let [h, s, v] = hsv;
+    h %= 360;
+    if (h < 0) {
+      h += 360;
+    }
+    this.#hsv = [h, s, v];
   }
 
   get hsv(): [number, number, number] {
